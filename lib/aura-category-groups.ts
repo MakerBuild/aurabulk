@@ -71,13 +71,17 @@ export function parseAuraCategoryKey(key: string): ParsedAuraCategory {
   return { group: "other" };
 }
 
-// Fees, maker rebates, held OI and liquidations/ADL are all the same activity
-// — trading on mainnet — so a week's drill-down shows them as one row instead
-// of four. Referrals and the protocol bonus stay on their own.
+// Mainnet trading arrives as one "trading" bucket plus maker rebates kept
+// separate; before 2026-09-17 upstream split the first into fees, held OI and
+// liquidations/ADL instead. Both shapes are the same activity, so a week's
+// drill-down shows them as one row either way. Referrals and the protocol
+// bonus stay on their own.
 const MAINNET_SUFFIX_RE = /^mainnet_week(\d+)_(.+)$/;
 const MAINNET_TRADING_SUFFIXES = new Set([
-  "fees",
+  "trading",
   "maker",
+  // Retired upstream keys — kept so older snapshots still collapse correctly.
+  "fees",
   "held_oi",
   "liquidations_adl",
 ]);
@@ -95,7 +99,9 @@ function mergeMainnetTrading(items: CategoryBreakdownItem[]): CategoryBreakdownI
       continue;
     }
 
-    const mergedKey = `mainnet_week${match[1]}_trading`;
+    // "_all" keeps this synthetic key distinct from upstream's own
+    // "mainnet_weekN_trading", which would otherwise collide with it.
+    const mergedKey = `mainnet_week${match[1]}_trading_all`;
     const existing = mergedByWeek.get(mergedKey);
     if (existing) {
       existing.points += item.points;
