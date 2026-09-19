@@ -12,9 +12,22 @@ import {
   writeVolumeLeaderboardFile,
 } from "../lib/volume-leaderboard";
 
+// The sweep is the only thing that reaches a wallet outside the fast lists, so
+// its size sets how stale a quiet wallet's row can get: at 400 a wallet waited
+// 141 runs, and with GitHub landing these every three to five hours that was
+// about twenty days. 1200 brings a full pass to roughly a week.
 const BATCH = Number.isFinite(Number(process.env.VOLUME_SCAN_BATCH))
   ? Number(process.env.VOLUME_SCAN_BATCH)
-  : 400;
+  : 1200;
+
+// Mainnet trading pays Aura, so anyone trading real size climbs this ranking —
+// sampling the top thousand every run keeps active traders current without
+// waiting for the sweep. At 100 a wallet ranked 433 with $1.9M of volume sat
+// at zero for a fortnight.
+const TOP_AURA = 1000;
+
+// Wallets already known to trade, refreshed every run regardless of rank.
+const TOP_KNOWN = 200;
 
 async function main() {
   const wallets = getLeaderboard().map((entry) => entry.wallet);
@@ -24,9 +37,9 @@ async function main() {
   const known = prev.rows
     .filter((row) => row.volumeUsd > 0 || (row.pnlUsd ?? 0) !== 0)
     .sort((a, b) => b.volumeUsd - a.volumeUsd)
-    .slice(0, 80)
+    .slice(0, TOP_KNOWN)
     .map((row) => row.wallet);
-  const topAura = wallets.slice(0, 100);
+  const topAura = wallets.slice(0, TOP_AURA);
 
   const start = ((prev.cursor % wallets.length) + wallets.length) % wallets.length;
   const scan: string[] = [];
@@ -45,7 +58,9 @@ async function main() {
   });
 
   console.log(
-    `[volume] rows=${next.rows.length} scanned=${scan.length} cursor=${next.cursor}`,
+    `[volume] rows=${next.rows.length} sampled=${sampled.length}` +
+      ` scanned=${scan.length} topAura=${topAura.length} known=${known.length}` +
+      ` cursor=${next.cursor} sweepRuns=${Math.ceil(wallets.length / BATCH)}`,
   );
 }
 
