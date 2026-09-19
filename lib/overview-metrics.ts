@@ -1,5 +1,5 @@
 import { aggregateBySource, type CategoryBreakdownItem } from "@/lib/aura-category-groups";
-import { DEPOSITOR_AURA_RANGES } from "@/lib/utils";
+import { AURA_TIER_NAMES, DEPOSITOR_AURA_RANGES } from "@/lib/utils";
 
 function numFull(value: number): string {
   return Math.round(value).toLocaleString("en-US");
@@ -196,14 +196,11 @@ export function buildOverviewPanels(input: {
   // Optional access, not an assertion: a metrics file written before this
   // field existed would otherwise take the whole Overview down with it.
   const at = (i: number) => auraDistribution?.[i] ?? EMPTY_BUCKET;
-  const auraTiers = [
-    { id: "snowflake", label: "Snowflake (<10 AURA)", bucket: at(0) },
-    { id: "bulker", label: "Bulker (10-100 AURA)", bucket: at(1) },
-    { id: "lilYeti", label: "Lil Yeti (100-1k AURA)", bucket: at(2) },
-    { id: "bulkingYeti", label: "Bulking Yeti (1k-10k AURA)", bucket: at(3) },
-    { id: "auramaxer", label: "Auramaxer (10k-100k AURA)", bucket: at(4) },
-    { id: "megalodon", label: "Megalodon (100k+ AURA)", bucket: at(5) },
-  ] as const;
+  const auraTiers = AURA_TIER_NAMES.map((name, i) => ({
+    id: name.replace(/\s+/g, "").toLowerCase(),
+    label: `${name} (${DEPOSITOR_AURA_RANGES[i].label})`,
+    bucket: at(i),
+  }));
   const tierDefs = auraTiers.map((t, i) => ({
     id: t.id,
     label: t.label,

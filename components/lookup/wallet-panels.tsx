@@ -15,7 +15,7 @@ import {
   chartPrimaryRamp,
   type OverviewDonutSegment,
 } from "@/lib/overview-metrics";
-import { categoryLabel, cn, formatNumber, formatUsd } from "@/lib/utils";
+import { auraTierName, categoryLabel, cn, formatNumber, formatUsd } from "@/lib/utils";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 
 export function weekBreakdown(categories: Record<string, number> | undefined) {
@@ -146,25 +146,37 @@ export function PersonalSourcesPanel({ data }: { data: WalletData }) {
   );
 }
 
+/** PnL keeps its sign — "-$133" and "$133" are opposite outcomes, and a bare
+ *  figure would read as a gain either way. */
+function formatSignedUsd(value: number | null | undefined): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  if (value === 0) return formatUsd(0);
+  return value < 0 ? `-${formatUsd(Math.abs(value))}` : `+${formatUsd(value)}`;
+}
+
 export function AuraStatsPanel({ data }: { data: WalletData }) {
   const narrow = useNarrowViewport();
-  const avgWeeks = data.hold_time_days > 0 ? data.hold_time_days / 7 : 0;
-  const avgAmount = averageHeldAmount(data);
+  const exchange = data.exchange;
+  const tier = auraTierName(data.aura);
 
   const stats: { label: string; value: string; accent?: boolean }[] = [
     { label: "Total Aura", value: formatNumber(data.aura), accent: true },
     { label: "Aura rank", value: `#${data.aura_rank.toLocaleString("en-US")}` },
-    { label: "Referrals", value: String(data.referrals_sent) },
-    { label: "Qualified", value: String(data.referrals_qualified) },
-    { label: "Peak deposit", value: formatUsd(data.deposited_amount) },
-    { label: "Current deposit", value: formatUsd(data.current_amount) },
+    { label: "Peak PnL", value: formatSignedUsd(exchange?.peakPnlUsd) },
+    { label: "Current PnL", value: formatSignedUsd(exchange?.pnlUsd) },
     {
-      label: "Avg hold duration",
-      value: avgWeeks > 0 ? `${avgWeeks.toFixed(1)} wks` : "—",
+      // Upstream reports volume over a rolling window, not for all time.
+      label: `Volume (${exchange?.windowDays ?? 14}d)`,
+      value: exchange && exchange.volumeUsd > 0 ? formatUsd(exchange.volumeUsd) : "—",
     },
     {
-      label: "Avg held balance",
-      value: avgAmount > 0 ? formatUsd(avgAmount) : "—",
+      label: "Volume rank",
+      value: exchange?.volumeRank ? `#${exchange.volumeRank.toLocaleString("en-US")}` : "—",
+    },
+    { label: "Aura tier", value: tier ?? "—" },
+    {
+      label: "Fees paid",
+      value: typeof exchange?.feesUsd === "number" ? formatUsd(exchange.feesUsd) : "—",
     },
   ];
 

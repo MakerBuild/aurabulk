@@ -102,6 +102,9 @@ export interface AccountSnapshot {
   windowDays: number;
   balanceUsd: number;
   pnlUsd: number;
+  /** Lifetime trading fees, as a positive number — upstream reports them
+   *  negative, being a debit against margin. */
+  feesUsd: number;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -129,12 +132,14 @@ function readAccountSnapshot(payload: unknown): AccountSnapshot | null {
   const balanceUsd = Number(margin.totalMargin ?? margin.totalBalance);
   const realized = Number(margin.realizedPnl) || 0;
   const unrealized = Number(margin.unrealizedPnl) || 0;
+  const fees = Number(margin.fees) || 0;
   if (![volumeUsd, balanceUsd].some((n) => Number.isFinite(n))) return null;
   return {
     volumeUsd: Number.isFinite(volumeUsd) && volumeUsd > 0 ? volumeUsd : 0,
     windowDays: Number(global?.windowDays) || 14,
     balanceUsd: Number.isFinite(balanceUsd) ? balanceUsd : 0,
     pnlUsd: realized + unrealized,
+    feesUsd: Math.abs(fees),
   };
 }
 

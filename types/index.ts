@@ -30,7 +30,11 @@ export interface WalletData extends LeaderboardEntry {
   percentile: number;
   hold_time_days: number;
   aura_breakdown: WalletAuraBreakdown;
+  /** Exchange figures for this wallet, or null when it has never traded. */
+  exchange: WalletExchangeStats | null;
 }
+
+import type { WalletExchangeStats } from "@/lib/volume-leaderboard";
 
 export interface Snapshot {
   timestamp: string;

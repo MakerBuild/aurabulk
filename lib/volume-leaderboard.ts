@@ -10,6 +10,10 @@ export type VolumeRow = {
   volumeUsd: number;
   balanceUsd?: number;
   pnlUsd?: number;
+  feesUsd?: number;
+  /** Highest PnL seen across our own samples. Upstream reports only the
+   *  current figure, so this can only run from when we started recording. */
+  peakPnlUsd?: number;
   updatedAt: string;
 };
 
@@ -83,6 +87,39 @@ export function attachExchangeStats(entries: LeaderboardEntry[]): LeaderboardEnt
 const SAMPLE_CONCURRENCY = 4;
 const SAMPLE_PAUSE_MS = 250;
 
+export interface WalletExchangeStats {
+  volumeUsd: number;
+  windowDays: number;
+  pnlUsd: number;
+  peakPnlUsd: number | null;
+  feesUsd: number | null;
+  /** Place on the Volume ranking, or null when the wallet has no volume. */
+  volumeRank: number | null;
+  updatedAt: string;
+}
+
+/** What the wallet lookup shows for one wallet, rank included. */
+export function getWalletExchangeStats(wallet: string): WalletExchangeStats | null {
+  const file = readVolumeLeaderboardFile();
+  const row = file.rows.find((entry) => entry.wallet === wallet);
+  if (!row) return null;
+
+  // Rows are stored sorted by volume, but only wallets with volume have a
+  // meaningful place on that ranking.
+  const ranked = file.rows.filter((entry) => entry.volumeUsd > 0);
+  const index = ranked.findIndex((entry) => entry.wallet === wallet);
+
+  return {
+    volumeUsd: row.volumeUsd,
+    windowDays: file.windowDays,
+    pnlUsd: row.pnlUsd ?? 0,
+    peakPnlUsd: row.peakPnlUsd ?? row.pnlUsd ?? null,
+    feesUsd: row.feesUsd ?? null,
+    volumeRank: index >= 0 ? index + 1 : null,
+    updatedAt: row.updatedAt,
+  };
+}
+
 export async function sampleWalletVolumes(
   wallets: string[],
   concurrency = SAMPLE_CONCURRENCY,
@@ -112,6 +149,7 @@ export async function sampleWalletVolumes(
         volumeUsd: snapshot.volumeUsd,
         balanceUsd: snapshot.balanceUsd,
         pnlUsd: snapshot.pnlUsd,
+        feesUsd: snapshot.feesUsd,
         updatedAt: now,
       };
       if (!hasExchangeActivity(row)) continue;

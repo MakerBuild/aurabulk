@@ -49,7 +49,18 @@ async function main() {
 
   const sampled = await sampleWalletVolumes([...new Set([...topAura, ...known, ...scan])]);
   const byWallet = new Map(prev.rows.map((row) => [row.wallet, row]));
-  for (const row of sampled) byWallet.set(row.wallet, row);
+  for (const row of sampled) {
+    // Upstream only ever reports the current PnL, so the high-water mark has
+    // to be carried forward by us, sample to sample.
+    const previous = byWallet.get(row.wallet);
+    const seen = [previous?.peakPnlUsd, previous?.pnlUsd, row.pnlUsd].filter(
+      (value): value is number => typeof value === "number",
+    );
+    byWallet.set(row.wallet, {
+      ...row,
+      peakPnlUsd: seen.length ? Math.max(...seen) : row.pnlUsd,
+    });
+  }
 
   const next = writeVolumeLeaderboardFile({
     cursor: (start + scan.length) % wallets.length,
