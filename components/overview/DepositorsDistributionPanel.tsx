@@ -37,6 +37,13 @@ function splitLabel(label: string): { name: string; range: string } {
   return match ? { name: match[1], range: match[2] } : { name: label, range: "" };
 }
 
+/** A tier with wallets in it never reads as 0.0%: 19 Megalodons out of 55,912
+ *  holders is 0.03%, which rounds to a zero the row plainly contradicts. */
+function formatShare(pct: number): string {
+  if (pct > 0 && pct < 0.05) return "<0.1%";
+  return `${pct.toFixed(1)}%`;
+}
+
 function auraCompact(value: number): string {
   if (!(value > 0)) return "0";
   return formatNumber(value);
@@ -639,11 +646,11 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                     {(metric === "count"
                       ? ([
                           ["Wallets", hoveredRow.count.toLocaleString("en-US")],
-                          ["Share", `${hoveredRow.pct.toFixed(1)}%`],
+                          ["Share", formatShare(hoveredRow.pct)],
                         ] as const)
                       : ([
                           ["Total Aura", auraCompact(hoveredRow.aura)],
-                          ["Share", `${hoveredRow.auraPct.toFixed(1)}%`],
+                          ["Share", formatShare(hoveredRow.auraPct)],
                           ["Avg", auraExact(hoveredRow.avgAura)],
                         ] as const)
                     ).map(([label, value]) => (
@@ -825,7 +832,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                       {row.count.toLocaleString("en-US")}
                     </span>
                     <span className={cn(CELL, "text-right font-semibold")} style={{ color }}>
-                      {row.pct.toFixed(1)}%
+                      {formatShare(row.pct)}
                     </span>
                   </>
                 )}
