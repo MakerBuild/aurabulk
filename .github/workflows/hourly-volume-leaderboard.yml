@@ -16,7 +16,10 @@ concurrency:
 jobs:
   record:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Sampling is paced to about 6.5 requests a second to stay under the
+    # exchange's rate limit, so ~2,400 wallets is roughly seven minutes of
+    # walking before retries.
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v5

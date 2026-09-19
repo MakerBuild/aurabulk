@@ -77,12 +77,19 @@ export function attachExchangeStats(entries: LeaderboardEntry[]): LeaderboardEnt
   });
 }
 
+/** Four in flight with a breath between rounds measures at about 6.5 requests
+ *  a second, which the exchange serves without a single 429; eight flat out
+ *  had two thirds of them throttled. */
+const SAMPLE_CONCURRENCY = 4;
+const SAMPLE_PAUSE_MS = 250;
+
 export async function sampleWalletVolumes(
   wallets: string[],
-  concurrency = 8,
+  concurrency = SAMPLE_CONCURRENCY,
 ): Promise<VolumeRow[]> {
   const now = new Date().toISOString();
   const rows: VolumeRow[] = [];
+  let noAnswer = 0;
 
   for (let offset = 0; offset < wallets.length; offset += concurrency) {
     const batch = wallets.slice(offset, offset + concurrency);
@@ -92,8 +99,14 @@ export async function sampleWalletVolumes(
         snapshot: await fetchAccountSnapshot(wallet),
       })),
     );
+    if (offset + concurrency < wallets.length) {
+      await new Promise((resolve) => setTimeout(resolve, SAMPLE_PAUSE_MS));
+    }
     for (const { wallet, snapshot } of snapshots) {
-      if (!snapshot) continue;
+      if (!snapshot) {
+        noAnswer += 1;
+        continue;
+      }
       const row: VolumeRow = {
         wallet,
         volumeUsd: snapshot.volumeUsd,
@@ -106,5 +119,10 @@ export async function sampleWalletVolumes(
     }
   }
 
+  // Loud on purpose: a silent shortfall here is indistinguishable from "these
+  // wallets do not trade", which is exactly how stale rows went unnoticed.
+  console.log(
+    `[volume] asked=${wallets.length} withActivity=${rows.length} noAnswer=${noAnswer}`,
+  );
   return rows;
 }

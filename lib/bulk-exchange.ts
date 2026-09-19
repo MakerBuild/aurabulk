@@ -138,19 +138,51 @@ function readAccountSnapshot(payload: unknown): AccountSnapshot | null {
   };
 }
 
+const ACCOUNT_MAX_RETRIES = 4;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * The exchange rate-limits this endpoint hard: a walk of 400 wallets at eight
+ * in flight came back 271 × 429. Returning null on those looked like "wallet
+ * has no exchange account" to every caller, which is how wallets with millions
+ * in volume sat at zero for weeks. Wait 429s and server errors out instead;
+ * only a real answer — including a 404, which genuinely means no account —
+ * ends the attempt.
+ */
 async function postAccount(wallet: string): Promise<unknown> {
-  const res = await fetch(`${EXCHANGE_API_BASE}/account`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "User-Agent": "AURA-Intelligence/1.0",
-    },
-    body: JSON.stringify({ type: "fullAccount", user: wallet }),
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return res.json();
+  for (let attempt = 0; ; attempt += 1) {
+    let res: Response;
+    try {
+      res = await fetch(`${EXCHANGE_API_BASE}/account`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "User-Agent": "AURA-Intelligence/1.0",
+        },
+        body: JSON.stringify({ type: "fullAccount", user: wallet }),
+        cache: "no-store",
+      });
+    } catch {
+      if (attempt >= ACCOUNT_MAX_RETRIES) return null;
+      await sleep(Math.min(500 * 2 ** attempt, 8_000));
+      continue;
+    }
+
+    if (res.ok) return res.json();
+    if (res.status !== 429 && res.status < 500) return null;
+    if (attempt >= ACCOUNT_MAX_RETRIES) return null;
+
+    const retryAfter = Number(res.headers.get("retry-after"));
+    await sleep(
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1_000
+        : Math.min(500 * 2 ** attempt, 8_000),
+    );
+  }
 }
 
 /** Margin, PnL, and 14d volume from an unsigned fullAccount snapshot. */
