@@ -63,20 +63,6 @@ const EMPTY_BUCKET: DepositSizeBucket = {
   auraMax: 0,
 };
 
-function mergeBuckets(buckets: DepositSizeBucket[]): DepositSizeBucket {
-  return buckets.reduce(
-    (acc, b) => ({
-      bucket: acc.bucket,
-      count: acc.count + b.count,
-      held: acc.held + b.held,
-      aura: acc.aura + b.aura,
-      auraMin: Math.min(acc.auraMin, Number.isFinite(b.auraMin) ? b.auraMin : Infinity),
-      auraMax: Math.max(acc.auraMax, Number.isFinite(b.auraMax) ? b.auraMax : 0),
-    }),
-    { ...EMPTY_BUCKET, auraMin: Infinity },
-  );
-}
-
 /** Shared by the Overview ring, Aura Sources breakdown, and Aura Distribution
  * histogram, so a source that is gold on one chart is gold on the others.
  * Drill-down views (Retro, Week N) can have more than six slices; the extra
@@ -142,10 +128,11 @@ export interface OverviewPanelsData {
     donut: OverviewDonutSegment[];
   };
   depositorsAnalysis: {
-    totalDepositors: number;
+    /** Wallets the tiers describe: every Aura holder, depositor or not. */
+    totalWallets: number;
     bars: OverviewDistributionBar[];
     ogHodlers: { count: number; pctOfDepositors: number };
-    /** Six mutually exclusive size tiers — what the ring and the stat list
+    /** Six mutually exclusive Aura bands — what the ring and the stat list
      * both draw from directly. */
     tiers: DepositTier[];
   };
@@ -155,6 +142,7 @@ export function buildOverviewPanels(input: {
   totalAura: number;
   depositWallets: number;
   depositSizeDistribution: DepositSizeBucket[];
+  auraDistribution: DepositSizeBucket[];
   ogHodlers: number;
   categoryBreakdown: CategoryBreakdownItem[];
 }): OverviewPanelsData {
@@ -162,6 +150,7 @@ export function buildOverviewPanels(input: {
     totalAura,
     depositWallets,
     depositSizeDistribution,
+    auraDistribution,
     ogHodlers,
     categoryBreakdown,
   } = input;
@@ -200,36 +189,39 @@ export function buildOverviewPanels(input: {
     })),
   };
 
-  // Size tiers keep the old names. The Aura column is the exclusive numeric
-  // band for that row — not a second name and not a dollar size.
-  const at = (i: number) => depositSizeDistribution[i] ?? EMPTY_BUCKET;
-  const megalodon = mergeBuckets(depositSizeDistribution.slice(5));
-  const sizeTiers = [
-    { id: "snowflake", label: "Snowflake (<$100)", bucket: at(0) },
-    { id: "bulker", label: "Bulker ($100-1K)", bucket: at(1) },
-    { id: "lilYeti", label: "Lil Yeti ($1K-10K)", bucket: at(2) },
-    { id: "bulkingYeti", label: "Bulking Yeti ($10K-100K)", bucket: at(3) },
-    { id: "auramaxer", label: "Auramaxer ($100K-500K)", bucket: at(4) },
-    { id: "megalodon", label: "Megalodon ($500K+)", bucket: megalodon },
+  // The tiers keep their names but are cut by the Aura a wallet holds, over
+  // every holder rather than only depositors. They were cut by deposit size
+  // and labelled with an Aura band, which stopped being true once mainnet
+  // trading started paying Aura to wallets that never deposited.
+  // Optional access, not an assertion: a metrics file written before this
+  // field existed would otherwise take the whole Overview down with it.
+  const at = (i: number) => auraDistribution?.[i] ?? EMPTY_BUCKET;
+  const auraTiers = [
+    { id: "snowflake", label: "Snowflake (<10 AURA)", bucket: at(0) },
+    { id: "bulker", label: "Bulker (10-100 AURA)", bucket: at(1) },
+    { id: "lilYeti", label: "Lil Yeti (100-1k AURA)", bucket: at(2) },
+    { id: "bulkingYeti", label: "Bulking Yeti (1k-10k AURA)", bucket: at(3) },
+    { id: "auramaxer", label: "Auramaxer (10k-100k AURA)", bucket: at(4) },
+    { id: "megalodon", label: "Megalodon (100k+ AURA)", bucket: at(5) },
   ] as const;
-  const tierDefs = sizeTiers.map((t, i) => ({
+  const tierDefs = auraTiers.map((t, i) => ({
     id: t.id,
     label: t.label,
     ...t.bucket,
     rangeLabel: DEPOSITOR_AURA_RANGES[i].label.replace(/\s+AURA$/i, ""),
-    color: chartPrimaryRamp(i, sizeTiers.length),
+    color: chartPrimaryRamp(i, auraTiers.length),
   }));
 
   // Both shares are taken against the tiers' own totals rather than against
-  // the wallet count the rest of the page quotes: `depositWallets` comes from
-  // the live totals endpoint while the tiers are cut from the leaderboard,
-  // which carries a few hundred fewer depositors — so shares based on it added
-  // up to 96.3%, and a share is only meaningful against a base its own parts
-  // add up to.
+  // the wallet count the rest of the page quotes: the tiers are cut from the
+  // leaderboard and now span every Aura holder, while `depositWallets` counts
+  // depositors from the live totals endpoint — a different population
+  // entirely. A share is only meaningful against a base its own parts add up
+  // to.
   //
-  // The held total now lands near TVL by construction, since withdrawals are
-  // netted off per wallet, but it will not match to the dollar: TVL is polled
-  // live and the leaderboard is a snapshot taken at its own moment.
+  // The held total no longer approaches TVL: wallets with Aura and no deposit
+  // sit in these tiers and hold nothing, so it covers only the depositors
+  // among them.
   const tierCountTotal = tierDefs.reduce((sum, t) => sum + t.count, 0);
   const tierHeldTotal = tierDefs.reduce((sum, t) => sum + t.held, 0);
   const tierAuraTotal = tierDefs.reduce((sum, t) => sum + t.aura, 0);
@@ -248,7 +240,7 @@ export function buildOverviewPanels(input: {
 
   const depositorsAnalysis = {
     // The population the tiers actually describe — see the note on tierBase.
-    totalDepositors: tierCountTotal,
+    totalWallets: tierCountTotal,
     bars: depositSizeDistribution.map((b) => ({
       id: b.bucket,
       label: b.bucket,

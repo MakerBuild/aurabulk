@@ -75,6 +75,24 @@ export interface DashboardMetrics {
     auraMax: number;
   }[];
   /**
+   * Wallet count, Aura and still-held USD per Aura band, smallest to largest —
+   * over every wallet holding Aura, not only depositors.
+   *
+   * The Overview tiers used to be cut by deposit size and merely labelled with
+   * an Aura band, which held while Aura came from deposits alone. Mainnet
+   * trading broke it: 42,329 wallets now hold Aura with no deposit at all, and
+   * the labels drifted an order of magnitude from the cohorts they sat on — the
+   * "<$100" tier, labelled "<10", actually spanned 2 to 44 Aura.
+   */
+  auraDistribution: {
+    bucket: string;
+    count: number;
+    held: number;
+    aura: number;
+    auraMin: number;
+    auraMax: number;
+  }[];
+  /**
    * "OG Hodlers": earned Aura in week 1 and have never withdrawn since.
    */
   ogHodlers: number;

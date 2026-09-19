@@ -17,6 +17,7 @@ export default async function OverviewPage() {
     totalAura: live.totalAura,
     depositWallets: live.depositWallets,
     depositSizeDistribution: metrics.depositSizeDistribution,
+    auraDistribution: metrics.auraDistribution,
     ogHodlers: metrics.ogHodlers,
     categoryBreakdown: metrics.categoryBreakdown,
   });

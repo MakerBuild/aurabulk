@@ -5,7 +5,7 @@ import { getLeaderboardForApp } from "@/lib/live-leaderboard";
 import { percentileValue } from "@/lib/percentiles";
 import { filterSnapshotsByRange, readSnapshots } from "@/lib/snapshots";
 import { getLeaderboardTop } from "@/lib/leaderboard-table";
-import { categoryLabel } from "@/lib/utils";
+import { DEPOSITOR_AURA_RANGES, categoryLabel } from "@/lib/utils";
 import { buildWalletData } from "@/lib/wallet-data";
 import type {
   ChartRange,
@@ -65,6 +65,31 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
     };
   });
 
+  // Cut by the Aura a wallet holds, across every wallet that holds any — the
+  // tiers on the Overview are an Aura distribution and say so, so they have to
+  // be counted that way rather than by deposit size.
+  const auraDistribution = DEPOSITOR_AURA_RANGES.map((range) => {
+    const inBand = entries.filter((e) => {
+      const aura = Number(e.aura) || 0;
+      return aura > 0 && aura >= range.min && aura < range.max;
+    });
+    return {
+      bucket: range.label,
+      count: inBand.length,
+      // Same netting as the deposit buckets: a trader who never deposited
+      // holds nothing, and contributes only to count and Aura.
+      held: inBand.reduce(
+        (sum, e) => sum + Math.max(0, e.deposited_amount - e.withdrawn_amount),
+        0
+      ),
+      aura: inBand.reduce((sum, e) => sum + (Number(e.aura) || 0), 0),
+      // The band's own edges — exact by construction now, not a percentile
+      // estimate of where the cohort happens to sit.
+      auraMin: range.min,
+      auraMax: Number.isFinite(range.max) ? range.max : 0,
+    };
+  });
+
   const categoryTotals: Record<string, number> = {};
   for (const entry of entries) {
     for (const [key, val] of Object.entries(entry.categories ?? {})) {
@@ -81,7 +106,7 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
     }))
     .sort((a, b) => b.points - a.points);
 
-  return { depositSizeDistribution, ogHodlers, categoryBreakdown };
+  return { depositSizeDistribution, auraDistribution, ogHodlers, categoryBreakdown };
 }
 
 /**
