@@ -1,0 +1,47 @@
+name: Aura Snapshot Watch
+
+on:
+  schedule:
+    # Hourly, deliberately off the top of the hour: scheduled runs sitting on
+    # :00 have been starting three to four hours late, which is what left the
+    # weekend snapshot unpublished until someone triggered it by hand.
+    - cron: "23 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aura-snapshot-watch
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      stale: ${{ steps.snapshot.outputs.stale }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compare upstream snapshot with ours
+        id: snapshot
+        run: npm run check:snapshot
+        env:
+          BULK_API_BASE: https://indexer.bulk.trade
+
+  refresh:
+    needs: check
+    if: needs.check.outputs.stale == 'true'
+    # Same job the weekly schedule runs — one definition, two ways in.
+    uses: ./.github/workflows/weekly-aura-refresh.yml

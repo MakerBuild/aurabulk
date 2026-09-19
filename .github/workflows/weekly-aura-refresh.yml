@@ -2,9 +2,14 @@ name: Weekly Aura Refresh
 
 on:
   schedule:
-    # Saturdays at 13:00 UTC
-    - cron: "0 13 * * 6"
+    # Saturdays, a few minutes past the hour. The upstream snapshot lands at
+    # 13:00 UTC, but a cron sitting exactly on :00 is the most contended slot
+    # on GitHub and was starting three to four hours late every week. The
+    # hourly Aura Snapshot Watch is what actually keeps this prompt now; this
+    # schedule is the backstop if that watcher ever stops.
+    - cron: "13 13 * * 6"
   workflow_dispatch:
+  workflow_call:
   repository_dispatch:
     types: [aura-refresh]
 
