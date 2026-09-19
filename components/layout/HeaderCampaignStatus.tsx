@@ -14,7 +14,7 @@ function utcMidnight(ms: number): number {
 }
 
 /** Tick index for Sat→Fri labels. Uses the UTC calendar day, not 24h
- * slices from Saturday 13:00 — those stay on Sunday until Monday 13:00 UTC. */
+ * slices from Saturday 12:00 — those stay on Sunday until Monday 12:00 UTC. */
 function campaignDayIndex(nowMs: number, nextSnapshotMs: number): number {
   const weekStartMs = nextSnapshotMs - 7 * MS_DAY;
   const days = Math.floor((utcMidnight(nowMs) - utcMidnight(weekStartMs)) / MS_DAY);

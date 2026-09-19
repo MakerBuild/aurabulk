@@ -1,7 +1,8 @@
 import type { Snapshot } from "@/types";
 
 const MS_PER_DAY = 86_400_000;
-const SNAPSHOT_HOUR_UTC = 13;
+// Weekly Aura drops moved from 13:00 to 12:00 UTC on 2026-09-20.
+const SNAPSHOT_HOUR_UTC = 12;
 const MAX_TREND_DAYS = 7;
 const OUTLIER_MEDIAN_MULTIPLIER = 3;
 
@@ -20,7 +21,7 @@ export interface ProjectedSnapshotTvlResult {
 
 export type ProjectedSnapshotTvl = { available: false } | ProjectedSnapshotTvlResult;
 
-/** Next Saturday 13:00 UTC strictly after `now`, or on `now` if exactly at snapshot time. */
+/** Next Saturday 12:00 UTC strictly after `now`, or on `now` if exactly at snapshot time. */
 export function getNextSnapshotTimestamp(nowMs: number = Date.now()): number {
   const now = new Date(nowMs);
   const saturday = new Date(
