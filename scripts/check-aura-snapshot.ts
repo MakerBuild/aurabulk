@@ -47,6 +47,11 @@ function report(stale: boolean, detail: string): void {
 }
 
 async function main() {
+  if (process.env.FORCE_REFRESH === "true") {
+    report(true, "forced by hand");
+    return;
+  }
+
   const local = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, "utf8")) as WalletRow[];
   const ours = new Map(local.map((row) => [row.wallet, row]));
 

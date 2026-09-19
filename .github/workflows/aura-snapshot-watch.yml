@@ -2,18 +2,31 @@ name: Aura Snapshot Watch
 
 on:
   schedule:
-    # Hourly, deliberately off the top of the hour: scheduled runs sitting on
-    # :00 have been starting three to four hours late, which is what left the
-    # weekend snapshot unpublished until someone triggered it by hand.
-    - cron: "23 * * * *"
+    # Three times an hour, off the top of the hour. GitHub drops most scheduled
+    # runs on this repo — the two "hourly" data jobs actually land every 2.5 to
+    # 5.5 hours (median 3.5) — so the cadence here is a budget of chances, not
+    # a promise: more entries, more of them survive.
+    - cron: "3,23,43 * * * *"
+    # And every ten minutes through the Saturday drop window, so the weekly
+    # snapshot is picked up close to when it lands rather than whenever the
+    # regular sweep next gets through. Cheap: a run that finds nothing new
+    # costs about a minute and touches one API page.
+    - cron: "5,15,25,35,45,55 12-15 * * 6"
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Refresh even if upstream looks unchanged"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 concurrency:
   group: aura-snapshot-watch
-  cancel-in-progress: true
+  # Never cancel: a run that is already refreshing would be killed mid-fetch by
+  # the next scheduled check. Queueing is safe — a check costs about a minute.
+  cancel-in-progress: false
 
 jobs:
   check:
@@ -39,6 +52,9 @@ jobs:
         run: npm run check:snapshot
         env:
           BULK_API_BASE: https://indexer.bulk.trade
+          # Lets a manual run exercise the refresh path on demand, which is
+          # otherwise only reachable when upstream happens to be ahead.
+          FORCE_REFRESH: ${{ inputs.force }}
 
   refresh:
     needs: check
