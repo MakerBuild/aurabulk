@@ -13,7 +13,8 @@ import {
 const EXCHANGE_API_BASE =
   process.env.BULK_EXCHANGE_API_BASE?.replace(/\/$/, "") ||
   "https://mainnet-api1.bulk.trade/api/v1";
-const OI_SIDES = 2;
+/** One side, as the exchange itself displays it — see lib/live-exchange-payload. */
+const OI_SIDES = 1;
 
 async function fetchJson<T>(path: string): Promise<T> {
   const url = `${EXCHANGE_API_BASE}${path}`;

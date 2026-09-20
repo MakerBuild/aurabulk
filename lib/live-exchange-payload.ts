@@ -5,8 +5,14 @@ import { getExchangeLevelHistory, recordExchangeLevels } from "@/lib/exchange-le
 import { sumCandleVolumes } from "@/lib/volume-history";
 
 export const LIVE_EXCHANGE_TTL_MS = 15_000;
-/** Official `/stats` OI is one-sided; display longs + shorts. */
-const OI_SIDES = 2;
+/**
+ * `/stats` reports open interest the way the exchange's own market list does —
+ * one side, priced at mark. We used to double it on the theory that the
+ * official figure needed longs and shorts added together, which put $12.36M on
+ * the card against $6.18M upstream and $6.14M summed off BULK's own per-market
+ * column. Take it as given.
+ */
+const OI_SIDES = 1;
 
 export interface LiveExchangePayload {
   volume24hUsd: number;
