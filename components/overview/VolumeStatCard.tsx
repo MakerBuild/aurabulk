@@ -127,7 +127,7 @@ export function VolumeStatCard() {
     : 0;
   const delta = mode === "24h" ? exchange.volume24hUsd - prev24h : exchange.volume24hUsd;
   const range = seriesRange(series);
-  const trades = exchange.tradesTotal;
+  const submissions = exchange.submissionsTotal;
 
   return (
     <StatSparkCard
@@ -169,8 +169,9 @@ export function VolumeStatCard() {
         { label: "Low", value: range ? usdBoard(range.low) : "—" },
         { label: "High", value: range ? usdBoard(range.high) : "—" },
         {
-          label: "Trades",
-          value: trades > 0 ? trades.toLocaleString("en-US") : "—",
+          // Submissions, not fills — the exchange publishes no fill count.
+          label: "Submissions",
+          value: submissions > 0 ? submissions.toLocaleString("en-US") : "—",
         },
       ]}
     />

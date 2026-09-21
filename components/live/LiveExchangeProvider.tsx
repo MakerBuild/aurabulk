@@ -53,7 +53,7 @@ export function LiveExchangeProvider({
           prev.volumeTotalUsd === next.volumeTotalUsd &&
           prev.openInterestUsd === next.openInterestUsd &&
           prev.activeTraders === next.activeTraders &&
-          prev.tradesTotal === next.tradesTotal &&
+          prev.submissionsTotal === next.submissionsTotal &&
           prev.tps === next.tps &&
           prev.totalAccounts === next.totalAccounts &&
           prev.oiHistory.length === next.oiHistory.length &&

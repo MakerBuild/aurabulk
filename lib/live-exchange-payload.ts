@@ -1,5 +1,4 @@
 import { fetchExchangeMetrics, fetchExchangeStats } from "@/lib/bulk-exchange";
-import { fetchBulkstatsTradeStats } from "@/lib/bulkstats";
 import type { LevelPoint } from "@/lib/exchange-level-history";
 import { getExchangeLevelHistory, recordExchangeLevels } from "@/lib/exchange-level-store";
 import { sumCandleVolumes } from "@/lib/volume-history";
@@ -17,9 +16,13 @@ const OI_SIDES = 1;
 export interface LiveExchangePayload {
   volume24hUsd: number;
   volumeTotalUsd: number;
-  /** All-time unique fills. BulkStats exposes no 24h fill count, so there is
-   *  deliberately no `trades24h` — the old field held this same total. */
-  tradesTotal: number;
+  /**
+   * Signed submissions the executor has accepted, all-time, from `/metrics`.
+   * Not a fill count: the official API exposes none. Kline `n` counts order
+   * updates — 6.5M on BTC alone in a day — and the other `/metrics` counters
+   * are network packets. TPS is derived from this same field.
+   */
+  submissionsTotal: number;
   openInterestUsd: number;
   activeTraders: number;
   totalAccounts: number;
@@ -32,7 +35,7 @@ export interface LiveExchangePayload {
 const EMPTY: LiveExchangePayload = {
   volume24hUsd: 0,
   volumeTotalUsd: 0,
-  tradesTotal: 0,
+  submissionsTotal: 0,
   openInterestUsd: 0,
   activeTraders: 0,
   totalAccounts: 0,
@@ -76,12 +79,11 @@ export async function buildLiveExchangePayload(
     // network-level rejection rejected the lot and dropped the payload to
     // zeros — which is what blanked every KPI in production while /stats and
     // klines were answering fine on their own.
-    const [statsR, metricsR, candleR, fillsR] = await Promise.allSettled([
+    const [statsR, metricsR, candleR] = await Promise.allSettled([
       fetchExchangeStats(revalidate),
       // no-store only on the live API path; a static render must not use it.
       fetchExchangeMetrics(revalidate == null, revalidate),
       sumCandleVolumes(revalidate),
-      fetchBulkstatsTradeStats(revalidate),
     ]);
 
     function settled<T>(result: PromiseSettledResult<T>, label: string): T | null {
@@ -93,17 +95,16 @@ export async function buildLiveExchangePayload(
     const stats = settled(statsR, "stats");
     const metrics = settled(metricsR, "metrics");
     const candleVolume = settled(candleR, "klines");
-    const fillStats = settled(fillsR, "bulkstats");
 
     // Nothing answered — hold the last good payload instead of publishing
     // zeros over it.
-    if (!stats && !metrics && !candleVolume && !fillStats) {
+    if (!stats && !metrics && !candleVolume) {
       return payloadCache?.data ?? EMPTY;
     }
     const unique = Number(metrics?.unique_submissions) || 0;
     const sampled = unique > 0 ? tpsFromSample(unique, Date.now()) : null;
     const tps = sampled ?? payloadCache?.data.tps ?? null;
-    const uniqueFills = fillStats?.trades || payloadCache?.data.tradesTotal || 0;
+
     const data: LiveExchangePayload = {
       // Volume from klines only. `/stats`, `/ticker`, and ticker WS fields
       // currently under-report 24h volume / change.
@@ -113,9 +114,7 @@ export async function buildLiveExchangePayload(
         candleVolume?.volume24hUsd ||
         payloadCache?.data.volumeTotalUsd ||
         0,
-      // Unique fills from BulkStats (same Total Trades as their General card).
-      // Candle `n` and `unique_submissions` are not fill counts.
-      tradesTotal: uniqueFills,
+      submissionsTotal: unique || payloadCache?.data.submissionsTotal || 0,
       // A source that is down holds its previous reading rather than
       // reporting a real zero.
       openInterestUsd:
