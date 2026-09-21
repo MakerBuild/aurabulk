@@ -5,7 +5,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -15,6 +14,14 @@ import type { LiveExchangePayload } from "@/lib/live-exchange-payload";
 const POLL_MS = 20_000;
 
 const LiveExchangeContext = createContext<LiveExchangePayload | null>(null);
+/** Separate from the payload on purpose: TPS changes on every poll, and
+ *  folding it into the payload object would give every consumer a new
+ *  identity each time — the re-render the skip-write below exists to avoid. */
+const LiveTpsContext = createContext<number | null>(null);
+
+export function useLiveTps(): number | null {
+  return useContext(LiveTpsContext);
+}
 
 export function useLiveExchange(): LiveExchangePayload {
   const value = useContext(LiveExchangeContext);
@@ -106,10 +113,9 @@ export function LiveExchangeProvider({
     return () => window.clearInterval(intervalId);
   }, [refresh]);
 
-  const value = useMemo(
-    () => (clientTps == null ? data : { ...data, tps: clientTps }),
-    [data, clientTps],
+  return (
+    <LiveExchangeContext.Provider value={data}>
+      <LiveTpsContext.Provider value={clientTps}>{children}</LiveTpsContext.Provider>
+    </LiveExchangeContext.Provider>
   );
-
-  return <LiveExchangeContext.Provider value={value}>{children}</LiveExchangeContext.Provider>;
 }

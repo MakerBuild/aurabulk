@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useLiveExchange } from "@/components/live/LiveExchangeProvider";
+import { useLiveExchange, useLiveTps } from "@/components/live/LiveExchangeProvider";
 import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
 import {
   StatSparkCard,
@@ -133,7 +133,7 @@ export function VolumeStatCard() {
     : 0;
   const delta = mode === "24h" ? exchange.volume24hUsd - prev24h : exchange.volume24hUsd;
   const range = seriesRange(series);
-  const tps = exchange.tps;
+  const tps = useLiveTps();
 
   return (
     <StatSparkCard
