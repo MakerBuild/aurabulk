@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -32,6 +33,12 @@ export function LiveExchangeProvider({
 }) {
   const [data, setData] = useState(initial);
   const inflightRef = useRef<Promise<void> | null>(null);
+  // TPS is measured here and nowhere else. Server-side it paired whatever two
+  // readings an instance held, and a cached /metrics response put a day
+  // between them — 11,547/s reported against an actual 109/s. Two polls here
+  // are two distinct readings of a counter, timed by the payload itself.
+  const sampleRef = useRef<{ total: number; at: number } | null>(null);
+  const [clientTps, setClientTps] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
     if (inflightRef.current) return inflightRef.current;
@@ -41,6 +48,25 @@ export function LiveExchangeProvider({
         const response = await fetch("/api/live-exchange");
         if (!response.ok) return;
         const next: LiveExchangePayload = await response.json();
+
+        // Timed by the payload's own `updatedAt`, not the browser clock: the
+        // route is CDN-cached for 15s, so two polls can return one reading,
+        // and dividing by wall time would report that as a drop to zero. A
+        // counter that went backwards means the node restarted — start over
+        // rather than publish a negative rate.
+        const at = Date.parse(next.updatedAt);
+        const prevSample = sampleRef.current;
+        if (Number.isFinite(at) && next.submissionsTotal > 0) {
+          if (prevSample && at > prevSample.at) {
+            const seconds = (at - prevSample.at) / 1000;
+            const delta = next.submissionsTotal - prevSample.total;
+            if (delta >= 0 && seconds >= 1) setClientTps(delta / seconds);
+            else if (delta < 0) setClientTps(null);
+          }
+          if (!prevSample || at > prevSample.at) {
+            sampleRef.current = { total: next.submissionsTotal, at };
+          }
+        }
         // Skip the write when nothing moved. Every consumer under this
         // provider — KPI cards, sparklines, the header — re-renders on
         // setData, and the poll lands every 20s whether the numbers changed
@@ -80,5 +106,10 @@ export function LiveExchangeProvider({
     return () => window.clearInterval(intervalId);
   }, [refresh]);
 
-  return <LiveExchangeContext.Provider value={data}>{children}</LiveExchangeContext.Provider>;
+  const value = useMemo(
+    () => (clientTps == null ? data : { ...data, tps: clientTps }),
+    [data, clientTps],
+  );
+
+  return <LiveExchangeContext.Provider value={value}>{children}</LiveExchangeContext.Provider>;
 }

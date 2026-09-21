@@ -75,6 +75,12 @@ function formatSparkTime(t: number, mode: VolumeMode): string {
   });
 }
 
+/** One decimal below ten, none above — 108 reads as throughput, 8.4 does not. */
+function formatTps(value: number | null): string {
+  if (value == null || !Number.isFinite(value) || value < 0) return "—";
+  return value >= 10 ? Math.round(value).toLocaleString("en-US") : value.toFixed(1);
+}
+
 export function VolumeStatCard() {
   const exchange = useLiveExchange();
   const [mode, setMode] = useState<VolumeMode>("24h");
@@ -127,7 +133,7 @@ export function VolumeStatCard() {
     : 0;
   const delta = mode === "24h" ? exchange.volume24hUsd - prev24h : exchange.volume24hUsd;
   const range = seriesRange(series);
-  const submissions = exchange.submissionsTotal;
+  const tps = exchange.tps;
 
   return (
     <StatSparkCard
@@ -169,9 +175,11 @@ export function VolumeStatCard() {
         { label: "Low", value: range ? usdBoard(range.low) : "—" },
         { label: "High", value: range ? usdBoard(range.high) : "—" },
         {
-          // Submissions, not fills — the exchange publishes no fill count.
-          label: "Submissions",
-          value: submissions > 0 ? submissions.toLocaleString("en-US") : "—",
+          // Submissions per second — orders, cancels and modifies. Not trades:
+          // at the ~109/s measured here, a day of fills would be 9.4M against
+          // $36M of volume, which would put the average trade at four dollars.
+          label: "TPS",
+          value: formatTps(tps),
         },
       ]}
     />

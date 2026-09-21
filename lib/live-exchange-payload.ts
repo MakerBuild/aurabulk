@@ -17,15 +17,23 @@ export interface LiveExchangePayload {
   volume24hUsd: number;
   volumeTotalUsd: number;
   /**
-   * Signed submissions the executor has accepted, all-time, from `/metrics`.
-   * Not a fill count: the official API exposes none. Kline `n` counts order
-   * updates — 6.5M on BTC alone in a day — and the other `/metrics` counters
-   * are network packets. TPS is derived from this same field.
+   * Signed submissions the executor has accepted from `/metrics` — orders,
+   * cancels and modifies, not fills. The official API exposes no fill count:
+   * kline `n` counts order updates, 6.5M on BTC-USD alone in a day, and the
+   * other `/metrics` counters are network packets.
+   *
+   * It counts from the node's last restart, not all time: at the 109/s this
+   * was measured running, the counter's 3.85M is about ten hours of traffic.
+   * So it can fall, which is why nothing displays it directly — it is here to
+   * derive TPS from, and the consumers of that handle the reset.
    */
   submissionsTotal: number;
   openInterestUsd: number;
   activeTraders: number;
   totalAccounts: number;
+  /** Submissions per second. Always null on the wire — the client fills it in
+   *  from consecutive `submissionsTotal` readings, which is the only place
+   *  two reliably distinct readings exist. */
   tps: number | null;
   oiHistory: LevelPoint[];
   tradersHistory: LevelPoint[];
@@ -46,16 +54,6 @@ const EMPTY: LiveExchangePayload = {
 };
 
 let payloadCache: { at: number; data: LiveExchangePayload } | null = null;
-let lastTxSample: { at: number; unique: number } | null = null;
-
-function tpsFromSample(unique: number, at: number): number | null {
-  const prev = lastTxSample;
-  lastTxSample = { at, unique };
-  if (!prev || unique < prev.unique) return null;
-  const dt = (at - prev.at) / 1000;
-  if (dt < 0.4) return null;
-  return (unique - prev.unique) / dt;
-}
 
 /**
  * `revalidate` is the fetch-cache window for the upstream calls. It matters
@@ -102,8 +100,6 @@ export async function buildLiveExchangePayload(
       return payloadCache?.data ?? EMPTY;
     }
     const unique = Number(metrics?.unique_submissions) || 0;
-    const sampled = unique > 0 ? tpsFromSample(unique, Date.now()) : null;
-    const tps = sampled ?? payloadCache?.data.tps ?? null;
 
     const data: LiveExchangePayload = {
       // Volume from klines only. `/stats`, `/ticker`, and ticker WS fields
@@ -131,7 +127,11 @@ export async function buildLiveExchangePayload(
       totalAccounts:
         Number(metrics?.executor_cardinality?.primary?.world_accounts) ||
         (payloadCache?.data.totalAccounts ?? 0),
-      tps,
+      // Always null from here: see the field's note. Measuring it server-side
+      // paired whatever two readings an instance happened to hold, and a
+      // cached /metrics response made those a day apart — which reported
+      // 11,547/s against an actual 109/s.
+      tps: null,
       oiHistory: [],
       tradersHistory: [],
       updatedAt: new Date(now).toISOString(),
