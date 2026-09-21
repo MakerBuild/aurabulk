@@ -120,6 +120,11 @@ export async function buildLiveExchangePayload(
       openInterestUsd:
         (Number(stats?.openInterest?.totalUsd) || 0) * OI_SIDES ||
         (payloadCache?.data.openInterestUsd ?? 0),
+      // `cached_accounts` is accounts holding a position or an open order —
+      // confirmed by BULK, and it behaves that way: the series rises and falls
+      // intraday rather than accumulating, and 43% of our top 300 wallets by
+      // volume hold one right now against 17% of all accounts on the exchange.
+      // So it is genuinely active traders, not a node cache statistic.
       activeTraders:
         Number(metrics?.executor_cardinality?.primary?.cached_accounts) ||
         (payloadCache?.data.activeTraders ?? 0),

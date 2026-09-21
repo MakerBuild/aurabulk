@@ -37,6 +37,7 @@ async function main() {
 
   const now = Date.now();
   const openInterestUsd = (Number(stats.openInterest?.totalUsd) || 0) * OI_SIDES;
+  // Accounts with a position or an open order — see lib/live-exchange-payload.
   const activeTraders = Number(metrics.executor_cardinality?.primary?.cached_accounts) || 0;
   if (!(openInterestUsd > 0) || !(activeTraders > 0)) {
     throw new Error(`bad snapshot oi=${openInterestUsd} traders=${activeTraders}`);
