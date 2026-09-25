@@ -32,24 +32,14 @@
      rgb(var(--t-accent-rgb) / 0.5) instead of a second hard-coded rgba. */
   --t-accent: #ffb547;
   --t-accent-rgb: 255 181 71;
-  /* One accent, not a family. These aliases used to carry lighter and
-     muddier golds (#ffd591, #c47e2e, #6a4018); everything now resolves to
-     --t-accent exactly, so labels, chart marks, toggles and highlights are
-     all #FFB547. The pulses that shifted hue shift their glow instead. */
-  --t-accent-hover: var(--t-accent);
-  --t-accent-hi: var(--t-accent);
-  --t-accent-deep: var(--t-accent);
-  --t-accent-mid: var(--t-accent);
-  --t-accent-pale: var(--t-accent);
 
-  /* Status — identical in both themes by design. */
+  /* Status — identical in both themes by design, so declared only here. */
   --t-green: #00b481;
   --t-red: #ef4a3c;
+  --t-red-rgb: 239 74 60;
 
   /* Supporting data tones + the ramp interpolated between them,
      ordered most prominent -> least against this theme's background. */
-  --t-chart-a: #544a4c;
-  --t-chart-b: #c6b6ba;
   --t-chart-b-rgb: 198 182 186;
   --t-ramp-0: #c6b6ba;
   --t-ramp-1: #b3a4a8;
@@ -64,11 +54,7 @@
   --t-line-soft: rgba(255, 255, 255, 0.04);
   --t-line-strong: rgba(255, 255, 255, 0.1);
 
-  /* Opaque faces that sit under a spinning gradient ring, so they cannot
-     be transparent or the ring shows through the middle. */
-  --t-card-hover-face: #17171a;
-  --t-badge-face: #111e16;
-  --t-shimmer-dim: #c8c8c8;
+  /* The white hot-spot at the head of the search button's spinning ring. */
   --t-shimmer-hi: #ffffff;
   /* Spark line rides above the accent wash, so it is the plane's contrast
      colour rather than the accent: white on the dark plane, ink on cream. */
@@ -94,20 +80,9 @@
 
   --t-accent: #5a2c40;
   --t-accent-rgb: 90 44 64;
-  --t-accent-hover: var(--t-accent);
-  --t-accent-hi: var(--t-accent);
-  --t-accent-deep: var(--t-accent);
-  --t-accent-mid: var(--t-accent);
-  --t-accent-pale: var(--t-accent);
-
-  --t-green: #00b481;
-  --t-red: #ef4a3c;
 
   /* Same two tones, walked the other way: on cream the darker mauve is
      the prominent one, so index 0 stays "most prominent". */
-  --t-chart-a: #736a6c;
-  --t-chart-b: #c6b6ba;
-  --t-chart-b-rgb: 198 182 186;
   --t-ramp-0: #736a6c;
   --t-ramp-1: #817779;
   --t-ramp-2: #8f8386;
@@ -120,10 +95,6 @@
   --t-line-soft: rgba(27, 26, 20, 0.06);
   --t-line-strong: rgba(27, 26, 20, 0.16);
 
-  --t-card-hover-face: #fffff9;
-  --t-badge-face: #eaf6f1;
-  --t-shimmer-dim: #b8b2a4;
-  --t-shimmer-hi: #ffffff;
   --t-spark-line: #1b1a14;
   --t-veil-rgb: 27 26 20;
 }
@@ -131,7 +102,6 @@
 @theme inline {
   --color-bulk-base: var(--t-base);
   --color-bg-primary: var(--t-bg-primary);
-  --color-bg-raised: var(--t-bg-raised);
   --color-bg-secondary: var(--t-bg-secondary);
 
   --color-text-primary: var(--t-text-primary);
@@ -140,14 +110,9 @@
   --color-text-dim: var(--t-text-dim);
 
   --color-accent: var(--t-accent);
-  --color-accent-hover: var(--t-accent-hover);
-  /* Was a slate blue; the supporting mauve ramp carries these roles now. */
-  --color-slate: var(--t-ramp-4);
-  --color-data-blue: var(--t-chart-b);
   --color-bid-green: var(--t-green);
   --color-ask-red: var(--t-red);
   --color-neg-strong: var(--t-red);
-  --color-live: var(--t-green);
 
   --color-line: var(--t-line);
   --color-line-soft: var(--t-line-soft);
@@ -156,9 +121,6 @@
   /* Familjen Grotesk = nav / labels / KPIs; Overpass Mono = data cells. */
   --font-sans: var(--font-familjen);
   --font-mono: var(--font-overpass-mono);
-  /* Back-compat for inline chart SVG that still names the old faces. */
-  --font-ibm-plex-sans: var(--font-familjen);
-  --font-ibm-plex-mono: var(--font-overpass-mono);
 }
 
 /* Logo ink swap. Named after the ink, not the theme: the cream mark rides
@@ -191,48 +153,8 @@
   }
 }
 
-* {
-  box-sizing: border-box;
-}
-
-/* A bright glint travelling along the TVL line's own path.
-
-   The path this is applied to carries `pathLength="100"`, which tells SVG to
-   renormalise the curve's length to exactly 100 units no matter its real
-   geometry. That is the whole trick: every dash number below is in those
-   normalised units, so the glint behaves identically on a 7-day curve and an
-   all-time one. Two earlier attempts failed precisely because they were tied
-   to the real geometry — animating stroke-dashoffset against the path's
-   measured getTotalLength() desynced the moment a range switch changed that
-   length mid-animation (the "flies off the curve" glitch), and a CSS
-   mask-position sweep silently rendered nothing, since percentage mask sizing
-   against an SVG child's bounding box is not something Chrome resolves the
-   way it does for HTML boxes. With pathLength there is nothing to measure,
-   nothing to keep in sync, and a mid-animation reshape just morphs the curve
-   under a glint that stays exactly where it should be.
-
-   dasharray 18/102: an 18-unit dash on a 120-unit repeat, so across a
-   100-unit path only ever one dash is visible. The offset then runs from 18
-   (dash just off the near end) to -100 (just off the far end). */
-/* The travelling highlight on the TVL line.
-
-   No dash pattern, deliberately. Every dash-based attempt read as a solid
-   bar sliding along the line rather than a shimmer, because stroke-dasharray
-   gives a segment hard ends — round caps included — so the eye reads an
-   object, not a light. This paints the whole line with a gradient that is
-   transparent everywhere except a soft band, and slides the BAND instead
-   (the animation lives on the gradient in HeroTvlChart, since CSS cannot
-   animate SVG gradient coordinates). The edges feather out, so nothing has
-   a boundary to read as a shape. */
-.tvl-pulse-line {
-  fill: none;
-  stroke-width: 2.4px;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 4px rgb(var(--t-accent-rgb) / 0.35));
-}
-
 /* Each patch's position lives in its own registered (animatable) custom
-   properties, driven by its own @keyframes — three separate @keyframes
+   properties, driven by its own @keyframes — separate @keyframes
    rules can't independently animate one shared `background-position`
    (the last one in the animation list would just override the others), so
    each layer gets its own pair of properties instead. */
@@ -256,19 +178,9 @@
   inherits: true;
   initial-value: 65%;
 }
-@property --p3x {
-  syntax: "<percentage>";
-  inherits: true;
-  initial-value: 55%;
-}
-@property --p3y {
-  syntax: "<percentage>";
-  inherits: true;
-  initial-value: 90%;
-}
 
-/* Each patch orbits a strip hugging one edge — left, right, and
-   top/bottom-alternating — instead of crossing the card. That's what keeps
+/* Each patch orbits a strip hugging one edge — one the left, one the
+   right — instead of crossing the card. That's what keeps
    it out of the centre, where it was washing out the chart/donut sitting
    there. Waypoints stay close together for a smooth apparent path (see
    gloss-drift below for why: multiple @keyframes can't share one property). */
@@ -318,29 +230,6 @@
     --p2y: 6%;
   }
 }
-@keyframes gloss-pan-3 {
-  0%,
-  100% {
-    --p3x: 20%;
-    --p3y: 97%;
-  }
-  20% {
-    --p3x: 45%;
-    --p3y: 90%;
-  }
-  40% {
-    --p3x: 70%;
-    --p3y: 96%;
-  }
-  60% {
-    --p3x: 60%;
-    --p3y: 3%;
-  }
-  80% {
-    --p3x: 30%;
-    --p3y: 8%;
-  }
-}
 @keyframes gloss-shimmer {
   0%,
   100% {
@@ -357,8 +246,7 @@
   }
 }
 
-/* Two soft gold patches (was three) — half the previous count, still
-   blurred so they don't read as shapes. */
+/* Two soft gold patches, blurred so they don't read as shapes. */
 .gloss-drift {
   position: absolute;
   inset: -14%;
@@ -386,13 +274,6 @@
   .gloss-drift {
     opacity: 0.4;
   }
-}
-
-/* Chart SVGs paint above the gloss; isolation keeps screen-blend from
-   reconstituting the wash over thin gold strokes. */
-.hero-tvl-chart {
-  isolation: isolate;
-  z-index: 1;
 }
 
 html {
@@ -430,10 +311,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
-}
-
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -448,80 +325,10 @@ body {
   border-radius: 3px;
 }
 
-.section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.card {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-line);
-  border-radius: 10px;
-  min-width: 0;
-}
-
-.card-highlight {
-  border-color: rgb(var(--t-accent-rgb) / 0.25);
-}
-
-/* Overview board swap. The card box itself travels via a FLIP transition in
-   OverviewBoard; this only fades the contents back in, which hides the brief
-   squash while the box is still scaled. */
-@keyframes overview-content-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.overview-content-enter {
-  animation: overview-content-in 260ms ease-out 90ms both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .overview-content-enter {
-    animation: overview-content-in 180ms ease-out both;
-  }
-}
-
-/* The deposit-tier hover link between the distribution curve and the tier
-   table beside it. Whichever of the two the cursor is NOT on is the one that
-   pulses: the side under the cursor is already obvious, and a pulse there
-   would just be motion under the pointer. The pulse says "the thing you are
-   pointing at is also over here".
-
-   Both share one duration so the pair reads as a single system rather than
-   two effects that happen to be on at the same time. */
-@keyframes tier-row-pulse {
-  0%,
-  100% {
-    background-color: rgb(var(--t-veil-rgb) / 0.02);
-  }
-  50% {
-    background-color: rgb(var(--t-veil-rgb) / 0.1);
-  }
-}
-
-.tier-row-pulse {
-  animation: tier-row-pulse 1150ms ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tier-row-pulse {
-    animation: none;
-    background-color: rgb(var(--t-veil-rgb) / 0.08);
-  }
-}
-
-/* The week still running in the Pre-Deposits APR bars. Unlike the two pulses
-   above, this one isn't about the cursor — it marks the bar whose pool and
-   TVL are still moving, against eleven that have settled. Same 1150ms as the
-   pair above so everything on the page that pulses breathes together.
+/* The week still running, in the header's campaign week ticks. It isn't
+   about the cursor — it marks the week whose pool and TVL are still moving,
+   against the ones that have settled. 1150ms, the beat every gold pulse on
+   the site shares (lib/chart-gold-pulse.ts), so they breathe together.
 
    Opacity only lives on this animation. An inline opacity (or a transition
    on opacity) on the same node cancelled the pulse in Chromium, while Safari
@@ -600,14 +407,13 @@ body {
     text-shadow: 0 0 6px rgb(var(--t-accent-rgb) / 0.28);
   }
   50% {
-    color: var(--t-accent-hi);
     text-shadow: 0 0 12px rgb(var(--t-accent-rgb) / 0.7);
   }
 }
 
 .volume-mode-on {
   color: var(--t-accent);
-  animation: volume-mode-glow 1.2s ease-in-out infinite;
+  animation: volume-mode-glow 1150ms ease-in-out infinite;
 }
 
 /* On cream the plum accent is nearly as dark as the muted grey, and the glow
@@ -620,55 +426,11 @@ body {
 }
 
 :root[data-theme="light"] .volume-mode-off {
-  color: rgb(110 106 92 / 0.5);
+  color: color-mix(in srgb, var(--t-text-muted) 50%, transparent);
 }
 
 :root[data-theme="light"] .volume-mode-off:hover {
   color: var(--t-text-secondary);
-}
-
-/* Same beat as APR week bars — gold chart marks / legend dots.
-   Brightness (not opacity): the primary slice is already solid gold, so an
-   opacity pulse is invisible on top of itself, and Chromium also cancels
-   opacity animations when the same node has a transition on opacity. */
-@keyframes chart-gold-pulse {
-  0%,
-  100% {
-    filter: brightness(1.06) drop-shadow(0 0 5px rgb(var(--t-accent-rgb) / 0.35));
-  }
-  50% {
-    filter: brightness(0.72) drop-shadow(0 0 1px rgb(var(--t-accent-rgb) / 0.1));
-  }
-}
-
-.chart-gold-pulse {
-  animation: chart-gold-pulse 1150ms ease-in-out infinite;
-}
-
-/* Donut active sector — opacity only; radius stays put so the arc doesn't
-   rebuild every frame (that path morph was the jerk). */
-.donut-active-show,
-.donut-active-hide {
-  transition: opacity 0.48s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.donut-active-show {
-  opacity: 1;
-}
-
-.donut-active-hide {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chart-gold-pulse {
-    animation: none;
-  }
-
-  .donut-active-show,
-  .donut-active-hide {
-    transition: none;
-  }
 }
 
 /* Segmented toggles (Current/Projected, 7D/30D/ALL, Count/Value, pager). */
@@ -763,7 +525,7 @@ body {
 
 .live-air.is-live .live-air-core {
   background: var(--t-red);
-  box-shadow: 0 0 5px 1px rgb(var(--t-red-rgb, 239 74 60) / 0.9);
+  box-shadow: 0 0 5px 1px rgb(var(--t-red-rgb) / 0.9);
   animation: live-air-blink 1.15s ease-in-out infinite;
 }
 
@@ -806,96 +568,9 @@ body {
   }
 }
 
-/* Deposit-size callout: reads as emerging from the headline number above it —
-   a slow fade paired with a short slide in from that direction. */
-@keyframes deposit-callout-in {
-  from {
-    opacity: 0;
-    transform: translate(-22px, -8px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-}
-.deposit-callout {
-  animation: deposit-callout-in 900ms cubic-bezier(0.22, 1, 0.36, 1) 550ms both;
-}
-
-/* Hard HODLers badge: the same rotating-halo ring as the KPI cards
-   (halo-spin), just always running instead of only on hover — it marks the
-   one clickable, expandable stat here. Runs clockwise and 1.5x the card's
-   speed (1.8s / 1.5 = 1.2s) so it reads as more urgent/attention-grabbing. */
-@keyframes hodler-halo-spin {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-.hodler-badge {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  cursor: pointer;
-}
-.hodler-badge::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  /* Fixed and equal, not a %-of-self size: on a short, wide pill, width%
-     and height% resolve against different axis lengths and squash this
-     into an ellipse. A conic-gradient painted on an ellipse (not a true
-     circle) crosses the masked ring boundary at more than one point as it
-     rotates, which reads as two lines chasing each other instead of one. */
-  width: 640px;
-  height: 640px;
-  transform: translate(-50%, -50%) rotate(0deg);
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 250deg,
-    rgb(var(--t-accent-rgb) / 0.5) 300deg,
-    var(--t-accent-hi) 335deg,
-    var(--t-accent) 350deg,
-    transparent 360deg
-  );
-  animation: hodler-halo-spin 1.2s linear infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-/* Inner mask leaves only a hairline of the gradient showing as the ring —
-   filled with the badge's own resting tint so the green reads through. */
-.hodler-badge::after {
-  content: "";
-  position: absolute;
-  inset: 1.5px;
-  border-radius: inherit;
-  background: var(--t-badge-face);
-  pointer-events: none;
-  z-index: 1;
-}
-.hodler-badge > * {
-  position: relative;
-  z-index: 2;
-}
-
-@keyframes hodler-explain-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.hodler-explain {
-  animation: hodler-explain-in 220ms ease-out both;
-}
-
 /* The help "?" beside a card's title. Grey at rest, so it sits with the rest
    of the page's chrome rather than competing with the figure below it, and
-   green on hover — the same green the OG Hodlers count is set in.
+   green on hover.
 
    Both states are spelled out here rather than left to Tailwind's own text-*
    and hover:text-* utilities. Those live in @layer utilities and this rule
@@ -914,90 +589,9 @@ body {
   border-color: var(--t-green);
 }
 
-/* Side KPI cards lift and run a gold light around their edge on hover — the
-   same treatment the hero metric cards carried on the previous site. The card
-   sits flush in the stack at rest and rounds off as it lifts out of it. */
-.kpi-card {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-radius 0.25s ease;
-}
-
-.kpi-card::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 320%;
-  height: 320%;
-  transform: translate(-50%, -50%) rotate(0deg);
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 250deg,
-    rgb(var(--t-accent-rgb) / 0.5) 300deg,
-    var(--t-accent-hi) 335deg,
-    var(--t-accent) 350deg,
-    transparent 360deg
-  );
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Inner mask leaves only a hairline of the gradient showing as the ring. */
-.kpi-card::after {
-  content: "";
-  position: absolute;
-  inset: 1.5px;
-  border-radius: inherit;
-  background: var(--color-bg-primary);
-  transition: background-color 0.2s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.kpi-card > * {
-  position: relative;
-  z-index: 2;
-}
-
-.kpi-card:hover,
-.kpi-card:focus-visible {
-  transform: translateY(-4px) scale(1.015);
-  box-shadow: 0 10px 30px rgb(var(--t-accent-rgb) / 0.18);
-  border-radius: 10px;
-  z-index: 20;
-  outline: none;
-}
-
-.kpi-card:active {
-  transform: translateY(-1px) scale(0.995);
-}
-
-.kpi-card:hover::before,
-.kpi-card:focus-visible::before {
-  opacity: 1;
-  animation: halo-spin 1.8s linear infinite;
-}
-
-/* Slight warm tint so the face reads as active, not just outlined. */
-.kpi-card:hover::after,
-.kpi-card:focus-visible::after {
-  background: var(--t-card-hover-face);
-}
-
-/* Active nav item is underlined flush with the header's bottom border. */
 /* The marker on the live FDV. A lighthouse rather than a pin: it breathes so
    the eye finds it without a dashed rule drawn across the whole plot, which
-   was reading as a second axis. transform-box/origin are what make scale()
-   grow the circle about its own centre — an SVG shape otherwise scales about
-   the origin of the whole canvas and flies off. */
+   was reading as a second axis. */
 @keyframes chart-beacon-pulse {
   0%,
   100% {
@@ -1059,6 +653,7 @@ body {
   animation: switch-underline-out 1600ms ease-in-out forwards;
 }
 
+/* Active nav item is underlined flush with the header's bottom border. */
 .site-nav-link[data-active]::after {
   content: "";
   position: absolute;
@@ -1069,26 +664,14 @@ body {
   background: var(--color-accent);
 }
 
-/* Gold pill CTA (Deposit, active range toggle). */
-.cta {
-  background: var(--color-accent);
-  color: var(--color-bulk-base);
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background 0.15s;
-}
-
-.cta:hover {
-  background: var(--color-accent-hover);
-  color: var(--color-bulk-base);
-}
-
-/* Outlined neutral control (inactive range toggle, MAINNET pill). */
+/* Outlined neutral control. */
 .ghost-pill {
   border: 1px solid var(--color-line-strong);
   border-radius: 8px;
   color: var(--color-text-secondary);
-  transition: all 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .ghost-pill:hover {
@@ -1114,12 +697,6 @@ body {
   text-shadow: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .scroll-to-top-float {
-    animation: none;
-  }
-}
-
 @keyframes scroll-to-top-float {
   0%,
   100% {
@@ -1136,88 +713,15 @@ body {
 
 .scroll-to-top-btn:hover {
   border-color: rgb(var(--t-accent-rgb) / 0.55);
-  color: var(--t-accent-hi);
+  color: var(--t-accent);
 }
 
+/* The float is deliberately not gated on prefers-reduced-motion: Windows
+   "Animation effects: off" maps onto that query and would freeze it on
+   desktop, the same reason the live lamp and the switch underline run. */
 @media (prefers-reduced-motion: reduce) {
   .scroll-to-top-btn {
     transition: none;
-  }
-}
-
-@keyframes halo-spin {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
-.metric-card {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-/* Rotating conic gradient — the "running" golden light. */
-.metric-card::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200%;
-  height: 200%;
-  transform: translate(-50%, -50%) rotate(0deg);
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 250deg,
-    rgb(var(--t-accent-rgb) / 0.5) 300deg,
-    var(--t-accent-hi) 335deg,
-    var(--t-accent) 350deg,
-    transparent 360deg
-  );
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Inner mask leaves only a thin ring where the gradient shows. */
-.metric-card::after {
-  content: "";
-  position: absolute;
-  inset: 1.5px;
-  border-radius: inherit;
-  background: var(--color-bg-primary);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.metric-card.card-highlight::after {
-  inset: 1.5px;
-}
-
-.metric-card > * {
-  position: relative;
-  z-index: 2;
-}
-
-.metric-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 10px 30px rgb(var(--t-accent-rgb) / 0.18);
-  z-index: 10;
-}
-
-.metric-card:hover::before {
-  opacity: 1;
-  animation: halo-spin 1.8s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .metric-card:hover {
-    transform: none;
   }
 }
 
@@ -1302,9 +806,8 @@ input[type="number"] {
   opacity: 0.8;
 }
 
-/* Spinning gold hairline on the search square — same conic ring as the
-   Hodlers badge. Brightness pulse on a gold fill is invisible, so the
-   beat lives on the edge instead. Not gated on reduced-motion: Windows
+/* Spinning gold hairline on the search square. A brightness pulse on a gold
+   fill is invisible, so the beat lives on the edge instead. Not gated on reduced-motion: Windows
    "Animation effects: off" maps there and would freeze the ring. */
 @keyframes hunter-search-spin {
   to {
@@ -1340,7 +843,7 @@ input[type="number"] {
     transparent 0deg,
     transparent 210deg,
     rgb(var(--t-accent-rgb) / 0.15) 270deg,
-    var(--t-accent-hi) 325deg,
+    var(--t-accent) 325deg,
     var(--t-shimmer-hi) 348deg,
     transparent 360deg
   );
@@ -1369,51 +872,13 @@ input[type="number"] {
   opacity: 0;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   opacity: 0.9;
 }
 
-.btn-primary:disabled:hover {
-  opacity: 0.45;
-}
-
+/* The search square carries its hover on the spinning ring, not a fade. */
 .hunter-search:hover:not(:disabled) {
   opacity: 1;
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 4px;
-  border: 1px solid rgb(var(--t-chart-b-rgb) / 0.15);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-ghost:hover,
-.btn-ghost.active {
-  color: var(--color-accent);
-  border-color: rgb(var(--t-accent-rgb) / 0.4);
-}
-
-/* Header nav uses text-style links — highlight is a text glow, never a box. */
-.btn-ghost.btn-ghost-header {
-  border-color: transparent;
-  background: transparent;
-}
-
-.btn-ghost.btn-ghost-header:hover,
-.btn-ghost.btn-ghost-header.active,
-.btn-ghost.btn-ghost-header:focus-visible {
-  border-color: transparent;
-  background: transparent;
-  outline: none;
-  color: var(--color-accent);
-  text-shadow:
-    0 0 10px rgb(var(--t-accent-rgb) / 0.7),
-    0 0 4px rgb(var(--t-accent-rgb) / 0.5);
 }
 
 .recharts-cartesian-grid-horizontal line,
@@ -1429,32 +894,20 @@ input[type="number"] {
 }
 
 /* FDV chart ticks sit over the card gloss; secondary fill disappeared into
-   it. Primary, and a notch larger, so $100M–$2B stay readable. */
+   it, so they take the primary text colour. */
 .fdv-chart .recharts-text {
   fill: var(--color-text-primary) !important;
-  font-size: 12px !important;
 }
 
-/* Hide/Show changes the plot box. Recharts writes inline px on the wrapper
-   and SVG — without this the old height gets clipped instead of stretching. */
-.fdv-chart,
-.fdv-chart .recharts-wrapper,
-.fdv-chart .recharts-surface {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Category Share and Aura Distribution sit next to 13px donut-legend
-   type. The rule above is !important, so this has to be too. */
-.category-share-chart .recharts-text,
-.aura-distribution-chart .recharts-text {
+/* Category Share sits next to 13px donut-legend type. The rule above is
+   !important, so this has to be too. */
+.category-share-chart .recharts-text {
   fill: var(--color-text-primary) !important;
   font-size: 13px !important;
 }
 
 @media (max-width: 640px) {
   .category-share-chart .recharts-text,
-  .aura-distribution-chart .recharts-text,
   .fdv-chart .recharts-text {
     font-size: 10px !important;
   }
@@ -1467,69 +920,6 @@ input[type="number"] {
 .recharts-wrapper *:focus-visible {
   outline: none;
 }
-
-.hero-intelligence-title-wrap {
-  display: inline-grid;
-}
-
-.hero-intelligence-title-base,
-.hero-intelligence-title-shine {
-  grid-area: 1 / 1;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.hero-intelligence-title-base {
-  color: var(--t-text-primary);
-}
-
-.hero-intelligence-title-shine {
-  background-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    transparent 44%,
-    var(--t-shimmer-dim) 47%,
-    var(--t-shimmer-hi) 49%,
-    var(--t-shimmer-hi) 51%,
-    var(--t-shimmer-dim) 53%,
-    transparent 56%,
-    transparent 100%
-  );
-  background-size: 400% 100%;
-  background-repeat: no-repeat;
-  background-position: -200% 50%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  text-shadow:
-    0 0 8px rgb(var(--t-veil-rgb) / 0.6),
-    0 0 16px rgb(var(--t-veil-rgb) / 0.3);
-  opacity: 0;
-  pointer-events: none;
-}
-
-@keyframes pie-label-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  @keyframes pie-label-fade {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-}
-
 
 /* The theme switch's sky. Both halves of the turn — the rotor carrying the
    sun and moon, and each body counter-rotating so it stays upright — run on
