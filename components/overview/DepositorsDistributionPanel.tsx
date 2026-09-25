@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { DepositTier } from "@/lib/overview-metrics";
 import { CHART_GOLD, chartSlateRamp } from "@/lib/overview-metrics";
 import {
@@ -10,8 +10,9 @@ import {
   CHART_GOLD_PULSE_UNDERLAY,
 } from "@/lib/chart-gold-pulse";
 import { PanelCard } from "@/components/overview/PanelCard";
-import { CATEGORY_NAME } from "@/components/overview/MetricTable";
+import { CATEGORY_NAME, LegendDot } from "@/components/overview/MetricTable";
 import { cn, formatNumber } from "@/lib/utils";
+import { RowHighlight } from "@/components/ui/RowHighlight";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 import {
   OVERVIEW_BAR_GAP,
@@ -72,9 +73,15 @@ const CELL = "font-data";
  * The gap is fluid for the same reason MetricTable's is: on a viewport wide
  * enough that six content-fit columns don't need all the room this panel's
  * table has, the extra goes into breathing room between every column
- * equally, not into stretching whichever column happened to be flexible. */
+ * equally, not into stretching whichever column happened to be flexible.
+ *
+ * That holds at xl, where this card is the narrow right half of the row.
+ * Below xl the cards stack and this one runs the full width of the page, and
+ * ~500px of content-fit columns left the whole right half of the table empty
+ * — so there the columns share the width instead, the name column a bit
+ * more than the figures. */
 const TABLE_COLS =
-  "grid grid-cols-[minmax(0,180px)_minmax(0,74px)_minmax(0,44px)_minmax(0,64px)_minmax(0,84px)_minmax(0,56px)] items-center [column-gap:clamp(16px,2.5vw,36px)]";
+  "grid grid-cols-[minmax(0,1.6fr)_repeat(5,minmax(0,1fr))] xl:grid-cols-[minmax(0,180px)_minmax(0,74px)_minmax(0,44px)_minmax(0,64px)_minmax(0,84px)_minmax(0,56px)] items-center [column-gap:clamp(16px,2.5vw,36px)]";
 const TABLE_COLS_NARROW =
   "grid grid-cols-[minmax(0,1fr)_minmax(0,72px)_minmax(0,52px)] items-center gap-x-3";
 
@@ -174,6 +181,8 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
   // off the element rather than hardcoded so it can't drift when the control
   // changes size.
   const toggleRowRef = useRef<HTMLDivElement | null>(null);
+  const tableRef = useRef<HTMLDivElement | null>(null);
+  const tableRows = useRef<Record<string, HTMLDivElement | null>>({});
   const [toggleRowH, setToggleRowH] = useState(0);
 
   useEffect(() => {
@@ -249,6 +258,10 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
   }, [tiers, peak, metric]);
 
   const hoveredRow = rows.find((r) => r.id === hovered) ?? null;
+  // Named apart from hoveredRow only for the tooltip: AnimatePresence keeps
+  // the card's last render through its fade-out, so it goes on showing the
+  // tier it was on after `hovered` clears.
+  const cardRow = hoveredRow;
   const hoveredIndex = hoveredRow ? rows.findIndex((r) => r.id === hoveredRow.id) : -1;
   // Gold highlight always stays on the first tier. Value only flips the
   // companion slate ramp (dull→bright), so the idle gold never jumps right.
@@ -329,12 +342,11 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
   const toggleSelected = (id: string) => setSelected((prev) => (prev === id ? null : id));
 
   return (
-    // Two cards, not one, on the SAME column template as the TVL/donut row
-    // above — so the bars sit under the TVL curve at its width and the tier
-    // table under the donut at its. The pair used to share a single card,
-    // which read as one object but left this row split at its own ratio,
-    // out of step with the row above it.
-    <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+    // Two cards, not one, and no box of their own: `contents` hands both
+    // straight to the page grid, which places them — under the TVL curve and
+    // the donut at xl, bars beside the donut with the tiers full-width below
+    // between lg and xl (see app/page.tsx).
+    <div className="contents">
       {/* ------------------------------------------------ chart card */}
       <PanelCard glossy glossDelay={-16}>
       {/* No title, no legend: the colour and the row order already tie a
@@ -515,108 +527,48 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                       {/* Depositors — solid while Count is active, an
                           outline of the same colour otherwise. Primary beds
                           on slate while pulsing so gold↔gray reads, not gold↔gold. */}
-                      {countActive && countLit ? (
-                        <div
-                          className="relative rounded-t-[2px]"
-                          style={{ width: barW, height: `${row.countHeight}%` }}
-                        >
-                          <div
-                            className="absolute inset-0 rounded-t-[2px]"
-                            style={{
-                              background:
-                                isPrimary || row.color === CHART_GOLD
-                                  ? CHART_GOLD_PULSE_UNDERLAY
-                                  : row.color,
-                            }}
-                          />
-                          <motion.div
-                            key={`count-pulse-${row.id}`}
-                            className="absolute inset-0 rounded-t-[2px] border-[0.5px] border-transparent"
-                            initial={{ opacity: 1 }}
-                            animate={CHART_GOLD_PULSE}
-                            transition={CHART_GOLD_PULSE_TRANSITION}
-                            style={{
-                              background: CHART_GOLD,
-                              outline: "1px solid var(--t-text-primary)",
-                              filter: "drop-shadow(0 0 4px rgb(var(--t-accent-rgb)/0.28))",
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className="rounded-t-[2px] border-[0.5px] transition-[height,background-color,border-color,outline-color] duration-300"
-                          style={{
-                            width: barW,
-                            height: `${row.countHeight}%`,
-                            background: countActive
-                              ? baseColor
-                              : `color-mix(in srgb, ${baseColor} 55%, transparent)`,
-                            borderColor: countActive
-                              ? "transparent"
-                              : `color-mix(in srgb, ${baseColor} 85%, transparent)`,
-                            outline: "1px solid transparent",
-                          }}
-                        />
-                      )}
-                      {/* Deposits — the mirror: solid while Value is active. */}
-                      {!countActive && valueLit ? (
-                        <div
-                          className="relative rounded-t-[2px]"
-                          style={{ width: barW, height: `${row.valueHeight}%` }}
-                        >
-                          <div
-                            className="absolute inset-0 rounded-t-[2px]"
-                            style={{
-                              background:
-                                isPrimary || row.color === CHART_GOLD
-                                  ? CHART_GOLD_PULSE_UNDERLAY
-                                  : row.color,
-                            }}
-                          />
-                          <motion.div
-                            key={`value-pulse-${row.id}`}
-                            className="absolute inset-0 rounded-t-[2px] border-[0.5px] border-transparent"
-                            initial={{ opacity: 1 }}
-                            animate={CHART_GOLD_PULSE}
-                            transition={CHART_GOLD_PULSE_TRANSITION}
-                            style={{
-                              background: CHART_GOLD,
-                              outline: "1px solid var(--t-text-primary)",
-                              filter: "drop-shadow(0 0 4px rgb(var(--t-accent-rgb)/0.28))",
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div
-                          className="rounded-t-[2px] border-[0.5px] transition-[height,background-color,border-color,outline-color] duration-300"
-                          style={{
-                            width: barW,
-                            height: `${row.valueHeight}%`,
-                            background: !countActive
-                              ? baseColor
-                              : `color-mix(in srgb, ${baseColor} 55%, transparent)`,
-                            borderColor: !countActive
-                              ? "transparent"
-                              : `color-mix(in srgb, ${baseColor} 85%, transparent)`,
-                            outline: "1px solid transparent",
-                          }}
-                        />
-                      )}
+                      {/* Depositors, then Deposits — each drawn solid while
+                          the toggle shows it and as an outline otherwise. */}
+                      <TierBar
+                        width={barW}
+                        height={row.countHeight}
+                        solid={countActive}
+                        lit={countLit}
+                        color={baseColor}
+                        restColor={isPrimary ? CHART_GOLD : row.color}
+                      />
+                      <TierBar
+                        width={barW}
+                        height={row.valueHeight}
+                        solid={!countActive}
+                        lit={valueLit}
+                        color={baseColor}
+                        restColor={isPrimary ? CHART_GOLD : row.color}
+                      />
                     </div>
                   );
                 })}
               </div>
 
-            {hoveredRow && (
+            <AnimatePresence>
+            {cardRow && (
               <motion.div
+                key="tier-card"
                 className="pointer-events-none absolute left-0 top-0 z-20"
                 // Spring, not a linear move: the card lags the cursor a beat
                 // and settles, which is what reads as gliding rather than
-                // being dragged. `initial={false}` so it appears already at
-                // the pointer instead of flying in from the plot's corner.
-                initial={false}
-                animate={{ x: cardX, y: cardY }}
-                transition={{ type: "spring", stiffness: 300, damping: 26, mass: 0.5 }}
+                // being dragged. It starts at the pointer, not the plot's
+                // corner, and fades in and out there instead of popping.
+                initial={{ x: cardX, y: cardY, opacity: 0 }}
+                animate={{ x: cardX, y: cardY, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 26,
+                  mass: 0.5,
+                  opacity: { duration: 0.18, ease: "easeOut" },
+                }}
               >
                 <div
                   ref={cardRef}
@@ -627,7 +579,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                       this row a few inches away, and the range labels under
                       the bars repeat it a third time. */}
                   <div className="mb-2 whitespace-nowrap text-center font-sans text-[13px] font-medium leading-none text-[var(--t-text-primary)]">
-                    {hoveredRow.name}
+                    {cardRow.name}
                   </div>
                   {/* Only the pair the active toggle actually explains: Count
                       means "how many, what share of depositors" and stops
@@ -645,13 +597,13 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                   <div className="grid grid-cols-[auto_auto] gap-x-3 gap-y-[6px] whitespace-nowrap leading-none">
                     {(metric === "count"
                       ? ([
-                          ["Wallets", hoveredRow.count.toLocaleString("en-US")],
-                          ["Share", formatShare(hoveredRow.pct)],
+                          ["Wallets", cardRow.count.toLocaleString("en-US")],
+                          ["Share", formatShare(cardRow.pct)],
                         ] as const)
                       : ([
-                          ["Total Aura", auraCompact(hoveredRow.aura)],
-                          ["Share", formatShare(hoveredRow.auraPct)],
-                          ["Avg", auraExact(hoveredRow.avgAura)],
+                          ["Total Aura", auraCompact(cardRow.aura)],
+                          ["Share", formatShare(cardRow.auraPct)],
+                          ["Avg", auraExact(cardRow.avgAura)],
                         ] as const)
                     ).map(([label, value]) => (
                       <Fragment key={label}>
@@ -663,6 +615,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 </div>
               </motion.div>
             )}
+            </AnimatePresence>
             </div>
           </div>
 
@@ -699,7 +652,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
       {/* ------------------------------------------------ table card */}
       {/* A different gloss delay from the chart card's, so the two drift out
           of step with each other rather than lighting up in unison. */}
-      <PanelCard>
+      <PanelCard className="lg:col-span-2 xl:col-span-1">
         {/* Reserves exactly the height of the toggle sitting in the card
             beside this one. Without it the table's header rule — and every
             tier row under it — would ride a toggle's worth higher than the
@@ -708,11 +661,16 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
             where there is nothing to line up against and this would just be
             unexplained padding at the top of the card. */}
         <div aria-hidden="true" className="hidden xl:block" style={{ height: toggleRowH }} />
-        {/* TABLE_COLS' columns are fixed to their own content (see its
-            comment), so the table's natural width doesn't change with the
-            viewport — it sits at the start of its card and leaves the slack
-            on the right, rather than stretching the columns into it. */}
-        <div className="flex min-w-0 flex-col">
+        {/* At xl TABLE_COLS' columns are fixed to their own content (see its
+            comment), so the table sits at the start of its card and leaves the
+            slack on the right. Stacked below xl they share the full width. */}
+        <div ref={tableRef} className="relative isolate flex min-w-0 flex-col">
+          {/* Follows the cursor first and the pinned tier otherwise, sliding
+              between rows rather than redrawing on each one. */}
+          <RowHighlight
+            containerRef={tableRef}
+            target={tableRows.current[hovered ?? selected ?? ""] ?? null}
+          />
           <div
             className={cn(
               tableCols,
@@ -748,6 +706,9 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
             return (
               <div
                 key={row.id}
+                ref={(el) => {
+                  tableRows.current[row.id] = el;
+                }}
                 onMouseEnter={() => {
                   setHovered(row.id);
                   setHoverSource("table");
@@ -760,58 +721,28 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 onClick={() => toggleSelected(row.id)}
                 className={cn(
                   tableCols,
-                  // Same always-on inset as MetricTableRow: highlight clears
-                  // the scaled bullet and rounds instead of cutting the edge.
-                  "-mx-2.5 shrink-0 cursor-pointer rounded-md px-2.5 transition-colors select-none [-webkit-touch-callout:none]",
+                  // Same always-on inset as MetricTableRow, so the highlight
+                  // box that takes this row's bounds clears the scaled bullet.
+                  "-mx-2.5 shrink-0 cursor-pointer px-2.5 transition-colors select-none [-webkit-touch-callout:none]",
                   i > 0 && "border-t border-[var(--color-line-soft)]",
-                  lit && i > 0 && "border-transparent",
-                  lit && "bg-[rgb(var(--t-veil-rgb)/0.045)]"
+                  lit && i > 0 && "border-transparent"
                 )}
                 style={{ height: ROW_H }}
               >
                 <span className={cn("flex min-w-0 items-center gap-2", CATEGORY_NAME)} style={{ color }}>
-                  {lit && (i === primaryIndex || row.color === CHART_GOLD) ? (
-                    <span className="relative h-[9px] w-[9px] shrink-0">
-                      <span
-                        className="absolute inset-0 rounded-full"
-                        style={{ background: CHART_GOLD_PULSE_UNDERLAY }}
-                      />
-                      <motion.span
-                        key={`tier-pulse-${row.id}`}
-                        className="absolute inset-0 rounded-full"
-                        initial={{ opacity: 1 }}
-                        animate={CHART_GOLD_PULSE}
-                        transition={CHART_GOLD_PULSE_TRANSITION}
-                        style={{
-                          background: CHART_GOLD,
-                          transform: "scale(1.25)",
-                        }}
-                      />
-                    </span>
-                  ) : (
-                      <motion.span
-                        className="h-[9px] w-[9px] shrink-0 rounded-full"
-                        initial={{ opacity: 1 }}
-                        animate={
-                          lit
-                            ? CHART_GOLD_PULSE
-                            : {
-                                opacity: dimmed ? 0.4 : 1,
-                              }
-                        }
-                        transition={
-                          lit ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.2 }
-                        }
-                        style={{
-                          background: lit
-                            ? CHART_GOLD
-                            : i === primaryIndex && borrowColor
-                              ? borrowColor
-                              : colorAt(i),
-                          transform: lit ? "scale(1.25)" : "scale(1)",
-                        }}
-                      />
-                  )}
+                  <LegendDot
+                    color={
+                      lit
+                        ? CHART_GOLD
+                        : i === primaryIndex && borrowColor
+                          ? borrowColor
+                          : colorAt(i)
+                    }
+                    restColor={colorAt(i)}
+                    active={lit}
+                    pulse={lit}
+                    dimmed={dimmed}
+                  />
                   <span className="truncate">{row.name}</span>
                 </span>
                 {narrow && metric === "value" ? (
@@ -871,6 +802,81 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
           )}
         </div>
       </PanelCard>
+    </div>
+  );
+}
+
+const BAR_EASE = "300ms cubic-bezier(0.4, 0, 0.2, 1)";
+
+/**
+ * One bar of a tier's pair, drawn the same way whatever state it's in.
+ *
+ * The lit bar used to be a different element from the plain one it replaced,
+ * so moving along the chart dropped the gold on one bar and picked it up on
+ * the next in a single frame. Kept as one set of nodes, the colour, outline
+ * and glow ease across with CSS transitions (the colours are CSS variables,
+ * which only the browser can interpolate), the same hand-off as the donut and
+ * the legend swatches.
+ *
+ * Lit, the fill turns gold and its opacity breathes over a bed in the bar's
+ * resting colour — slate for a bar that rests gold, so the beat reads
+ * gold↔slate rather than gold↔gold. Both bars keep a border at all times
+ * (transparent on the solid one) so switching treatments never shifts either
+ * by the border's width.
+ */
+function TierBar({
+  width,
+  height,
+  solid,
+  lit,
+  color,
+  restColor,
+}: {
+  width: number;
+  /** Percent of the plot's height. */
+  height: number;
+  /** The series the toggle is showing: solid fill, no border. Otherwise an
+   * outline — a faint tint with a coloured border. */
+  solid: boolean;
+  lit: boolean;
+  color: string;
+  restColor: string;
+}) {
+  const fill = lit
+    ? CHART_GOLD
+    : solid
+      ? color
+      : `color-mix(in srgb, ${color} 55%, transparent)`;
+  const border =
+    lit || solid ? "transparent" : `color-mix(in srgb, ${color} 85%, transparent)`;
+  return (
+    <div
+      className="relative"
+      style={{ width, height: `${height}%`, transition: `height ${BAR_EASE}` }}
+    >
+      <div
+        className="absolute inset-0 rounded-t-[2px]"
+        style={{
+          background: restColor === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : restColor,
+          opacity: lit ? 1 : 0,
+          transition: `opacity ${BAR_EASE}`,
+        }}
+      />
+      <motion.div
+        className="absolute inset-0 rounded-t-[2px] border-[0.5px]"
+        initial={false}
+        animate={lit ? CHART_GOLD_PULSE : { opacity: 1 }}
+        transition={lit ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.3 }}
+        style={{
+          backgroundColor: fill,
+          borderColor: border,
+          outline: `1px solid ${lit ? "var(--t-text-primary)" : "transparent"}`,
+          filter: lit
+            ? "drop-shadow(0 0 4px rgb(var(--t-accent-rgb) / 0.28))"
+            : "drop-shadow(0 0 4px rgb(var(--t-accent-rgb) / 0))",
+          transition: `background-color ${BAR_EASE}, border-color ${BAR_EASE}, outline-color ${BAR_EASE}, filter ${BAR_EASE}`,
+        }}
+      />
     </div>
   );
 }

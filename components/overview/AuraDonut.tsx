@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Cell, Pie, PieChart, Sector } from "recharts";
+import { Pie, PieChart, Sector } from "recharts";
 import type { OverviewDonutSegment } from "@/lib/overview-metrics";
 import { CHART_GOLD, chartPrimaryRamp } from "@/lib/overview-metrics";
 import {
@@ -11,6 +11,7 @@ import {
   CHART_GOLD_PULSE_UNDERLAY,
 } from "@/lib/chart-gold-pulse";
 import { cn } from "@/lib/utils";
+import { RowHighlight } from "@/components/ui/RowHighlight";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 import {
   MetricTableHeader,
@@ -55,81 +56,88 @@ export function donutApexInset(well = AURA_SOURCES_DONUT_WELL): number {
 const MIN_RING = 120;
 /** Matches the `gap-5` on the row below (20px). */
 const ROW_GAP = 20;
+/** Tailwind's xl — where Overview stops stacking its panels (app/page.tsx). */
+const XL_BREAKPOINT = 1280;
+/** Widest the legend grows in the stacked Overview layout: wide enough to read
+ * as a table beside the ring, not so wide that a name sits a screen-width from
+ * its figures. */
+const SPREAD_LEGEND_MAX = 560;
+/** Empty width beside the ring before the legend stops hugging the right edge
+ * and the pair centres instead. */
+const SPREAD_MIN_SLACK = 200;
+/** The side-by-side row clips horizontally, and its legend sits flush with
+ * the row's right edge — so the legend rows' 10px highlight bleed (-mx-2.5)
+ * was cut off square on the right while the left end, clear of the edge,
+ * stayed rounded. The row reaches this far into the card's own padding with
+ * a matching inset, which leaves the content where it was but moves the clip
+ * out past the highlight. */
+const CLIP_BLEED = 10;
 
-interface ActiveShapeProps {
+interface SectorGeometry {
   cx: number;
   cy: number;
   innerRadius: number;
   outerRadius: number;
   startAngle: number;
   endAngle: number;
-  fill: string;
+  /** The row's `nameKey` — how a sector finds its own index. */
+  name?: string;
 }
 
+/** How long a slice takes to hand its colour over. Matches the legend
+ * swatches and the bars, so everything lit by one hover moves together. */
+const SLICE_EASE = "0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+
 /**
- * Room-light hover: base sector stays put so the ring never punches a black
- * hole; gold only fades in/out on top — on = lights up, off = lights out.
+ * One slice, drawn the same way whatever state it's in.
  *
- * Primary selection pulses via Framer Motion opacity. CSS animations on SVG
- * run on Safari/phones but Chromium drops them; motion keeps desktop in sync.
- * Underlay: each slice keeps its own slate bed so gold↔slate reads clearly.
- * The primary's idle fill is gold, so it borrows the shared slate bed instead
- * of flashing gold→gold.
+ * The lit slice used to be Recharts' `activeShape` — a different element from
+ * the plain sector it replaced, so the gold landed on the new slice and left
+ * the old one in a single frame, with nothing to transition between. Every
+ * slice now renders through this (the ring marks them all active), so each
+ * keeps its own nodes across a hover and the gold eases out of one slice as
+ * it eases into the next — the same hand-off as the legend swatches.
+ *
+ * Two layers: a bed in the slice's resting colour, and the slice itself on
+ * top. Lit, the slice turns gold and its opacity breathes, so the pulse reads
+ * gold↔bed. A slice that rests gold (the primary) beds on slate instead, or
+ * the beat would be gold↔gold. Framer Motion drives the pulse rather than CSS
+ * — CSS opacity animations on SVG run on Safari but Chromium drops them.
  */
-function renderActiveShape(
-  rawProps: unknown,
-  lit: boolean,
-  baseFill: string,
-  pulse = false,
-  pulseKey = 0
-) {
-  const props = rawProps as ActiveShapeProps;
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle } = props;
-  // Slate bed only while the primary is actively lit. On leave, snap the bed
-  // back to gold immediately — otherwise the gold overlay fades out over
-  // ~480ms and leaves the slate bed looking "stuck" gray.
-  const bed =
-    pulse && lit && baseFill === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : baseFill;
+function DonutSlice({
+  geom,
+  fill,
+  bed,
+  lit,
+  dimmed,
+}: {
+  geom: SectorGeometry;
+  fill: string;
+  bed: string;
+  lit: boolean;
+  dimmed: boolean;
+}) {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle } = geom;
+  const shape = { cx, cy, innerRadius, outerRadius, startAngle, endAngle };
   return (
-    <g>
+    <g style={{ opacity: dimmed ? 0.5 : 1, transition: `opacity ${SLICE_EASE}` }}>
       <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius}
-        startAngle={startAngle}
-        endAngle={endAngle}
+        {...shape}
         fill={bed}
-        stroke="var(--color-bulk-base)"
-        strokeWidth={1}
+        stroke="none"
+        style={{ opacity: lit ? 1 : 0, transition: `opacity ${SLICE_EASE}` }}
       />
-      {/* key remounts the beat when the active slice changes. Without it,
-          switching from the primary (which opened via opacity 0→pulse) to
-          another slice mounts motion already on CHART_GOLD_PULSE with
-          initial={false}, and Chromium never starts the keyframe loop. */}
       <motion.g
-        key={pulse && lit ? `gold-pulse-${pulseKey}` : `gold-idle-${pulseKey}`}
-        initial={{ opacity: pulse && lit ? 1 : 0 }}
-        animate={
-          pulse && lit
-            ? CHART_GOLD_PULSE
-            : { opacity: lit ? 1 : 0 }
-        }
-        transition={
-          pulse && lit
-            ? CHART_GOLD_PULSE_TRANSITION
-            : { duration: 0.48, ease: [0.4, 0, 0.2, 1] }
-        }
+        initial={false}
+        animate={lit ? CHART_GOLD_PULSE : { opacity: 1 }}
+        transition={lit ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.3 }}
       >
         <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={CHART_GOLD}
-          stroke="none"
+          {...shape}
+          fill={fill}
+          stroke="var(--color-bulk-base)"
+          strokeWidth={1}
+          style={{ transition: `fill ${SLICE_EASE}` }}
         />
       </motion.g>
     </g>
@@ -174,8 +182,6 @@ function DonutRing({
   outerRadius,
   chartData,
   hoverIndex,
-  paintIndex,
-  activeVisible,
   borrowColor,
   onHoverIndex,
   onLeave,
@@ -185,8 +191,6 @@ function DonutRing({
   outerRadius: number;
   chartData: DonutRow[];
   hoverIndex: number | undefined;
-  paintIndex: number | undefined;
-  activeVisible: boolean;
   /** Non-null while a secondary slice is lit and has taken the gold: the
    *  primary wears this instead for as long as that lasts. */
   borrowColor: string | null;
@@ -194,6 +198,7 @@ function DonutRing({
   onLeave: () => void;
 }) {
   const [sweep, setSweep] = useState(0);
+  const allSlices = useMemo(() => chartData.map((_, i) => i), [chartData]);
   // Freeze the box the sweep was measured for. On Overview this ring shares
   // a row with the Volume chart, which lands its own data a beat later and
   // reallocates the row's height mid-wipe — every ResizeObserver tick then
@@ -277,42 +282,33 @@ function DonutRing({
         minAngle={5 * sweep}
         paddingAngle={(chartData.length > 5 ? 1 : 2) * sweep}
         isAnimationActive={false}
-        activeIndex={paintIndex}
-        activeShape={(props: unknown) =>
-          renderActiveShape(
-            props,
-            activeVisible,
-            paintIndex != null ? chartData[paintIndex].color : CHART_GOLD,
-            paintIndex != null,
-            paintIndex ?? 0
-          )
-        }
-        onMouseEnter={(_, i) => onHoverIndex(i)}
-        onMouseLeave={onLeave}
-      >
-        {chartData.map((row, i) => {
+        // Every slice "active", so every slice renders through DonutSlice —
+        // see there for why none can be left to Recharts' plain sector.
+        activeIndex={allSlices}
+        activeShape={(props: unknown) => {
+          const sector = props as SectorGeometry;
+          const i = chartData.findIndex((r) => r.category === sector.name);
+          const row = chartData[i];
+          if (!row) return <g />;
           const isPrimary = i === 0;
+          const lit = hoverIndex === i;
           // Gold stays on the primary at rest; on a secondary hover it
           // borrows that slice's slate so the gold can move over.
-          const fill =
-            isPrimary && borrowColor != null
-              ? borrowColor
-              : isPrimary
-                ? CHART_GOLD
-                : row.color;
+          const rest = isPrimary ? CHART_GOLD : row.color;
+          const fill = lit ? CHART_GOLD : isPrimary && borrowColor != null ? borrowColor : rest;
           return (
-            <Cell
-              key={row.category}
+            <DonutSlice
+              geom={sector}
               fill={fill}
-              stroke="var(--color-bulk-base)"
-              strokeWidth={1}
-              opacity={hoverIndex == null || hoverIndex === i ? 1 : 0.5}
-              className={undefined}
-              style={{ transition: "fill 0.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
+              bed={rest === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : rest}
+              lit={lit}
+              dimmed={hoverIndex != null && !lit}
             />
           );
-        })}
-      </Pie>
+        }}
+        onMouseEnter={(_, i) => onHoverIndex(i)}
+        onMouseLeave={onLeave}
+      />
     </PieChart>
   );
 }
@@ -342,45 +338,7 @@ export function AuraDonut({
   const controlled = onHoverIndexChange != null;
   const hoverIndex = controlled ? hoverIndexProp : localHover;
   const setHoverIndex = controlled ? onHoverIndexChange! : setLocalHover;
-  /** Sector kept under activeShape while opacity eases out after leave. */
-  const [paintIndex, setPaintIndex] = useState<number | undefined>(undefined);
-  const [activeVisible, setActiveVisible] = useState(false);
   const narrow = useNarrowViewport();
-  const closeTimer = useRef(0);
-  const openRef = useRef(false);
-
-  useEffect(() => {
-    window.clearTimeout(closeTimer.current);
-
-    if (hoverIndex != null) {
-      const alreadyOpen = openRef.current;
-      setPaintIndex(hoverIndex);
-      if (alreadyOpen) {
-        openRef.current = true;
-        setActiveVisible(true);
-        return;
-      }
-      openRef.current = true;
-      setActiveVisible(false);
-      let cancelled = false;
-      const id = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (!cancelled) setActiveVisible(true);
-        });
-      });
-      return () => {
-        cancelled = true;
-        cancelAnimationFrame(id);
-      };
-    }
-
-    openRef.current = false;
-    setActiveVisible(false);
-    closeTimer.current = window.setTimeout(() => {
-      setPaintIndex(undefined);
-    }, 520);
-    return () => window.clearTimeout(closeTimer.current);
-  }, [hoverIndex]);
 
   // Measured off the ROW, not the donut's own box, and against both axes.
   // The ring is square, so its size is bounded by whichever of the two runs
@@ -392,7 +350,9 @@ export function AuraDonut({
   // transformed size permanently; `clientWidth`/`clientHeight` report layout
   // size, which a transform can't skew.
   const rowRef = useRef<HTMLDivElement | null>(null);
-  const [avail, setAvail] = useState({ w: 0, h: 0, legendFloor: 0 });
+  const legendRef = useRef<HTMLDivElement | null>(null);
+  const legendRows = useRef<(HTMLDivElement | null)[]>([]);
+  const [avail, setAvail] = useState({ w: 0, h: 0, legendFloor: 0, vw: 0 });
   // Overview shares a flex row with the Volume chart, which is empty for a
   // beat and then fills in — every pass reallocates this row's height. Aura's
   // Source Breakdown never has that neighbour, so its first measure is final
@@ -416,6 +376,7 @@ export function AuraDonut({
         w: el.clientWidth,
         h: el.clientHeight,
         legendFloor: metricTableMinWidth(window.innerWidth, { share: showShare }),
+        vw: window.innerWidth,
       });
     measure();
 
@@ -448,7 +409,7 @@ export function AuraDonut({
   const leftover =
     avail.w === 0
       ? 0
-      : avail.w - avail.legendFloor - ROW_GAP - METRIC_TABLE_LEAD_INSET - 1;
+      : avail.w - avail.legendFloor - ROW_GAP - METRIC_TABLE_LEAD_INSET - CLIP_BLEED - 1;
   const stacked = narrow || (avail.w > 0 && leftover < MIN_RING);
 
   const width =
@@ -563,6 +524,18 @@ export function AuraDonut({
   const captionFontPx = Math.max(8.5, Math.min(11, holeDiameter * 0.055));
 
   const sourcesLayout = !showShare;
+  // Below lg the Overview panels stack and this card runs the full page
+  // width, while the ring stays capped by the row's height. Pinning the
+  // legend to the right edge then left ~500px of nothing between it and the
+  // ring, so here the legend widens (to a cap) and the pair sits centred.
+  // Gated on the slack actually being there, not on the breakpoint alone:
+  // between lg and xl this card is half the page and has none to spare.
+  const spread =
+    !stacked &&
+    !sourcesLayout &&
+    avail.vw > 0 &&
+    avail.vw < XL_BREAKPOINT &&
+    leftover - width >= SPREAD_MIN_SLACK;
 
   return (
     <div
@@ -573,10 +546,16 @@ export function AuraDonut({
         "flex min-h-0 min-w-0 flex-1 select-none [-webkit-touch-callout:none] [isolation:isolate]",
         // overflow-x only — overflow-y:hidden was clipping the ring apex on
         // short mobile panels (the flat top that looked like "textures").
-        stacked ? "flex-col items-stretch gap-3 overflow-visible" : "gap-5 overflow-x-clip overflow-y-visible",
+        stacked
+          ? "flex-col items-stretch gap-3 overflow-visible"
+          : cn(spread ? "justify-center gap-16" : "gap-5", "overflow-x-clip overflow-y-visible"),
         !stacked && (sourcesLayout ? "items-start" : "items-center")
       )}
-      style={{ paddingLeft: stacked ? 0 : METRIC_TABLE_LEAD_INSET }}
+      style={{
+        paddingLeft: stacked || spread ? 0 : METRIC_TABLE_LEAD_INSET,
+        paddingRight: stacked ? 0 : CLIP_BLEED,
+        marginRight: stacked ? 0 : -CLIP_BLEED,
+      }}
       onMouseLeave={() => {
         if (!controlled) setHoverIndex(undefined);
       }}
@@ -612,8 +591,6 @@ export function AuraDonut({
             outerRadius={outerRadius}
             chartData={chartData}
             hoverIndex={hoverIndex}
-            paintIndex={paintIndex}
-            activeVisible={activeVisible}
             borrowColor={borrowColor}
             onHoverIndex={setHoverIndex}
             onLeave={() => {
@@ -656,15 +633,20 @@ export function AuraDonut({
       </div>
 
       <div
+        ref={legendRef}
         className={cn(
-          "flex min-h-0 min-w-0 flex-col",
+          "relative isolate flex min-h-0 min-w-0 flex-col",
           stacked || sourcesLayout
             ? "flex-1 justify-start self-stretch"
-            : "ml-auto flex-none self-stretch [justify-content:safe_center]"
+            : spread
+              ? "flex-1 self-stretch [justify-content:safe_center]"
+              : "ml-auto flex-none self-stretch [justify-content:safe_center]"
         )}
         style={
           stacked
             ? { width: "100%", minWidth: 0, maxWidth: "100%", paddingTop: 0 }
+            : spread
+              ? { minWidth: avail.legendFloor, maxWidth: SPREAD_LEGEND_MAX }
             : sourcesLayout
               ? {
                   minWidth: avail.legendFloor,
@@ -681,7 +663,11 @@ export function AuraDonut({
           columns={
             showShare ? (["Category", "Aura", "Share"] as const) : (["Category", "Aura"] as const)
           }
-          wide={sourcesLayout || stacked}
+          wide={sourcesLayout || stacked || spread}
+        />
+        <RowHighlight
+          containerRef={legendRef}
+          target={hoverIndex != null ? (legendRows.current[hoverIndex] ?? null) : null}
         />
         {chartData.map((row, i) => {
           const legendColor =
@@ -694,14 +680,18 @@ export function AuraDonut({
             <MetricTableRow
               key={row.category}
               color={legendColor}
+              restColor={row.color}
               pulseDot={hoverIndex === i}
               name={row.category}
               count={Math.round(row.points).toLocaleString("en-US")}
               share={showShare ? `${Math.round(row.share)}%` : undefined}
-              wide={sourcesLayout || stacked}
+              wide={sourcesLayout || stacked || spread}
               active={hoverIndex === i}
               dimmed={hoverIndex !== undefined && hoverIndex !== i}
               isFirst={i === 0}
+              rowRef={(el) => {
+                legendRows.current[i] = el;
+              }}
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => {
                 if (!controlled) setHoverIndex(undefined);

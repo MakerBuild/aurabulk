@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { CopyableWallet } from "@/components/ui/CopyableWallet";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { PanelCard } from "@/components/overview/PanelCard";
+import { RowHighlight } from "@/components/ui/RowHighlight";
 
 interface ColumnDef {
   key: string;
@@ -109,6 +110,9 @@ export function LeaderboardTable({
   const [tabClickCount, setTabClickCount] = useState(0);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const rowEls = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const [hoveredWallet, setHoveredWallet] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState(LEADERBOARD_TAB_DEFAULT_SORT.aura.key);
   const [sortDir, setSortDir] = useState<LeaderboardSortDir>(
     LEADERBOARD_TAB_DEFAULT_SORT.aura.dir
@@ -270,7 +274,18 @@ export function LeaderboardTable({
           />
         </div>
 
-      <div className={cn("overflow-x-auto", loading && "min-h-[680px]")}>
+      <div
+        ref={scrollRef}
+        className={cn("relative isolate overflow-x-auto", loading && "min-h-[680px]")}
+        onMouseLeave={() => setHoveredWallet(null)}
+      >
+        {/* Lives in the scroll wrapper rather than the table: a <tr> can't
+            hold a positioned box, and this way the highlight scrolls with the
+            rows on a narrow screen. */}
+        <RowHighlight
+          containerRef={scrollRef}
+          target={hoveredWallet != null ? (rowEls.current[hoveredWallet] ?? null) : null}
+        />
         <table className="w-full text-left text-[13px] text-text-primary">
           <thead>
             <tr className="border-b border-[var(--color-line)]">
@@ -314,7 +329,11 @@ export function LeaderboardTable({
               pageData.map((entry, i) => (
                 <tr
                   key={entry.wallet}
-                  className="group border-b border-[var(--color-line-soft)] transition-colors hover:bg-[rgb(var(--t-veil-rgb)/0.045)] [&>td:first-child]:rounded-l-md [&>td:last-child]:rounded-r-md"
+                  ref={(el) => {
+                    rowEls.current[entry.wallet] = el;
+                  }}
+                  onMouseEnter={() => setHoveredWallet(entry.wallet)}
+                  className="group border-b border-[var(--color-line-soft)]"
                 >
                   {columns.map((col) => {
                     const value = col.isDisplayRank

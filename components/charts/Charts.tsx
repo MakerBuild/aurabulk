@@ -6,7 +6,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   LabelList,
   Rectangle,
   ResponsiveContainer,
@@ -68,6 +67,51 @@ function useInViewOnce<T extends HTMLElement>(threshold = 0.25) {
   }, [hasEntered, threshold]);
 
   return { ref, hasEntered };
+}
+
+const BAR_EASE = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+
+/**
+ * One Category Share bar, drawn the same way whatever state it's in.
+ *
+ * The lit bar used to come back from `shape` as a different element tree from
+ * a plain bar, so the gold jumped from one bar to the next in a single frame.
+ * Kept as one set of nodes, the fill and the dimming ease across with CSS
+ * transitions — the same hand-off as the donut beside it and the legend.
+ *
+ * Lit, the fill turns gold and its opacity breathes over a bed in the bar's
+ * resting colour (slate for the gold primary, or the beat would be
+ * gold↔gold). The pulse runs on Framer Motion because Chromium drops CSS
+ * opacity animations on SVG.
+ */
+function CategoryBar({
+  geom,
+  fill,
+  bed,
+  lit,
+  dimmed,
+}: {
+  geom: { x: number; y: number; width: number; height: number };
+  fill: string;
+  bed: string;
+  lit: boolean;
+  dimmed: boolean;
+}) {
+  const shape = { ...geom, radius: [0, 2, 2, 0] as [number, number, number, number] };
+  return (
+    <g style={{ opacity: dimmed ? 0.4 : 1, transition: `opacity ${BAR_EASE}` }}>
+      <g style={{ opacity: lit ? 1 : 0, transition: `opacity ${BAR_EASE}` }}>
+        <Rectangle {...shape} fill={bed} />
+      </g>
+      <motion.g
+        initial={false}
+        animate={lit ? CHART_GOLD_PULSE : { opacity: 1 }}
+        transition={lit ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.3 }}
+      >
+        <Rectangle {...shape} fill={fill} style={{ transition: `fill ${BAR_EASE}` }} />
+      </motion.g>
+    </g>
+  );
 }
 
 function CategoryYTick({
@@ -418,70 +462,37 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                     const band = Number(p.height) || 28;
                     const h = Math.min(band * 0.72, Math.max(22, Math.min(36, band)));
                     const idx = typeof p.index === "number" ? p.index : -1;
-                    const pulsing = idx >= 0 && sharedHover === idx;
-                    // Centre the bar in its category band.
-                    const y = (Number(p.y) || 0) + (band - h) / 2;
-                    if (!pulsing) {
-                      return (
-                        <Rectangle
-                          {...p}
-                          y={y}
-                          height={h}
-                          radius={[0, 2, 2, 0]}
-                        />
-                      );
-                    }
-                    // Idle primary is gold — bed it on slate like every other
-                    // slice so the opacity beat reads gold↔gray, not gold↔gold.
-                    const idle = colored[idx]?.color ?? CHART_GOLD;
-                    const bed =
-                      idx === 0 || idle === CHART_GOLD
-                        ? CHART_GOLD_PULSE_UNDERLAY
-                        : idle;
-                    const geom = {
-                      x: p.x,
-                      y,
-                      width: p.width,
-                      height: h,
-                      radius: [0, 2, 2, 0] as [number, number, number, number],
-                    };
-                    return (
-                      <g>
-                        <Rectangle {...geom} fill={bed} />
-                        <motion.g
-                          key={`bar-pulse-${idx}`}
-                          initial={{ opacity: 1 }}
-                          animate={CHART_GOLD_PULSE}
-                          transition={CHART_GOLD_PULSE_TRANSITION}
-                        >
-                          <Rectangle {...geom} fill={CHART_GOLD} />
-                        </motion.g>
-                      </g>
-                    );
-                  }}
-                >
-                  {colored.map((row, i) => {
+                    const row = colored[idx];
+                    if (!row) return <g />;
+                    const lit = sharedHover === idx;
                     const borrow =
                       sharedHover != null && sharedHover > 0
                         ? colored[sharedHover].color
                         : null;
-                    const fill =
-                      sharedHover === i
-                        ? CHART_GOLD
-                        : i === 0 && borrow != null
-                          ? borrow
-                          : row.color;
+                    // Gold stays on the primary at rest; on a secondary hover
+                    // it borrows that bar's slate so the gold can move over.
+                    const fill = lit
+                      ? CHART_GOLD
+                      : idx === 0 && borrow != null
+                        ? borrow
+                        : row.color;
                     return (
-                      <Cell
-                        key={row.key}
+                      <CategoryBar
+                        geom={{
+                          x: Number(p.x) || 0,
+                          // Centre the bar in its category band.
+                          y: (Number(p.y) || 0) + (band - h) / 2,
+                          width: Number(p.width) || 0,
+                          height: h,
+                        }}
                         fill={fill}
-                        opacity={
-                          sharedHover == null || sharedHover === i ? 1 : 0.4
-                        }
-                        style={{ transition: "fill 0.25s ease" }}
+                        bed={row.color === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : row.color}
+                        lit={lit}
+                        dimmed={sharedHover != null && !lit}
                       />
                     );
-                  })}
+                  }}
+                >
                   <LabelList
                     dataKey="groupShare"
                     position="right"

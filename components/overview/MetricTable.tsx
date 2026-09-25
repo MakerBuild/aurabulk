@@ -81,7 +81,16 @@ const TWO_TRAILING = `minmax(0, ${LABEL_W}px) ${COUNT_W}px`;
 const TWO_COL = { template: TWO_TRAILING, justify: "justify-end" };
 const TWO_COL_WIDE = { template: "minmax(0, 1fr) max-content", justify: "" };
 const THREE_COL = { template: TRAILING_COLS, justify: "justify-end" };
-const THREE_COL_WIDE = { template: "minmax(0, 1fr) max-content max-content", justify: "" };
+/** Equal thirds, not `1fr max-content max-content`: every row is its own
+ * grid, so max-content sized the Aura column to each row's own number and a
+ * long figure ended further left than a short one. Equal shares keep one
+ * width for every row and space the three headings evenly across the table.
+ * The label third is floored at LABEL_W so a narrow legend truncates the
+ * figures' slack before it truncates a name. */
+const THREE_COL_WIDE = {
+  template: `minmax(${LABEL_W}px, 1fr) minmax(0, 1fr) minmax(0, 1fr)`,
+  justify: "",
+};
 const FOUR_COL = { template: `minmax(0, 1fr) ${TRAILING_COLS}`, justify: "" };
 
 function shapeFor(columnCount: number) {
@@ -178,10 +187,11 @@ export function MetricTableRow({
   share,
   active,
   dimmed,
-  pulse,
   pulseDot,
   isFirst,
   wide,
+  rowRef,
+  restColor,
   onMouseEnter,
   onMouseLeave,
 }: {
@@ -197,11 +207,6 @@ export function MetricTableRow({
   share?: string;
   active: boolean;
   dimmed: boolean;
-  /** Pulse this row instead of just tinting it — set when the highlight came
-   * from somewhere else on the page (the distribution curve) rather than from
-   * the cursor being on this row. Optional: tables with nothing linked to
-   * them never pass it. */
-  pulse?: boolean;
   /** Pulse the colour swatch (gold primary marks). */
   pulseDot?: boolean;
   /** No divider above the first row — the header's own border-b already
@@ -209,6 +214,13 @@ export function MetricTableRow({
   isFirst: boolean;
   /** Match `MetricTableHeader`'s wide two-col template. */
   wide?: boolean;
+  /** Hands the row to the table's RowHighlight, which draws the active fill
+   * as one box sliding between rows — the row itself paints
+   * no background. */
+  rowRef?: (el: HTMLDivElement | null) => void;
+  /** The swatch's own colour when nothing is hovered — the bed its gold
+   * pulse breathes over. Defaults to `color`. */
+  restColor?: string;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }) {
@@ -227,19 +239,17 @@ export function MetricTableRow({
           : TWO_COL;
   return (
     <div
+      ref={rowRef}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
         GRID,
         shape.justify,
-        // px/mx always on — only the fill toggles — so hovering doesn't shift
-        // columns. The inset clears the scaled bullet and softens the cut at
-        // the panel edge with rounded corners.
-        "-mx-2.5 shrink-0 cursor-pointer items-center rounded-md px-2.5 transition-colors select-none [-webkit-touch-callout:none]",
+        // px/mx always on so the highlight box, which takes this row's
+        // bounds, reaches 10px past the bullets and the last column alike.
+        "-mx-2.5 shrink-0 cursor-pointer items-center px-2.5 transition-colors select-none [-webkit-touch-callout:none]",
         !isFirst && "border-t border-[var(--color-line-soft)]",
-        active && !isFirst && "border-transparent",
-        active && !pulse && "bg-[rgb(var(--t-veil-rgb)/0.045)]",
-        active && pulse && "tier-row-pulse"
+        active && !isFirst && "border-transparent"
       )}
       // An explicit height rather than vertical padding: padding leaves the
       // row's height at the mercy of its tallest text, and the tier table's
@@ -253,44 +263,13 @@ export function MetricTableRow({
           at as many different x positions. Anchoring the group left puts every
           dot on one vertical line and every name at one starting x. */}
       <span className={cn("flex min-w-0 items-center gap-2", CATEGORY_NAME)} style={{ color: textColor }}>
-        {pulseDot && color === CHART_GOLD ? (
-          <span className="relative h-[9px] w-[9px] shrink-0">
-            <span
-              className="absolute inset-0 rounded-full"
-              style={{ background: CHART_GOLD_PULSE_UNDERLAY }}
-            />
-            <motion.span
-              key="legend-gold-pulse"
-              className="absolute inset-0 rounded-full"
-              initial={{ opacity: 1 }}
-              animate={CHART_GOLD_PULSE}
-              transition={CHART_GOLD_PULSE_TRANSITION}
-              style={{
-                background: CHART_GOLD,
-                transform: active ? "scale(1.25)" : "scale(1)",
-              }}
-            />
-          </span>
-        ) : (
-          <motion.span
-            className="h-[9px] w-[9px] shrink-0 rounded-full"
-            initial={{ opacity: pulseDot ? 1 : dimmed ? 0.4 : 1 }}
-            animate={
-              pulseDot
-                ? CHART_GOLD_PULSE
-                : { opacity: dimmed ? 0.4 : 1 }
-            }
-            transition={
-              pulseDot
-                ? CHART_GOLD_PULSE_TRANSITION
-                : { duration: 0.2 }
-            }
-            style={{
-              background: color,
-              transform: active ? "scale(1.25)" : "scale(1)",
-            }}
-          />
-        )}
+        <LegendDot
+          color={color}
+          restColor={restColor ?? color}
+          active={active}
+          pulse={!!pulseDot}
+          dimmed={dimmed}
+        />
         <span className="truncate">{name}</span>
       </span>
       {/* Its own cell rather than trailing the name inside one: sharing a cell
@@ -321,5 +300,49 @@ export function MetricTableRow({
         </span>
       )}
     </div>
+  );
+}
+
+/** A legend swatch. One fixed structure whatever state it's in — the old
+ * swatch swapped to a different element to light up, so the gold appeared in
+ * one row and vanished from the last in a single frame. Kept as one set of
+ * nodes, the colour and scale ease across with CSS transitions (the colours
+ * are CSS variables, which only the browser can interpolate) and the pulse's
+ * bed fades in under it, so moving down a legend hands the gold from swatch
+ * to swatch the same way the row highlight slides.
+ *
+ * The pulse breathes the gold over the swatch's resting colour; a swatch that
+ * rests gold breathes over slate instead, or gold over gold would not show. */
+export function LegendDot({
+  color,
+  restColor,
+  active,
+  pulse,
+  dimmed,
+}: {
+  color: string;
+  restColor: string;
+  active: boolean;
+  pulse: boolean;
+  dimmed: boolean;
+}) {
+  const bed = restColor === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : restColor;
+  return (
+    <span
+      className="relative h-[9px] w-[9px] shrink-0 transition-transform duration-300 ease-out"
+      style={{ transform: active ? "scale(1.25)" : "scale(1)" }}
+    >
+      <span
+        className="absolute inset-0 rounded-full transition-opacity duration-300 ease-out"
+        style={{ backgroundColor: bed, opacity: pulse ? 1 : 0 }}
+      />
+      <motion.span
+        className="absolute inset-0 rounded-full transition-[background-color] duration-300 ease-out"
+        initial={false}
+        animate={pulse ? CHART_GOLD_PULSE : { opacity: dimmed ? 0.4 : 1 }}
+        transition={pulse ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.25 }}
+        style={{ backgroundColor: color }}
+      />
+    </span>
   );
 }

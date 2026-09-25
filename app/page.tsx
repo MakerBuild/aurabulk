@@ -57,46 +57,37 @@ export default async function OverviewPage() {
       <div className="flex min-h-0 flex-1 flex-col gap-5">
         <KpiStrip />
 
-        {/* 1.25 against the depositors row's 1, not an equal share. Both
-            rows were flex-1, which split the screen down the middle — and half
-            the screen is more than a six-row table needs and less than a chart
-            wants. At this ratio the TVL curve gets the height, and the panel
-            below settles at roughly four fifths of what it used to take.
+        {/* One grid for all four cards — Volume, donut, bars, tiers, in that
+            order — rather than one grid per row, so the breakpoints can
+            regroup them across what used to be the row boundary. The
+            distribution panel's wrapper is `display: contents`, which puts its
+            two cards straight into this grid as cells; the panel still owns
+            both, so hovering a bar lights its tier row and back.
 
-            xl:min-h-[280px] on top of that: the depositors panel below is
-            fixed to its own content height, not flex, so on a short window
-            this row was the only thing left to squeeze — 191px at 1366×768,
-            which is what capped the Aura donut to a ring smaller than its own
-            width formula allowed. A floor here means the one-screen fit gives
-            way instead: the page scrolls a short window rather than
-            shrinking the donut down to fit it. */}
-        <div className="grid min-h-0 grid-cols-1 gap-5 xl:min-h-[320px] xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
-          <div className="min-h-0">
+              xl:  Volume | donut      lg:  Volume (full)     below: stacked
+                   bars   | tiers           donut | bars
+                                            tiers (full)
+
+            Between lg and xl the donut used to run the full page width on its
+            own, with ~500px of nothing beside a height-capped ring; paired
+            with the bars it gets a half it can actually fill.
+
+            At xl the first row takes all the leftover height and the second
+            exactly what the six-row table needs — stretching a table only
+            pushes its rows apart, while the TVL chart actually improves with
+            height. The 320px floor keeps a short window from squeezing that
+            row (191px at 1366×768, which capped the donut below its own width
+            formula): the page scrolls instead of shrinking the ring. */}
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:grid-rows-[minmax(320px,1fr)_auto]">
+          <div className="min-h-0 lg:col-span-2 xl:col-span-1">
             <VolumePanel />
           </div>
-          <div className="min-h-0 xl:flex">
+          <div className="min-h-0 lg:flex">
             <AuraSourcesPanel
               donut={panels.auraSources.donut}
               totalAuraNumber={panels.auraSources.totalAuraNumber}
             />
           </div>
-        </div>
-
-        {/* Two cards again, on the same column template as the row above —
-            the bars under the TVL curve at its width, the tier table under
-            the donut at its. They spent a spell as a single card, which read
-            well as one object but split this row at its own ratio, leaving
-            the two rows visibly out of step with each other. The pairing
-            survives the split: the panel still owns both halves, so hovering
-            a bar lights its tier row and back, across the two cards. */}
-        {/* No flex-1: this row takes exactly what it contains and no more.
-            A table of six fixed-height rows has one right height, and stretching
-            it only pushes the footnote away from the rows and pads the bars;
-            the chart above is the thing that actually improves with height, so
-            the entire remainder goes there. It used to be flex-1 with a 336px
-            floor, and between them they took more of the screen than the TVL
-            chart, which is what this now gives back. */}
-        <div className="min-h-0 xl:flex">
           <DepositorsDistributionPanel tiers={panels.depositorsAnalysis.tiers} />
         </div>
       </div>

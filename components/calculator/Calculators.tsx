@@ -8,6 +8,7 @@ import { computeFdv } from "@/lib/percentiles";
 import { useLiveFinancials } from "@/components/live/LiveFinancialProvider";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { PanelCard, PanelLabel } from "@/components/overview/PanelCard";
+import { RowHighlight } from "@/components/ui/RowHighlight";
 import { PageHeading } from "@/components/layout/PageHeading";
 import {
   Area,
@@ -1183,12 +1184,19 @@ function FdvScenarioPanel({
       delta,
     };
   });
+  const tableRef = useRef<HTMLDivElement | null>(null);
+  const rowEls = useRef<Record<string, HTMLDivElement | null>>({});
+  const [hovered, setHovered] = useState<string | null>(null);
 
   return (
     <PanelCard glossy glossDelay={-6}>
       <PanelLabel>FDV scenario matrix</PanelLabel>
 
-      <div className="mt-4">
+      <div ref={tableRef} className="relative isolate mt-4">
+        <RowHighlight
+          containerRef={tableRef}
+          target={hovered != null ? (rowEls.current[hovered] ?? null) : null}
+        />
         {/* Same shape as the Overview tables: a 10px uppercase heading row on
             a hairline, then fixed-height rows divided by the softer one, first
             column left, every number right. */}
@@ -1213,11 +1221,16 @@ function FdvScenarioPanel({
         {rows.map((row, i) => (
           <div
             key={row.key}
+            ref={(el) => {
+              rowEls.current[row.key] = el;
+            }}
+            onMouseEnter={() => setHovered(row.key)}
+            onMouseLeave={() => setHovered(null)}
             className={cn(
-              "-mx-2.5 grid grid-cols-4 items-center gap-x-2 rounded-md px-2.5 sm:gap-x-8",
+              "-mx-2.5 grid grid-cols-4 items-center gap-x-2 px-2.5 sm:gap-x-8",
               i > 0 && "border-t border-[var(--color-line-soft)]",
               "cursor-default transition-colors",
-              "hover:border-transparent hover:bg-[rgb(var(--t-veil-rgb)/0.045)]"
+              hovered === row.key && "border-transparent"
             )}
             style={{ height: 42 }}
           >
