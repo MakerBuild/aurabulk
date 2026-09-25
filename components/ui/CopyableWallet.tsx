@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,13 +19,17 @@ export function CopyableWallet({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const resetTimer = useRef(0);
+
+  useEffect(() => () => window.clearTimeout(resetTimer.current), []);
 
   async function handleCopy(e: React.MouseEvent) {
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(wallet);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+      window.clearTimeout(resetTimer.current);
+      resetTimer.current = window.setTimeout(() => setCopied(false), 1500);
     } catch {
       // Clipboard access denied or unavailable — nothing to recover.
     }

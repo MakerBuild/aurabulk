@@ -1,130 +1,62 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { usdBoard } from "@/components/overview/spark-format";
+import { useInViewOnce } from "@/components/overview/use-in-view-once";
 
-export type NumberFormat =
-  | "number"
-  | "usd"
-  | "usd-full"
-  | "usd-board"
-  | "plain"
-  | "percent"
-  | "decimal3";
+type NumberFormat = "usd-board" | "plain";
 
 function formatValue(n: number, format: NumberFormat): string {
-  switch (format) {
-    case "number":
-      return formatNumber(n);
-    case "usd":
-      return `$${formatNumber(n)}`;
-    case "usd-full":
-      return `$${Math.round(n).toLocaleString("en-US")}`;
-    case "usd-board":
-      if (!(n > 0)) return "$0";
-      if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-      if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-      if (n >= 1e3) return `$${Math.round(n / 1e3).toLocaleString("en-US")}K`;
-      return `$${Math.round(n).toLocaleString("en-US")}`;
-    case "percent":
-      return `${n.toFixed(1)}%`;
-    case "decimal3":
-      return n.toFixed(3);
-    case "plain":
-    default:
-      return Math.round(n).toLocaleString("en-US");
-  }
+  return format === "usd-board" ? usdBoard(n) : Math.round(n).toLocaleString("en-US");
 }
 
-interface KpiTerminalCounterProps {
-  value: number;
-  format?: NumberFormat;
-  /** Total count-up duration in ms. */
-  durationMs?: number;
-  className?: string;
-}
+/** Count-up from zero on first view, then a shorter glide per live update. */
+const ENTRANCE_MS = 1000;
+const UPDATE_MS = 480;
 
 export function KpiTerminalCounter({
   value,
   format = "plain",
-  durationMs = 1000,
-  className,
-}: KpiTerminalCounterProps) {
-  const [displayed, setDisplayed] = useState(value);
+}: {
+  value: number;
+  format?: NumberFormat;
+}) {
+  // Starts at 0 on the server and the client alike, so first paint matches
+  // the markup and the count-up never shows the final figure before it.
+  const [displayed, setDisplayed] = useState(0);
   const [counting, setCounting] = useState(false);
-  const rafRef = useRef<number | null>(null);
-  const hostRef = useRef<HTMLSpanElement | null>(null);
-  const displayedRef = useRef(value);
-  const enteredRef = useRef(false);
-  const [hasEnteredViewport, setHasEnteredViewport] = useState(false);
+  const displayedRef = useRef(0);
+  const { ref: hostRef, hasEntered } = useInViewOnce<HTMLSpanElement>(0.35, "0px 0px -8% 0px");
 
   useEffect(() => {
-    if (hasEnteredViewport) return;
-    const node = hostRef.current;
-    if (!node || typeof IntersectionObserver === "undefined") {
-      setHasEnteredViewport(true);
-      return;
-    }
+    if (!hasEntered) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting) {
-          setHasEnteredViewport(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.35, rootMargin: "0px 0px -8% 0px" },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasEnteredViewport]);
-
-  useEffect(() => {
-    if (!hasEnteredViewport) {
-      displayedRef.current = value;
-      setDisplayed(value);
-      setCounting(false);
-      return;
-    }
-
-    const isUpdate = enteredRef.current;
-    const from = isUpdate ? displayedRef.current : 0;
-    enteredRef.current = true;
+    const from = displayedRef.current;
     const to = value;
-    const span = isUpdate ? Math.min(durationMs, 480) : durationMs;
-    let cancelled = false;
+    const span = from === 0 ? ENTRANCE_MS : UPDATE_MS;
+    const start = performance.now();
+    let frame = 0;
     setCounting(true);
 
-    const start = performance.now();
-
     const tick = (now: number) => {
-      if (cancelled) return;
       const t = Math.min(1, (now - start) / span);
-      const eased = 1 - (1 - t) ** 3;
-      const next = from + (to - from) * eased;
+      const next = from + (to - from) * (1 - (1 - t) ** 3);
       displayedRef.current = next;
       setDisplayed(next);
       if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
+        frame = requestAnimationFrame(tick);
+      } else {
+        setCounting(false);
       }
-      displayedRef.current = to;
-      setDisplayed(to);
-      setCounting(false);
     };
+    frame = requestAnimationFrame(tick);
 
-    rafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      cancelled = true;
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [hasEnteredViewport, value, durationMs]);
+    return () => cancelAnimationFrame(frame);
+  }, [hasEntered, value]);
 
   return (
-    <span ref={hostRef} className={cn("kpi-number", counting && "is-counting", className)}>
+    <span ref={hostRef} className={cn("kpi-number", counting && "is-counting")}>
       {formatValue(displayed, format)}
     </span>
   );

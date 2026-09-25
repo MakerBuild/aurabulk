@@ -2,12 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-  CHART_GOLD_PULSE,
-  CHART_GOLD_PULSE_TRANSITION,
-  CHART_GOLD_PULSE_UNDERLAY,
-} from "@/lib/chart-gold-pulse";
-import { CHART_GOLD } from "@/lib/overview-metrics";
+import { pulseBed, pulseMotion } from "@/lib/chart-gold-pulse";
 
 /** Category / tier names — Familjen 13 medium. Shared by the donut legend
  * and the Category Share Y-axis so the two panels read as one list. */
@@ -21,33 +16,17 @@ export const CATEGORY_NAME_SVG = {
   fontWeight: 500,
 } as const;
 
-/** Height of MetricTableHeader (label + pb-1.5 + hairline). Kept for callers
- * that need to match the legend's chrome; Category Share aligns to the donut
- * apex directly via chart margin instead. */
-/** The three columns both tables end with — label, count, share — are the
- * same fixed widths in both, and both tables hang them off their right edge.
- * That is what puts the tier table's Size / Depositors / Share directly under
- * the Aura legend's Category / Aura / Share: the two panels are the same
- * width and sit in the same layout column, so a column measured back from the
- * right edge lands at the same x in each, whatever is going on to its left.
- *
- * Each width is the widest thing either table puts in that column, measured
- * in the browser: 96 for the label column ("Pre-Deposits" with its dot, 93.1);
- * 72 for the count ("DEPOSITORS", the heading, at 70.2 — wider than any count
- * under it); 42 for the share ("53.4%", 39.8).
- *
- * The tier table adds a FOURTH column in front for the tier name itself, and
- * that one is 1fr — it takes all the slack, which is what keeps its bullets on
- * the panel's left edge, in line with the donut above. */
+/** Fixed widths for the label / count / share columns, hung off the table's
+ * right edge. Each is the widest thing the column holds, measured in the
+ * browser: 96 for the label ("Pre-Deposits" with its dot, 93.1); 72 for the
+ * count heading (70.2); 42 for the share ("53.4%", 39.8). */
 const LABEL_W = 96;
 const COUNT_W = 72;
 const SHARE_W = 42;
 /** The gap is fluid, not a fixed 36. At 36 flat, the columns plus this
  * panel's ring want more than a 1024-wide layout gives the panel, and the
  * ring — the one thing sized from what's left over — collapsed to 42px to
- * pay for it. Fluid, the gap only reaches its full 36 where there's room.
- * Both tables read the same expression, so they stay in step with each
- * other at every width. */
+ * pay for it. Fluid, the gap only reaches its full 36 where there's room. */
 // Written out literally, not built from the constants below: Tailwind scans
 // source text for class names, so a class assembled at runtime generates no
 // CSS at all and the gap silently falls back to zero. Keep the two in sync.
@@ -60,13 +39,9 @@ function gapAt(viewportWidth: number): number {
   return Math.min(GAP_MAX, Math.max(GAP_MIN, (GAP_VW / 100) * viewportWidth));
 }
 
-/** How far the leading content — the donut in one panel, the tier names in
- * the other — sits in from its card's edge. Applied by both panels so the
- * two stay in line with each other; the trailing columns don't move, since
- * they're measured from the right edge and this only eats into the slack on
- * the left. AuraDonut also subtracts it before sizing the ring, because a
- * row's clientWidth counts its own padding and would otherwise hand the ring
- * width that isn't there. */
+/** How far the donut sits in from its card's edge. AuraDonut also subtracts
+ * it before sizing the ring, because a row's clientWidth counts its own
+ * padding and would otherwise hand the ring width that isn't there. */
 export const METRIC_TABLE_LEAD_INSET = 20;
 
 // minmax rather than bare lengths: a narrow viewport can leave the panel
@@ -91,12 +66,11 @@ const THREE_COL_WIDE = {
   template: `minmax(${LABEL_W}px, 1fr) minmax(0, 1fr) minmax(0, 1fr)`,
   justify: "",
 };
-const FOUR_COL = { template: `minmax(0, 1fr) ${TRAILING_COLS}`, justify: "" };
 
-function shapeFor(columnCount: number) {
-  if (columnCount === 2) return TWO_COL;
-  if (columnCount === 4) return FOUR_COL;
-  return THREE_COL;
+/** Header and rows must get the same template — each row is its own grid. */
+function shapeFor(columnCount: number, wide: boolean | undefined) {
+  if (columnCount === 2) return wide ? TWO_COL_WIDE : TWO_COL;
+  return wide ? THREE_COL_WIDE : THREE_COL;
 }
 
 /** Bullet width plus its gap to the name. Every cell in a label column is
@@ -105,14 +79,8 @@ function shapeFor(columnCount: number) {
  * at the same x as the text in the label column above them. */
 const BULLET_INSET = "pl-[17px]";
 
-/** Every row of every one of these tables is exactly this tall, in both
- * tables, whatever height its panel happens to have — set here rather than
- * left to line-height so the Aura legend's four rows and the tier table's
- * six sit on the same rhythm instead of each table pacing itself off its own
- * row count. Paired with shrink-0 on the row: these sit in a flex column, so
- * without it a short panel squeezes the rows, and it squeezes the six-row
- * table harder than the four-row one — which is exactly the mismatch the
- * fixed height is here to prevent. */
+/** Fixed row height, paired with shrink-0 on the row: rows sit in a flex
+ * column, so without both a short panel would squeeze them. */
 const ROW_H = 30;
 
 /** The narrowest the label/count/share block can render without its label
@@ -134,23 +102,14 @@ export function MetricTableHeader({
   wide,
 }: {
   /** Two headings hide the share column (Aura sources — shares live on the
-   * bar chart beside it). Three is the plain legend. Four for a row with a
-   * secondary label — same order and count as the row's cells. */
-  columns:
-    | readonly [string, string]
-    | readonly [string, string, string]
-    | readonly [string, string, string, string];
+   * bar chart beside it). Three is the plain legend. */
+  columns: readonly [string, string] | readonly [string, string, string];
   /** Stretch the label column across leftover width. Aura sources sits the
    * legend next to a height-capped ring, so without this the two-col grid
    * stays 168px wide and the rest of the box is a gap. */
   wide?: boolean;
 }) {
-  const shape =
-    wide && columns.length === 2
-      ? TWO_COL_WIDE
-      : wide && columns.length === 3
-        ? THREE_COL_WIDE
-        : shapeFor(columns.length);
+  const shape = shapeFor(columns.length, wide);
   return (
     <div
       className={cn(
@@ -182,7 +141,6 @@ export function MetricTableHeader({
 export function MetricTableRow({
   color,
   name,
-  detail,
   count,
   share,
   active,
@@ -197,10 +155,6 @@ export function MetricTableRow({
 }: {
   color: string;
   name: string;
-  /** The row's secondary text, e.g. a dollar range. Pass it only on tables
-   * that declared a `detail` width — it gets its own column, so a row that
-   * supplied one without the width would push the numeric columns over. */
-  detail?: string;
   count: string;
   /** Omit on two-column legends — the Aura sources donut drops share because
    * the Category Share chart next to it already shows it. */
@@ -225,18 +179,7 @@ export function MetricTableRow({
   onMouseLeave: () => void;
 }) {
   const textColor = dimmed ? "var(--t-text-dim)" : "var(--t-text-primary)";
-  // Must match the header's — each row is its own grid container, so the
-  // columns line up only because every one is handed the same template.
-  const shape =
-    detail != null
-      ? FOUR_COL
-      : share != null
-        ? wide
-          ? THREE_COL_WIDE
-          : THREE_COL
-        : wide
-          ? TWO_COL_WIDE
-          : TWO_COL;
+  const shape = shapeFor(share != null ? 3 : 2, wide);
   return (
     <div
       ref={rowRef}
@@ -247,14 +190,10 @@ export function MetricTableRow({
         shape.justify,
         // px/mx always on so the highlight box, which takes this row's
         // bounds, reaches 10px past the bullets and the last column alike.
-        "-mx-2.5 shrink-0 cursor-pointer items-center px-2.5 transition-colors select-none [-webkit-touch-callout:none]",
+        "-mx-2.5 shrink-0 items-center px-2.5 transition-colors select-none [-webkit-touch-callout:none]",
         !isFirst && "border-t border-[var(--color-line-soft)]",
         active && !isFirst && "border-transparent"
       )}
-      // An explicit height rather than vertical padding: padding leaves the
-      // row's height at the mercy of its tallest text, and the tier table's
-      // rows carry a dollar range the Aura legend's don't, so the two tables
-      // paced their rows differently. Fixed here, both march to the same step.
       style={{ gridTemplateColumns: shape.template, height: ROW_H }}
     >
       {/* justify-start, not centred: centring the dot and name together as one
@@ -272,22 +211,7 @@ export function MetricTableRow({
         />
         <span className="truncate">{name}</span>
       </span>
-      {/* Its own cell rather than trailing the name inside one: sharing a cell
-          meant each range started wherever its name happened to end, so the
-          six of them stepped raggedly down the table instead of forming a
-          column. Flush right, like the numeric columns beside it. */}
-      {detail != null && (
-        <span
-          // Same size and colour as every other value in the row. It was a
-          // shade smaller while this cell still carried the label column's
-          // 17px bullet indent, which left too little room for the longest
-          // range; without the indent the full 13px fits.
-          className="font-data truncate text-right"
-          style={{ color: textColor }}
-        >
-          {detail}
-        </span>
-      )}
+
       {/* Flush right, along with every column except the names. Digits line up
           by place value that way — the thousands column under the thousands
           column — which is the whole reason these are tabular figures. */}
@@ -303,16 +227,10 @@ export function MetricTableRow({
   );
 }
 
-/** A legend swatch. One fixed structure whatever state it's in — the old
- * swatch swapped to a different element to light up, so the gold appeared in
- * one row and vanished from the last in a single frame. Kept as one set of
- * nodes, the colour and scale ease across with CSS transitions (the colours
- * are CSS variables, which only the browser can interpolate) and the pulse's
- * bed fades in under it, so moving down a legend hands the gold from swatch
- * to swatch the same way the row highlight slides.
- *
- * The pulse breathes the gold over the swatch's resting colour; a swatch that
- * rests gold breathes over slate instead, or gold over gold would not show. */
+/** A legend swatch. One fixed structure whatever state it's in, so the colour
+ * and scale ease across with CSS transitions (the colours are CSS variables,
+ * which only the browser can interpolate) and the gold hands over from swatch
+ * to swatch. Lit, it pulses over `pulseBed(restColor)`. */
 export function LegendDot({
   color,
   restColor,
@@ -326,7 +244,7 @@ export function LegendDot({
   pulse: boolean;
   dimmed: boolean;
 }) {
-  const bed = restColor === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : restColor;
+  const bed = pulseBed(restColor);
   return (
     <span
       className="relative h-[9px] w-[9px] shrink-0 transition-transform duration-300 ease-out"
@@ -338,10 +256,9 @@ export function LegendDot({
       />
       <motion.span
         className="absolute inset-0 rounded-full transition-[background-color] duration-300 ease-out"
-        initial={false}
-        animate={pulse ? CHART_GOLD_PULSE : { opacity: dimmed ? 0.4 : 1 }}
-        transition={pulse ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.25 }}
-        style={{ backgroundColor: color }}
+        {...pulseMotion(pulse, dimmed ? 0.4 : 1)}
+        style
+={{ backgroundColor: color }}
       />
     </span>
   );

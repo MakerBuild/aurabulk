@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FDV_SCENARIOS, cn, formatNumber, formatUsd } from "@/lib/utils";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 import { APR_TOTAL_AURA_SUPPLY } from "@/lib/overview-metrics";
@@ -10,6 +10,7 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { PanelCard, PanelLabel } from "@/components/overview/PanelCard";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { PageHeading } from "@/components/layout/PageHeading";
+import { UnderlineTabs } from "@/components/ui/UnderlineTabs";
 import {
   Area,
   AreaChart,
@@ -29,7 +30,7 @@ const FDV_FIELD_INFO = {
   totalSupply:
     "Assumed AURA in the airdrop pool at distribution — the number your FDV scenario is divided by. Live campaign total is only what has been earned so far and will keep growing. Overview APR models 60M.",
   poolValue:
-    "Token Price × Allocation (%) — airdrop market cap (Token Price = FDV ÷ 1B). Edit to set a target; FDV, Aura Value, and Your Value update.",
+    "FDV × Allocation (%) — the airdrop's market cap. Edit to set a target; FDV, Price per Aura, and Your Value update.",
 } as const;
 
 /** Cents, in full, with separators — except a trailing `.00`, which adds
@@ -138,11 +139,14 @@ const FDV_STEPS_PER_SEGMENT = 24;
  * scenario rows — so the same number can never be spelled two ways on one
  * screen. */
 function fdvTick(value: number): string {
-  if (value >= 1_000_000_000) {
-    const billions = value / 1_000_000_000;
-    return "$" + (Number.isInteger(billions) ? billions : billions.toFixed(1)) + "B";
-  }
+  if (value >= 1_000_000_000) return "$" + scaledFigure(value, 1_000_000_000, "B");
   return "$" + Math.round(value / 1_000_000) + "M";
+}
+
+/** `value / divisor` with at most one decimal and no trailing ".0". */
+function scaledFigure(value: number, divisor: number, suffix: string): string {
+  const n = value / divisor;
+  return `${Number.isInteger(n) ? n : +n.toFixed(1)}${suffix}`;
 }
 
 function niceUsdStep(rough: number): number {
@@ -165,15 +169,8 @@ function usdAxisTicks(max: number): { hi: number; ticks: number[] } {
 }
 
 function formatAxisUsd(value: number): string {
-  if (value === 0) return "$0";
-  if (value >= 1_000_000) {
-    const m = value / 1_000_000;
-    return "$" + (Number.isInteger(m) ? m : m.toFixed(1)) + "M";
-  }
-  if (value >= 1_000) {
-    const k = value / 1_000;
-    return "$" + (Number.isInteger(k) ? k : k.toFixed(1)) + "K";
-  }
+  if (value >= 1_000_000) return "$" + scaledFigure(value, 1_000_000, "M");
+  if (value >= 1_000) return "$" + scaledFigure(value, 1_000, "K");
   return "$" + Math.round(value);
 }
 
@@ -252,9 +249,7 @@ function FdvYAxisTick({
   );
 }
 
-/** The page's two tools, as one control. Same sliding-pill toggle the
- * Overview panels use for Current/Projected and Count/Value: a control that
- * swaps what the panel below it shows looks the same everywhere on the site. */
+/** The page's two tools. */
 const TOOL_TABS = [
   { id: "estimator", label: "Airdrop Estimator" },
   { id: "predictor", label: "Aura Predictor" },
@@ -263,26 +258,18 @@ const TOOL_TABS = [
 type ToolTab = (typeof TOOL_TABS)[number]["id"];
 type SupplyPreset = "live" | "custom";
 
-export function CalculatorSection({ totalAuraSupply = 0 }: { totalAuraSupply?: number }) {
+export function CalculatorSection() {
   const { totalAura } = useLiveFinancials();
-  const liveSupply = Math.round(totalAura || totalAuraSupply);
+  const liveSupply = Math.round(totalAura);
   const [tab, setTab] = useState<ToolTab>("estimator");
-  // Bumped on every click and used as the underline's key. Keying on the tab
-  // alone only restarted the mark when the tab actually changed, so clicking
-  // the one already open — the natural way to ask "which am I on?" — answered
-  // with nothing.
-  const [tabClickCount, setTabClickCount] = useState(0);
   const [userAura, setUserAura] = useState(500);
   const [fdv, setFdv] = useState(500_000_000);
   const [allocation, setAllocation] = useState(30);
   // 60M, not the live earned-so-far figure: this card models a future drop,
   // and the campaign total is still a fraction of the assumed pool.
   const [supplyPreset, setSupplyPreset] = useState<SupplyPreset>("custom");
-  const [auraSupply, setAuraSupply] = useState(APR_TOTAL_AURA_SUPPLY);
-
-  useEffect(() => {
-    if (supplyPreset === "live") setAuraSupply(liveSupply);
-  }, [supplyPreset, liveSupply]);
+  const [customSupply, setCustomSupply] = useState(APR_TOTAL_AURA_SUPPLY);
+  const auraSupply = supplyPreset === "live" ? liveSupply : customSupply;
 
   const result = useMemo(
     () => computeFdv(userAura, fdv, allocation, auraSupply),
@@ -291,57 +278,12 @@ export function CalculatorSection({ totalAuraSupply = 0 }: { totalAuraSupply?: n
 
   return (
     <div className="flex flex-col gap-4">
-      {/* The tabs go inside the heading card rather than under it. They pick
-          which tool the page is, which is the heading's own question — and as
-          a separate strip they were a second bar of chrome between the title
-          and the work.
-
-          Underlined tabs rather than a pill, and the same 2px accent rule the
-          site nav marks its active section with: switching between two whole
-          views is the nav's kind of move, not a panel control's. The pill
-          stays where it belongs — Count/Value and Current/Projected swap a
-          series inside one panel, a smaller thing than changing what the page
-          is showing.
-
-          No border under the row any more: inside the card that line ran a
-          few pixels above the card's own bottom edge and read as a seam. */}
-      <PageHeading eyebrow="Tools" title="Calculators & estimators" centered>
-      <div className="flex flex-wrap items-center justify-center gap-7">
-        {TOOL_TABS.map((t) => {
-          const on = t.id === tab;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => {
-                setTab(t.id);
-                setTabClickCount((n) => n + 1);
-              }}
-              aria-pressed={on}
-              className={cn(
-                "relative cursor-pointer pb-2.5 text-[13px] font-medium transition-colors",
-                on ? "text-accent" : "text-text-muted hover:text-text-primary"
-              )}
-            >
-              {t.label}
-              {on && (
-                // Keyed on the click count so every press remounts it and
-                // the animation restarts. It replaced a layoutId slide: with
-                // the line gone a second later there is nothing left to slide,
-                // and the two behaviours fought over the same element.
-                //
-                // A gradient rather than a flat bar: squared-off ends made a
-                // 2px rule read as a hard underscore stuck to the label, where
-                // ends that fade let it sit under the word instead.
-                <span
-                  key={tabClickCount}
-                  className="switch-underline pointer-events-none absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-[linear-gradient(90deg,transparent_0%,var(--color-accent)_22%,var(--color-accent)_78%,transparent_100%)]"
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* The tool tabs sit inside the heading card: they pick which tool the
+          page is, which is the heading's own question. Underlined like the
+          site nav rather than a pill — switching whole views is the nav's
+          kind of move; the pill is for swapping a series inside one panel. */}
+      <PageHeading eyebrow="Tools" title="Calculators & estimators">
+        <UnderlineTabs tabs={TOOL_TABS} value={tab} onChange={setTab} />
       </PageHeading>
 
       {tab === "estimator" ? (
@@ -355,16 +297,17 @@ export function CalculatorSection({ totalAuraSupply = 0 }: { totalAuraSupply?: n
           auraSupply={auraSupply}
           setAuraSupply={(v) => {
             setSupplyPreset("custom");
-            setAuraSupply(v);
+            setCustomSupply(v);
           }}
           supplyPreset={supplyPreset}
           onToggleLiveSupply={() => {
             if (supplyPreset === "live") {
+              // Freeze at the figure currently showing.
+              setCustomSupply(liveSupply);
               setSupplyPreset("custom");
-              return;
+            } else {
+              setSupplyPreset("live");
             }
-            setSupplyPreset("live");
-            setAuraSupply(liveSupply);
           }}
           result={result}
         />
@@ -406,45 +349,31 @@ function useContentHeight() {
   return { ref, height };
 }
 
-/** Draw the plot once at its first real box (and again only if width
- *  changes). Hide/Show only changes height — if Recharts rebuilds for that,
- *  the curve snaps at the end of the slide. Height is CSS on the SVG. */
-function useStablePlot() {
+/** The plot box's live size. Recharts redraws at every size rather than
+ *  having its SVG stretched to fit: stretching squashed the axis text and the
+ *  dots whenever the box changed height (Hide/Show, the row resizing). The
+ *  series draw without animation, so a redraw per frame just follows the box. */
+function usePlotSize() {
   const ref = useRef<HTMLDivElement>(null);
   const [draw, setDraw] = useState({ w: 0, h: 0 });
 
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const commit = (w: number, h: number, force: boolean) => {
+    const commit = (w: number, h: number) => {
       if (w <= 0 || h <= 0) return;
-      setDraw((prev) => {
-        if (!prev.w || !prev.h || force) return { w, h };
-        if (Math.abs(prev.w - w) < 1) return prev;
-        return { w, h: prev.h };
-      });
+      setDraw((prev) =>
+        Math.abs(prev.w - w) < 1 && Math.abs(prev.h - h) < 1 ? prev : { w, h }
+      );
     };
-    commit(el.clientWidth, el.clientHeight, true);
+    commit(el.clientWidth, el.clientHeight);
     const ro = new ResizeObserver((entries) => {
       const cr = entries[0]?.contentRect;
-      if (!cr) return;
-      commit(cr.width, cr.height, false);
+      if (cr) commit(cr.width, cr.height);
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-
-  useLayoutEffect(() => {
-    const root = ref.current;
-    if (!root) return;
-    const apply = () => {
-      root.querySelector("svg")?.setAttribute("preserveAspectRatio", "none");
-    };
-    apply();
-    const mo = new MutationObserver(apply);
-    mo.observe(root, { childList: true, subtree: true });
-    return () => mo.disconnect();
-  }, [draw]);
 
   return { ref, draw };
 }
@@ -454,7 +383,6 @@ const AURA_PRESETS = [100, 500, 2_500, 5_000, 10_000, 100_000] as const;
 /** Inputs card type scale — one figure size across every amount field. */
 const FIGURE_FIELD =
   "font-figure text-[18px] leading-none tracking-[-0.03em]";
-const DATA_META = "font-data text-[11px] leading-none";
 /** Shared Million/Billion/LIVE chrome — one typeface, one size, text centered. */
 const TOGGLE_TRACK =
   "relative shrink-0 rounded-full bg-[rgb(var(--t-veil-rgb)/0.045)] p-[3px] shadow-[inset_0_0_0_1px_rgb(var(--t-veil-rgb)/0.06)]";
@@ -462,22 +390,13 @@ const TOGGLE_BTN =
   "relative z-10 inline-flex h-[22px] items-center justify-center rounded-full px-2.5 text-center font-sans text-[11px] font-semibold leading-none tracking-[0.02em] transition-colors duration-300";
 
 function formatCompactUsdLabel(value: number): string {
-  if (value >= 1_000_000_000) {
-    const n = value / 1_000_000_000;
-    return `$${Number.isInteger(n) ? n : +n.toFixed(1)}B`;
-  }
-  if (value >= 1_000_000) {
-    const n = value / 1_000_000;
-    return `$${Number.isInteger(n) ? n : +n.toFixed(1)}M`;
-  }
+  if (value >= 1_000_000_000) return "$" + scaledFigure(value, 1_000_000_000, "B");
+  if (value >= 1_000_000) return "$" + scaledFigure(value, 1_000_000, "M");
   return formatUsd(value);
 }
 
 function formatCompactSupplyLabel(value: number): string {
-  if (value >= 1_000_000) {
-    const n = value / 1_000_000;
-    return `${Number.isInteger(n) ? n : +n.toFixed(1)}M`;
-  }
+  if (value >= 1_000_000) return scaledFigure(value, 1_000_000, "M");
   return formatNumber(value);
 }
 
@@ -508,12 +427,9 @@ function EstimatorWorkbench({
 }) {
   const [showMarket, setShowMarket] = useState(true);
   const marketFields = useContentHeight();
-  const applyFdvFromDerived = (nextFdv: number) => {
-    setFdv(Number.isFinite(nextFdv) && nextFdv >= 0 ? nextFdv : 0);
-  };
   const setMarketCap = (marketCap: number) => {
     if (allocation <= 0) return;
-    applyFdvFromDerived(marketCap / (allocation / 100));
+    setFdv(marketCap / (allocation / 100));
   };
 
   return (
@@ -535,6 +451,7 @@ function EstimatorWorkbench({
                 <NumericInput
                   value={userAura}
                   onChange={setUserAura}
+                  label="Your Aura"
                   className={cn(
                     "min-w-0 flex-1 bg-transparent text-text-primary outline-none",
                     FIGURE_FIELD
@@ -585,7 +502,7 @@ function EstimatorWorkbench({
                   type="button"
                   onClick={() => setShowMarket((v) => !v)}
                   aria-expanded={showMarket}
-                  className="shrink-0 text-[11px] font-medium leading-none text-accent transition-colors hover:text-accent-hover"
+                  className="shrink-0 text-[11px] font-medium leading-none text-accent"
                 >
                   {showMarket ? "Hide" : "Show"}
                 </button>
@@ -649,12 +566,19 @@ function EstimatorWorkbench({
                   }}
                 >
                   <div className="grid grid-cols-1 items-start gap-x-4 gap-y-3 sm:grid-cols-2">
-                    <FdvField fdv={fdv} onFdvChange={setFdv} info={FDV_FIELD_INFO.fdv} />
-                    <EditableMoneyBox
+                    <UnitMoneyField
+                      label="FDV"
+                      info={FDV_FIELD_INFO.fdv}
+                      value={fdv}
+                      onChange={setFdv}
+                      fractionDigits={2}
+                    />
+                    <UnitMoneyField
                       label="Airdrop Market Cap"
                       info={FDV_FIELD_INFO.poolValue}
                       value={result.poolValue}
                       onChange={setMarketCap}
+                      fractionDigits={3}
                     />
                   </div>
                   <div className="min-w-0">
@@ -665,7 +589,7 @@ function EstimatorWorkbench({
                       <NumericInput
                         value={auraSupply}
                         onChange={setAuraSupply}
-                        step={100_000}
+                        label="Total AURA supply"
                         className={cn(
                           "min-w-0 flex-1 bg-transparent text-right outline-none",
                           FIGURE_FIELD
@@ -767,7 +691,7 @@ function AllocationSlider({
   }, [innerW, dpr]);
 
   const commit = (next: number) => {
-    const snapped = Math.min(100, Math.max(0, Math.round(next * 10) / 10));
+    const snapped = Math.min(100, Math.max(0, Math.round(next)));
     if (snapped === valueRef.current) return;
     onChange(snapped);
   };
@@ -783,7 +707,6 @@ function AllocationSlider({
   };
 
   const maskId = `${uid}-ticks`;
-  const fillId = `${uid}-fill`;
   const clipId = `${uid}-clip`;
   const svgH = Math.max(8, Math.round(14 * dpr));
   const fillW = ticks.devW * (clamped / 100);
@@ -837,12 +760,6 @@ function AllocationSlider({
             shapeRendering="crispEdges"
           >
             <defs>
-              <linearGradient id={fillId} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="var(--t-accent-deep)" />
-                <stop offset="38%" stopColor="var(--t-accent-mid)" />
-                <stop offset="72%" stopColor="var(--t-accent)" />
-                <stop offset="100%" stopColor="var(--t-accent-pale)" />
-              </linearGradient>
               <mask id={maskId} maskUnits="userSpaceOnUse">
                 {ticks.xs.map((x) => (
                   <rect
@@ -874,7 +791,7 @@ function AllocationSlider({
               y="0"
               width={ticks.devW}
               height={svgH}
-              fill={`url(#${fillId})`}
+              fill="var(--t-accent)"
               mask={`url(#${maskId})`}
               clipPath={`url(#${clipId})`}
             />
@@ -902,9 +819,8 @@ function AllocationSlider({
  * costs the curve its literal straightness (value is linear in FDV) and buys
  * six legible steps.
  *
- * The live FDV is spliced into the series rather than snapped to the nearest
- * scenario, so a typed 637M puts the marker between $500M and $750M where it
- * belongs; its tick is suppressed so the axis keeps its six round numbers. */
+ * The live FDV is marked at the nearest interpolated stop, so a typed 637M
+ * sits between $500M and $750M rather than snapping to a scenario. */
 function FdvValueChart({
   userAura,
   fdv,
@@ -985,7 +901,7 @@ function FdvValueChart({
     [userAura, allocation, auraSupply]
   );
 
-  const plot = useStablePlot();
+  const plot = usePlotSize();
 
   return (
     <PanelCard className="h-full min-h-0" glossy glossDelay={-11}>
@@ -996,9 +912,8 @@ function FdvValueChart({
             {formatUsdExact(shownValue)}
           </p>
         </div>
-        {/* Read-only here on purpose — the editable copies of both live in
-            RESULTS on the left, and two edit points for one number invites
-            the reader to wonder which one is the real one. */}
+        {/* Read-only: the market cap is edited in the inputs card, and one
+            edit point per number keeps it clear which is the real one. */}
         <div className="flex shrink-0 items-start gap-4 border-l border-[var(--color-line)] pl-4 sm:gap-6 sm:pl-6">
           <div className="text-right">
             <PanelLabel>Price per Aura</PanelLabel>
@@ -1203,7 +1118,7 @@ function FdvScenarioPanel({
         <div className="-mx-2.5 grid grid-cols-4 items-center gap-x-2 border-b border-[var(--color-line)] px-2.5 pb-1.5 sm:gap-x-8">
           <span className="font-label text-text-muted">
             <span className="sm:hidden">FDV</span>
-            <span className="hidden sm:inline">FDV (millions USD)</span>
+            <span className="hidden sm:inline">FDV (USD)</span>
           </span>
           <span className="text-right font-label text-text-muted">
             <span className="sm:hidden">Price</span>
@@ -1282,12 +1197,10 @@ function FdvScenarioPanel({
 function FieldLabel({
   label,
   info,
-  hint,
   accent,
 }: {
   label: string;
   info?: string;
-  hint?: string;
   accent?: boolean;
 }) {
   return (
@@ -1295,7 +1208,6 @@ function FieldLabel({
       <span className={cn("font-label leading-none", accent ? "text-accent" : "text-text-muted")}>
         {label}
       </span>
-      {hint ? <span className={cn(DATA_META, "truncate text-text-muted")}>{hint}</span> : null}
       {info ? <InfoTooltip text={info} floating panelClassName="w-64" /> : null}
     </span>
   );
@@ -1402,16 +1314,19 @@ const FDV_UNIT_MULTIPLIER: Record<FdvUnit, number> = {
   B: 1_000_000_000,
 };
 
+function unitFor(value: number): FdvUnit {
+  return value >= 1_000_000_000 ? "B" : "M";
+}
+
 function formatCommaNumber(value: number, maxFractionDigits = 0): string {
-  if (!Number.isFinite(value)) return "0";
-  if (value === 0) return "0";
+  if (!Number.isFinite(value) || value === 0) return "0";
   return value.toLocaleString("en-US", {
     maximumFractionDigits: maxFractionDigits,
     minimumFractionDigits: 0,
   });
 }
 
-function formatCommaInput(raw: string, maxFractionDigits = 6): string {
+function formatCommaInput(raw: string, maxFractionDigits: number): string {
   const cleaned = raw.replace(/[^\d.]/g, "");
   if (cleaned === "" || cleaned === ".") return cleaned;
 
@@ -1443,255 +1358,120 @@ function restoreCommaCursor(el: HTMLInputElement, formatted: string, digitsBefor
   el.setSelectionRange(pos, pos);
 }
 
-function roundToHundredths(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-function formatFdvUnitDisplay(unitValue: number): string {
-  return formatCommaNumber(Math.max(0, roundToHundredths(unitValue)), 2);
-}
-
-function formatFdvDisplay(value: number): string {
-  if (!Number.isFinite(value)) return "0";
-  const rounded = Math.round(value * 1000) / 1000;
-  return formatCommaNumber(rounded, 3);
-}
-
-function resolveFdvUnit(absoluteFdv: number): FdvUnit {
-  return absoluteFdv >= 1_000_000_000 ? "B" : "M";
-}
-
-function FdvField({
-  fdv,
-  onFdvChange,
-  info,
+/**
+ * Comma-grouped text input over a number. Unfocused it shows `display`;
+ * while focused it shows what the user typed (regrouped, caret kept in place)
+ * and sends every parseable keystroke to `onInput`. Blurring an edited box
+ * commits it, with empty meaning 0.
+ */
+function useCommaDraft({
+  display,
+  fractionDigits,
+  onInput,
 }: {
-  fdv: number;
-  onFdvChange: (v: number) => void;
-  info?: string;
+  display: string;
+  fractionDigits: number;
+  onInput: (parsed: number) => void;
 }) {
-  const [unit, setUnit] = useState<FdvUnit>(() => resolveFdvUnit(fdv));
-  const [draft, setDraft] = useState(() =>
-    formatFdvUnitDisplay(fdv / FDV_UNIT_MULTIPLIER[resolveFdvUnit(fdv)])
-  );
-  const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState(display);
+  const [focused, setFocused] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  // A fresh object per keystroke, so the caret is restored even when the
+  // regrouped text comes out unchanged.
+  const [caret, setCaret] = useState<{ digitsBefore: number } | null>(null);
+  const ref = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isFocused) return;
-    setDraft(formatFdvUnitDisplay(fdv / FDV_UNIT_MULTIPLIER[unit]));
-  }, [fdv, isFocused, unit]);
+  useLayoutEffect(() => {
+    if (caret && ref.current) restoreCommaCursor(ref.current, draft, caret.digitsBefore);
+  }, [caret, draft]);
 
-  const applyAbsoluteFdv = (absolute: number, syncDraft = true, keepUnit: FdvUnit = unit) => {
-    const safe = Math.max(0, absolute);
-    const unitValue = roundToHundredths(safe / FDV_UNIT_MULTIPLIER[keepUnit]);
-    const snapped = unitValue * FDV_UNIT_MULTIPLIER[keepUnit];
-    if (syncDraft) setDraft(formatFdvUnitDisplay(unitValue));
-    onFdvChange(snapped);
-    return { unitValue, snapped };
-  };
+  const allowed = fractionDigits > 0 ? /^[\d,]*\.?\d*$/ : /^[\d,]*$/;
 
-  const commitDraft = (nextDraft: string, nextUnit: FdvUnit = unit) => {
-    const trimmed = nextDraft.trim();
-    if (trimmed === "" || trimmed === ".") {
-      applyAbsoluteFdv(0, true, nextUnit);
-      return;
-    }
-    const parsed = parseCommaNumber(trimmed);
-    if (parsed == null) return;
-    applyAbsoluteFdv(roundToHundredths(parsed) * FDV_UNIT_MULTIPLIER[nextUnit], true, nextUnit);
-  };
+  const inputProps = {
+    ref,
+    type: "text",
+    inputMode: fractionDigits > 0 ? "decimal" : "numeric",
+    value: focused ? draft : display,
+    onFocus: () => {
+      setDraft(display);
+      setDirty(false);
+      setFocused(true);
+    },
+    onBlur: () => {
+      setFocused(false);
+      setCaret(null);
+      if (dirty) onInput(parseCommaNumber(draft) ?? 0);
+    },
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      const input = e.target;
+      const nextRaw = input.value;
+      if (nextRaw !== "" && !allowed.test(nextRaw)) return;
 
-  const selectUnit = (nextUnit: FdvUnit) => {
-    if (nextUnit === unit) return;
-    if (isFocused && draft.trim() !== "") {
-      commitDraft(draft, nextUnit);
-      return;
-    }
-    setUnit(nextUnit);
-    setDraft(formatFdvUnitDisplay(fdv / FDV_UNIT_MULTIPLIER[nextUnit]));
-  };
+      const cursor = input.selectionStart ?? nextRaw.length;
+      const digitsBefore = nextRaw.slice(0, cursor).replace(/[^\d.]/g, "").length;
+      const formatted = formatCommaInput(nextRaw, fractionDigits);
+      setDraft(formatted);
+      setDirty(true);
+      setCaret({ digitsBefore });
 
-  return (
-    <div className="min-w-0">
-      <div className="mb-2 flex h-[15px] items-center">
-        <FieldLabel label="FDV" info={info} />
-      </div>
-      <CompoundInput
-        trailing={
-          <UnitToggle value={unit} onChange={selectUnit} />
-        }
-      >
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="decimal"
-          value={draft}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-            setIsFocused(false);
-            if (draft.trim() === "" || draft.trim() === ".") {
-              applyAbsoluteFdv(0);
-              return;
-            }
-            commitDraft(draft);
-          }}
-          onChange={(e) => {
-            const input = e.target;
-            const nextRaw = input.value;
-            if (nextRaw !== "" && !/^[\d,]*\.?\d*$/.test(nextRaw)) return;
+      const parsed = parseCommaNumber(formatted);
+      if (parsed != null) onInput(parsed);
+    },
+  } as const;
 
-            const cursor = input.selectionStart ?? nextRaw.length;
-            const digitsBeforeCursor = nextRaw.slice(0, cursor).replace(/[^\d.]/g, "").length;
-            const formatted = formatCommaInput(nextRaw, 2);
-            setDraft(formatted);
-
-            const parsed = parseCommaNumber(formatted);
-            if (parsed != null) {
-              applyAbsoluteFdv(
-                roundToHundredths(parsed) * FDV_UNIT_MULTIPLIER[unit],
-                false
-              );
-            }
-
-            requestAnimationFrame(() => {
-              if (inputRef.current) restoreCommaCursor(inputRef.current, formatted, digitsBeforeCursor);
-            });
-          }}
-          className={cn("min-w-0 flex-1 bg-transparent outline-none", FIGURE_FIELD)}
-        />
-      </CompoundInput>
-    </div>
-  );
+  return { draft, focused, inputProps };
 }
 
+/** Whole-number field (Aura amounts, supply). */
 function NumericInput({
   value,
   onChange,
+  label,
   className,
-  step,
-  max,
-  disabled,
 }: {
   value: number;
   onChange: (v: number) => void;
+  label: string;
   className?: string;
-  step?: number;
-  max?: number;
-  disabled?: boolean;
 }) {
-  const maxFractionDigits =
-    typeof step === "number" && step > 0 && step < 1
-      ? Math.min(6, Math.ceil(-Math.log10(step)))
-      : 0;
-  const [draft, setDraft] = useState(() => formatCommaNumber(value, maxFractionDigits));
-  const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!isFocused) {
-      setDraft(formatCommaNumber(value, maxFractionDigits));
-    }
-  }, [value, isFocused, maxFractionDigits]);
-
-  return (
-    <input
-      ref={inputRef}
-      type="text"
-      inputMode="decimal"
-      value={draft}
-      disabled={disabled}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => {
-        setIsFocused(false);
-        if (draft.trim() === "" || draft.trim() === ".") {
-          setDraft("0");
-          onChange(0);
-          return;
-        }
-        const parsed = parseCommaNumber(draft);
-        if (parsed == null) return;
-        const next = typeof max === "number" ? Math.min(parsed, max) : parsed;
-        onChange(next);
-        setDraft(formatCommaNumber(next, maxFractionDigits));
-      }}
-      onChange={(e) => {
-        const input = e.target;
-        const nextRaw = input.value;
-        if (nextRaw !== "" && !/^[\d,]*\.?\d*$/.test(nextRaw)) return;
-
-        const cursor = input.selectionStart ?? nextRaw.length;
-        const digitsBeforeCursor = nextRaw.slice(0, cursor).replace(/[^\d.]/g, "").length;
-        const formatted = formatCommaInput(nextRaw, Math.max(maxFractionDigits, 6));
-        setDraft(formatted);
-
-        const parsed = parseCommaNumber(formatted);
-        if (parsed != null) {
-          onChange(typeof max === "number" ? Math.min(parsed, max) : parsed);
-        }
-
-        requestAnimationFrame(() => {
-          if (inputRef.current) restoreCommaCursor(inputRef.current, formatted, digitsBeforeCursor);
-        });
-      }}
-      className={className}
-    />
-  );
+  const { inputProps } = useCommaDraft({
+    display: formatCommaNumber(value),
+    fractionDigits: 0,
+    onInput: onChange,
+  });
+  return <input {...inputProps} aria-label={label} className={className} />;
 }
 
-function pickUsdUnit(value: number): FdvUnit {
-  return value >= 1_000_000_000 ? "B" : "M";
-}
-
-function EditableMoneyBox({
+/** Dollar amount typed in millions or billions, with an M/B switch. The unit
+ * starts at whichever reads naturally for the initial value and is then the
+ * user's to change. */
+function UnitMoneyField({
   label,
   info,
   value,
   onChange,
-  accent,
+  fractionDigits,
 }: {
   label: string;
   info?: string;
   value: number;
   onChange: (v: number) => void;
-  accent?: boolean;
+  fractionDigits: number;
 }) {
-  const [unit, setUnit] = useState<FdvUnit>(() => pickUsdUnit(value));
-  const [draft, setDraft] = useState(() =>
-    formatFdvDisplay(value / FDV_UNIT_MULTIPLIER[pickUsdUnit(value)])
-  );
-  const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isFocused) return;
-    setDraft(formatFdvDisplay(value / FDV_UNIT_MULTIPLIER[unit]));
-  }, [value, isFocused, unit]);
-
-  const applyValue = (next: number) => {
-    if (!Number.isFinite(next) || next < 0) return;
-    onChange(next);
-  };
-
-  const commitDraft = (nextDraft: string, nextUnit: FdvUnit = unit) => {
-    const trimmed = nextDraft.trim();
-    if (trimmed === "" || trimmed === ".") {
-      applyValue(0);
-      return;
-    }
-    const parsed = parseCommaNumber(trimmed);
-    if (parsed == null) return;
-    applyValue(parsed * FDV_UNIT_MULTIPLIER[nextUnit]);
-  };
+  const [unit, setUnit] = useState<FdvUnit>(() => unitFor(value));
+  const { draft, focused, inputProps } = useCommaDraft({
+    display: formatCommaNumber(value / FDV_UNIT_MULTIPLIER[unit], fractionDigits),
+    fractionDigits,
+    onInput: (parsed) => onChange(parsed * FDV_UNIT_MULTIPLIER[unit]),
+  });
 
   const selectUnit = (nextUnit: FdvUnit) => {
     if (nextUnit === unit) return;
     setUnit(nextUnit);
-    if (isFocused && draft.trim() !== "") {
-      commitDraft(draft, nextUnit);
-      return;
-    }
-    setDraft(formatFdvDisplay(value / FDV_UNIT_MULTIPLIER[nextUnit]));
+    // Mid-edit, the typed figure is re-read in the new unit rather than the
+    // value being converted.
+    const parsed = focused ? parseCommaNumber(draft) : null;
+    if (parsed != null) onChange(parsed * FDV_UNIT_MULTIPLIER[nextUnit]);
   };
 
   return (
@@ -1699,55 +1479,13 @@ function EditableMoneyBox({
       <div className="mb-2 flex h-[15px] items-center">
         <FieldLabel label={label} info={info} />
       </div>
-      <CompoundInput
-        trailing={
-          <UnitToggle value={unit} onChange={selectUnit} />
-        }
-      >
+      <CompoundInput trailing={<UnitToggle value={unit} onChange={selectUnit} />}>
         <input
-          ref={inputRef}
-          type="text"
-          inputMode="decimal"
-          value={draft}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-            setIsFocused(false);
-            if (draft.trim() === "" || draft.trim() === ".") {
-              setDraft("0");
-              applyValue(0);
-              return;
-            }
-            commitDraft(draft);
-            const parsed = parseCommaNumber(draft);
-            if (parsed != null) setDraft(formatFdvDisplay(parsed));
-          }}
-          onChange={(e) => {
-            const input = e.target;
-            const nextRaw = input.value;
-            if (nextRaw !== "" && !/^[\d,]*\.?\d*$/.test(nextRaw)) return;
-
-            const cursor = input.selectionStart ?? nextRaw.length;
-            const digitsBeforeCursor = nextRaw.slice(0, cursor).replace(/[^\d.]/g, "").length;
-            const formatted = formatCommaInput(nextRaw, 3);
-            setDraft(formatted);
-
-            const parsed = parseCommaNumber(formatted);
-            if (parsed != null) applyValue(parsed * FDV_UNIT_MULTIPLIER[unit]);
-
-            requestAnimationFrame(() => {
-              if (inputRef.current) restoreCommaCursor(inputRef.current, formatted, digitsBeforeCursor);
-            });
-          }}
-          className={cn(
-            "min-w-0 flex-1 bg-transparent outline-none",
-            FIGURE_FIELD,
-            accent && "text-accent"
-          )}
+          {...inputProps}
+          aria-label={label}
+          className={cn("min-w-0 flex-1 bg-transparent outline-none", FIGURE_FIELD)}
         />
       </CompoundInput>
     </div>
   );
 }
-
-
-

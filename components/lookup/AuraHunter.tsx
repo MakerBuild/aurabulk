@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Search, Loader2, X } from "lucide-react";
 import type { WalletData } from "@/types";
 import { PanelCard } from "@/components/overview/PanelCard";
@@ -20,6 +20,8 @@ export function AuraHunter({
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Only the newest lookup may write; an older one finishing late is dropped.
+  const requestId = useRef(0);
 
   const showClear = Boolean(address.trim() || result);
 
@@ -27,6 +29,7 @@ export function AuraHunter({
     e.preventDefault();
     if (!address.trim()) return;
 
+    const id = ++requestId.current;
     setLoading(true);
     setError(null);
     onResult(null);
@@ -36,19 +39,23 @@ export function AuraHunter({
         `/api/wallet?address=${encodeURIComponent(address.trim())}`
       );
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? "Wallet not found");
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(data?.error ?? (res.status === 404 ? "Wallet not found" : "Lookup failed"));
       }
-      onResult(await res.json());
+      const data = (await res.json()) as WalletData;
+      if (id === requestId.current) onResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Lookup failed");
-      onResult(null);
+      if (id === requestId.current) {
+        setError(err instanceof Error && !(err instanceof SyntaxError) ? err.message : "Lookup failed");
+      }
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }
 
   function clear() {
+    requestId.current += 1;
+    setLoading(false);
     setAddress("");
     setError(null);
     onResult(null);
@@ -66,6 +73,7 @@ export function AuraHunter({
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Track any wallet…"
+            aria-label="Wallet address"
             className={cn(
               "input-field w-full text-[13px]",
               showClear && "hunter-query"

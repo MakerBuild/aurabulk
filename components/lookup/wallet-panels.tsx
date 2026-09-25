@@ -18,7 +18,7 @@ import {
 import { auraTierName, categoryLabel, cn, formatNumber, formatUsd } from "@/lib/utils";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 
-export function weekBreakdown(categories: Record<string, number> | undefined) {
+function weekBreakdown(categories: Record<string, number> | undefined) {
   const byWeek = new Map<number, number>();
   for (const [key, raw] of Object.entries(categories ?? {})) {
     const points = Number(raw) || 0;
@@ -30,16 +30,6 @@ export function weekBreakdown(categories: Record<string, number> | undefined) {
   return [...byWeek.entries()]
     .sort((a, b) => a[0] - b[0])
     .map(([week, points]) => ({ week, points }));
-}
-
-export function averageHeldAmount(data: WalletData): number {
-  const usdHours =
-    data.total_held_time_hours ??
-    (data.total_held_time_seconds ? data.total_held_time_seconds / 3600 : 0);
-  if (usdHours > 0 && data.hold_time_days > 0) {
-    return usdHours / (data.hold_time_days * 24);
-  }
-  return data.current_amount > 0 ? data.current_amount : 0;
 }
 
 /**

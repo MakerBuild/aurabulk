@@ -2,20 +2,9 @@
 
 import { useLiveExchange } from "@/components/live/LiveExchangeProvider";
 import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
-import {
-  StatSparkCard,
-  seriesRange,
-} from "@/components/overview/StatSparkCard";
+import { StatSparkCard, seriesRange } from "@/components/overview/StatSparkCard";
+import { formatSignedDelta, formatUtcTime } from "@/components/overview/spark-format";
 import { useLevelSpark } from "@/lib/session-spark";
-
-function formatTime(t: number): string {
-  return new Date(t).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "UTC",
-  });
-}
 
 function formatCount(n: number): string {
   return Math.round(n).toLocaleString("en-US");
@@ -39,13 +28,14 @@ export function TradersStatCard() {
       figure={<KpiTerminalCounter value={exchange.activeTraders} format="plain" />}
       delta={
         hasDelta
-          ? `${delta >= 0 ? "+" : "−"}${Math.abs(delta).toLocaleString("en-US")}`
+          ? formatSignedDelta(delta, (n) => n.toLocaleString("en-US"))
           : `${exchange.totalAccounts.toLocaleString("en-US")} accounts`
       }
       deltaUp={hasDelta ? delta >= 0 : undefined}
       series={series}
       formatValue={formatCount}
-      formatTime={formatTime}
+      formatTime={formatUtcTime}
+
       stats={[
         { label: "Low", value: range ? formatCount(range.low) : "—" },
         { label: "High", value: range ? formatCount(range.high) : "—" },

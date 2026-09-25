@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Bar,
@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import type { RectangleProps } from "recharts";
 import type { WalletData } from "@/types";
-import { CHART_GOLD_PULSE, CHART_GOLD_PULSE_TRANSITION, CHART_GOLD_PULSE_UNDERLAY } from "@/lib/chart-gold-pulse";
+import { MARK_EASE, markFill, pulseBed, pulseMotion } from "@/lib/chart-gold-pulse";
 import { cn, formatNumber } from "@/lib/utils";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
@@ -27,6 +27,7 @@ import {
   AuraDonut,
 } from "@/components/overview/AuraDonut";
 import { CATEGORY_NAME_SVG } from "@/components/overview/MetricTable";
+import { useInViewOnce } from "@/components/overview/use-in-view-once";
 import { chartPrimaryRamp, CHART_GOLD, type OverviewDonutSegment } from "@/lib/overview-metrics";
 import {
   AuraStatsPanel,
@@ -39,50 +40,11 @@ import {
   type CategoryBreakdownItem,
 } from "@/lib/aura-category-groups";
 
-function useInViewOnce<T extends HTMLElement>(threshold = 0.25) {
-  const ref = useRef<T | null>(null);
-  const [hasEntered, setHasEntered] = useState(false);
-
-  useEffect(() => {
-    if (hasEntered) return;
-    const node = ref.current;
-    if (!node || typeof IntersectionObserver === "undefined") {
-      setHasEntered(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting) {
-          setHasEntered(true);
-          observer.disconnect();
-        }
-      },
-      { threshold, rootMargin: "0px 0px -10% 0px" }
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasEntered, threshold]);
-
-  return { ref, hasEntered };
-}
-
-const BAR_EASE = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
-
 /**
- * One Category Share bar, drawn the same way whatever state it's in.
- *
- * The lit bar used to come back from `shape` as a different element tree from
- * a plain bar, so the gold jumped from one bar to the next in a single frame.
- * Kept as one set of nodes, the fill and the dimming ease across with CSS
- * transitions — the same hand-off as the donut beside it and the legend.
- *
- * Lit, the fill turns gold and its opacity breathes over a bed in the bar's
- * resting colour (slate for the gold primary, or the beat would be
- * gold↔gold). The pulse runs on Framer Motion because Chromium drops CSS
- * opacity animations on SVG.
+ * One Category Share bar, drawn the same way whatever state it's in, so the
+ * fill and the dimming ease across with CSS transitions as the gold hands
+ * over. Lit, the fill turns gold and breathes over `bed`. The pulse runs on
+ * Framer Motion because Chromium drops CSS opacity animations on SVG.
  */
 function CategoryBar({
   geom,
@@ -99,16 +61,12 @@ function CategoryBar({
 }) {
   const shape = { ...geom, radius: [0, 2, 2, 0] as [number, number, number, number] };
   return (
-    <g style={{ opacity: dimmed ? 0.4 : 1, transition: `opacity ${BAR_EASE}` }}>
-      <g style={{ opacity: lit ? 1 : 0, transition: `opacity ${BAR_EASE}` }}>
+    <g style={{ opacity: dimmed ? 0.4 : 1, transition: `opacity ${MARK_EASE}` }}>
+      <g style={{ opacity: lit ? 1 : 0, transition: `opacity ${MARK_EASE}` }}>
         <Rectangle {...shape} fill={bed} />
       </g>
-      <motion.g
-        initial={false}
-        animate={lit ? CHART_GOLD_PULSE : { opacity: 1 }}
-        transition={lit ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.3 }}
-      >
-        <Rectangle {...shape} fill={fill} style={{ transition: `fill ${BAR_EASE}` }} />
+      <motion.g {...pulseMotion(lit)}>
+        <Rectangle {...shape} fill={fill} style={{ transition: `fill ${MARK_EASE}` }} />
       </motion.g>
     </g>
   );
@@ -121,7 +79,6 @@ function CategoryYTick({
   active,
   dimmed,
   onHover,
-  onLeave,
 }: {
   x?: number;
   y?: number;
@@ -129,7 +86,6 @@ function CategoryYTick({
   active?: boolean;
   dimmed?: boolean;
   onHover?: () => void;
-  onLeave?: () => void;
 }) {
   return (
     <text
@@ -147,9 +103,8 @@ function CategoryYTick({
       fontFamily={CATEGORY_NAME_SVG.fontFamily}
       fontSize={CATEGORY_NAME_SVG.fontSize}
       fontWeight={CATEGORY_NAME_SVG.fontWeight}
-      style={{ cursor: "pointer", transition: "fill 0.2s ease" }}
+      style={{ transition: "fill 0.2s ease" }}
       onMouseEnter={onHover}
-      onMouseLeave={onLeave}
     >
       {payload?.value}
     </text>
@@ -208,14 +163,12 @@ function collapseSmallCategories(data: CategoryChartRow[]) {
 
 export function CategoryCharts({ data, wallet, className }: CategoryChartsProps) {
   const groupOptions = useMemo(() => buildCategoryGroupOptions(data), [data]);
-  const [selectedGroup, setSelectedGroup] = useState(OVERVIEW_GROUP);
+  const [pickedGroup, setSelectedGroup] = useState(OVERVIEW_GROUP);
   const narrow = useNarrowViewport();
-
-  useEffect(() => {
-    if (!groupOptions.some((option) => option.value === selectedGroup)) {
-      setSelectedGroup(OVERVIEW_GROUP);
-    }
-  }, [groupOptions, selectedGroup]);
+  // Falls back to the overview when new data no longer offers the pick.
+  const selectedGroup = groupOptions.some((option) => option.value === pickedGroup)
+    ? pickedGroup
+    : OVERVIEW_GROUP;
 
   const filtered = useMemo(
     () => filterCategoryBreakdown(data, selectedGroup),
@@ -263,6 +216,8 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
   );
 
   const apexInset = donutApexInset();
+  const restAt = (i: number) => colored[i].color;
+
 
   const othersInfo =
     othersCategories.length > 0 ? (
@@ -452,9 +407,6 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                   isAnimationActive={hasEntered}
                   activeBar={false}
                   onMouseEnter={(_, i) => setSharedHover(i)}
-                  // Top-align within each category band so the first bar's
-                  // upper edge sits on margin.top (donut apex), not centred
-                  // several px below it.
                   shape={(props: unknown) => {
                     const p = props as RectangleProps & { index?: number; className?: string };
                     // Grow with the band when the panel stretches, but keep a
@@ -465,17 +417,6 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                     const row = colored[idx];
                     if (!row) return <g />;
                     const lit = sharedHover === idx;
-                    const borrow =
-                      sharedHover != null && sharedHover > 0
-                        ? colored[sharedHover].color
-                        : null;
-                    // Gold stays on the primary at rest; on a secondary hover
-                    // it borrows that bar's slate so the gold can move over.
-                    const fill = lit
-                      ? CHART_GOLD
-                      : idx === 0 && borrow != null
-                        ? borrow
-                        : row.color;
                     return (
                       <CategoryBar
                         geom={{
@@ -485,8 +426,8 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                           width: Number(p.width) || 0,
                           height: h,
                         }}
-                        fill={fill}
-                        bed={row.color === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : row.color}
+                        fill={markFill(idx, sharedHover, restAt)}
+                        bed={pulseBed(row.color)}
                         lit={lit}
                         dimmed={sharedHover != null && !lit}
                       />

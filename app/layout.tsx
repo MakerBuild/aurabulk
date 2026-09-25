@@ -44,9 +44,6 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.png",
   },
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     url: siteUrl,
@@ -74,13 +71,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Financial seed is once per process so tab switches don't rescan the
-  // leaderboard. Exchange payload is 15s-cached API data — needed here so
-  // the header TPS and Overview KPIs share one provider without a $0 flash.
-  const live = LIVE_FINANCIAL_SEED;
-  // One hour, matching this layout's own revalidate. A shorter window here
-  // would pin every page to it, and the figures are corrected by the client
-  // provider's first poll regardless.
+  // The exchange payload is fetched here so every page's KPIs share one
+  // provider without a $0 flash. One hour, matching the pages' revalidate: a
+  // shorter fetch window would pin every page to it, and the client provider's
+  // first poll corrects the figures regardless.
   const exchange = await buildLiveExchangePayload(3600);
 
   return (
@@ -98,7 +92,7 @@ export default async function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <LiveFinancialProvider initial={live}>
+          <LiveFinancialProvider initial={LIVE_FINANCIAL_SEED}>
             <LiveExchangeProvider initial={exchange}>
               <HashScrollOnLoad />
               <SiteNav />

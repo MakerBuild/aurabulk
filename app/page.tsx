@@ -23,9 +23,7 @@ export default async function OverviewPage() {
   });
 
   return (
-    // 100vh minus the sticky header only now — the site-wide Footer that used
-    // to sit below `main` is gone, so this is just the nav's own height (61px)
-    // plus a small buffer.
+    // 100vh minus the sticky header plus a small buffer.
     // The one-screen treatment starts at xl, not lg. Side by side at 1024 the
     // right-hand panels get ~365px, and a readable ring plus its three-column
     // legend needs more than that however the gaps are tuned — the ring was
@@ -39,11 +37,7 @@ export default async function OverviewPage() {
     // 720px. As a minimum it does the same job wherever there is room and lets
     // the page scroll where there isn't.
     <div className="shell flex flex-col pb-8 pt-[26px] xl:min-h-[calc(100vh-70px)]">
-      {/* A strip of headline numbers on top, then two chart rows. Both rows
-          share one column template — unlike the previous layout, whose rows
-          were split differently and so never lined up with each other. Each
-          row is flex-1 of the capped height above, so the whole dashboard
-          sits on one screen instead of scrolling.
+      {/* A strip of headline numbers on top, then the chart grid.
 
           minmax(0, …) rather than bare fr: an fr track's automatic minimum is
           min-content, so a panel whose contents refuse to shrink past a point
@@ -51,9 +45,6 @@ export default async function OverviewPage() {
           widens its own column and narrows the other. The two rows then stop
           being the same split, which is exactly what put the tier table's
           bullets out of line with the donut above them at 1280. */}
-      {/* Wraps both the KPI strip and the chart row so the Current/Projected
-          toggle inside the chart can drive the headline figure in the card
-          above it. */}
       <div className="flex min-h-0 flex-1 flex-col gap-5">
         <KpiStrip />
 
@@ -68,14 +59,11 @@ export default async function OverviewPage() {
                    bars   | tiers           donut | bars
                                             tiers (full)
 
-            Between lg and xl the donut used to run the full page width on its
-            own, with ~500px of nothing beside a height-capped ring; paired
-            with the bars it gets a half it can actually fill.
-
             At xl the first row takes all the leftover height and the second
             exactly what the six-row table needs — stretching a table only
-            pushes its rows apart, while the TVL chart actually improves with
-            height. The 320px floor keeps a short window from squeezing that
+            pushes its rows apart, while the Volume chart actually improves
+            with height. The 320px floor keeps a short window from squeezing that
+
             row (191px at 1366×768, which capped the donut below its own width
             formula): the page scrolls instead of shrinking the ring. */}
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:grid-rows-[minmax(320px,1fr)_auto]">

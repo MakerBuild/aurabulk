@@ -7,25 +7,18 @@ function RecapStat({
   value,
   sub,
   accent,
-  className,
 }: {
   label: string;
   value: React.ReactNode;
   sub?: React.ReactNode;
   accent?: boolean;
-  className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "flex min-w-0 flex-col gap-2 rounded-[12px] bg-[var(--color-bulk-base)] px-5 py-4 shadow-[inset_0_1px_0_rgb(var(--t-veil-rgb)/0.07)]",
-        className,
-      )}
-    >
+    <div className="flex min-w-0 flex-col gap-2 rounded-[12px] bg-[var(--color-bulk-base)] px-5 py-4 shadow-[inset_0_1px_0_rgb(var(--t-veil-rgb)/0.07)]">
       <PanelLabel>{label}</PanelLabel>
       <p
         className={cn(
-          "font-figure m-0 text-[clamp(28px,3.2vw,36px)] leading-none tracking-[-0.02em]",
+          "font-figure m-0 text-[36px] leading-none tracking-[-0.02em]",
           accent ? "text-accent" : "text-text-primary",
         )}
       >
@@ -38,15 +31,11 @@ function RecapStat({
   );
 }
 
-/** Fixed-size share card — 1200×675, matches Overview KPI panels. */
-export function PreDepositsRecapCard({ className }: { className?: string }) {
+/** Fixed-size share card — 1200×675, so nothing on it may scale with the
+ * viewport or the exported PNG changes with the window. */
+export function PreDepositsRecapCard() {
   return (
-    <div
-      className={cn(
-        "relative flex h-[675px] w-[1200px] flex-col overflow-hidden rounded-[16px] bg-[var(--t-base)] px-10 py-9",
-        className,
-      )}
-    >
+    <div className="relative flex h-[675px] w-[1200px] flex-col overflow-hidden rounded-[16px] bg-[var(--t-base)] px-10 py-9">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-70"

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function TradePage() {
   return (
     <div className="shell flex flex-col gap-4 pb-11 pt-5">
-      <PageHeading eyebrow="Trade" title="Soon" centered />
+      <PageHeading eyebrow="Trade" title="Soon" />
       <PanelCard glossy glossDelay={-11} className="py-8 text-center">
         <p className="mx-auto m-0 max-w-[640px] font-sans text-[13px] leading-relaxed text-text-secondary">
           Atomic execution with automated delta-neutral hedging. Run

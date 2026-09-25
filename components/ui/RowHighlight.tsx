@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
-import { cn } from "@/lib/utils";
 
 type Box = { x: number; y: number; w: number; h: number };
 
@@ -33,14 +32,10 @@ const FADE = { duration: 0.18, ease: "easeOut" } as const;
 export function RowHighlight({
   containerRef,
   target,
-  pulse,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   /** The row to sit on, or null to fade out where it is. */
   target: HTMLElement | null;
-  /** Breathe instead of holding still — for a highlight that came from
-   * somewhere else on the page (a chart) rather than the cursor on the row. */
-  pulse?: boolean;
 }) {
   const [box, setBox] = useState<Box | null>(null);
   const shown = target != null && box != null;
@@ -78,10 +73,7 @@ export function RowHighlight({
   return (
     <motion.div
       aria-hidden="true"
-      className={cn(
-        "pointer-events-none absolute left-0 top-0 -z-10 rounded-md",
-        pulse ? "tier-row-pulse" : "bg-[rgb(var(--t-veil-rgb)/0.045)]"
-      )}
+      className="pointer-events-none absolute left-0 top-0 -z-10 rounded-md bg-[rgb(var(--t-veil-rgb)/0.045)]"
       initial={false}
       animate={
         box

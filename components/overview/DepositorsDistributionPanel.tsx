@@ -1,15 +1,27 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useSpring,
+  type MotionValue,
+} from "framer-motion";
 import type { DepositTier } from "@/lib/overview-metrics";
 import { CHART_GOLD, chartSlateRamp } from "@/lib/overview-metrics";
-import {
-  CHART_GOLD_PULSE,
-  CHART_GOLD_PULSE_TRANSITION,
-  CHART_GOLD_PULSE_UNDERLAY,
-} from "@/lib/chart-gold-pulse";
+import { MARK_EASE, heldFill, pulseBed, pulseMotion } from "@/lib/chart-gold-pulse";
 import { PanelCard } from "@/components/overview/PanelCard";
+import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
 import { CATEGORY_NAME, LegendDot } from "@/components/overview/MetricTable";
 import { cn, formatNumber } from "@/lib/utils";
 import { RowHighlight } from "@/components/ui/RowHighlight";
@@ -28,6 +40,19 @@ import {
  * at full strength and which steps back to a dim outline, and which side of
  * the axis its own numbers describe. */
 type Metric = "count" | "value";
+
+const METRIC_OPTIONS = [
+  { value: "count", label: "Count" },
+  { value: "value", label: "Aura" },
+] as const;
+
+/** Enter / Space on a `role="button"` element, as a native button would. */
+function onPressKey(e: KeyboardEvent, action: () => void) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    action();
+  }
+}
 
 /** Splits "Bulker ($100-1K)" into its name and its range. The range is
  * authored alongside the label in overview-metrics, so this only has to
@@ -194,15 +219,9 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
     // tier row half a pixel off the bar beside it.
     const measure = () => setToggleRowH(el.getBoundingClientRect().height);
     measure();
-
-    window.addEventListener("resize", measure);
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
     observer?.observe(el);
-
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer?.disconnect();
-    };
+    return () => observer?.disconnect();
   }, []);
 
   const { rows, peak } = useMemo(() => {
@@ -257,36 +276,29 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
     });
   }, [tiers, peak, metric]);
 
-  const hoveredRow = rows.find((r) => r.id === hovered) ?? null;
-  // Named apart from hoveredRow only for the tooltip: AnimatePresence keeps
-  // the card's last render through its fade-out, so it goes on showing the
-  // tier it was on after `hovered` clears.
-  const cardRow = hoveredRow;
-  const hoveredIndex = hoveredRow ? rows.findIndex((r) => r.id === hoveredRow.id) : -1;
-  // Gold highlight always stays on the first tier. Value only flips the
-  // companion slate ramp (dull→bright), so the idle gold never jumps right.
-  const primaryIndex = 0;
-  const primaryId = rows[primaryIndex]?.id;
-  const colorAt = (i: number) => {
-    if (metric === "count") return rows[i]?.color ?? CHART_GOLD;
-    return chartSlateRamp(rows.length - 1 - i, rows.length);
-  };
-  /** Hovering a non-primary tier: gold leaves the primary and the lit tier
-   * takes it — same transfer as the Overview donut. */
-  const borrowColor =
-    hovered && primaryId && hovered !== primaryId && hoveredIndex >= 0
-      ? colorAt(hoveredIndex)
-      : null;
+  const hoveredIndex = rows.findIndex((r) => r.id === hovered);
+  const hoveredRow = hoveredIndex >= 0 ? rows[hoveredIndex] : null;
+  const litIndex = hoveredIndex >= 0 ? hoveredIndex : null;
+  // Gold rests on the first tier in both modes. Count gives the rest their
+  // own ramp colours; Aura flips them to the reversed slate ramp. One source
+  // for the bars, their pulse beds and the table's dots.
+  const restColorAt = (i: number) =>
+    i === 0
+      ? CHART_GOLD
+      : metric === "count"
+        ? rows[i].color
+        : chartSlateRamp(rows.length - 1 - i, rows.length);
 
-  // Plot hover follows the cursor. Table hover parks over that tier's bar —
-  // the pointer is in the other card, so the last plot position would leave
-  // the card sitting on the wrong column (highlight correct, tooltip not).
-  const [hoverSource, setHoverSource] = useState<"plot" | "table" | null>(null);
+  // Pointer hover follows the cursor. Hover from the table (or keyboard
+  // focus) parks the tooltip over that tier's bar instead — the pointer is
+  // elsewhere, so its last plot position would be the wrong column.
+  const [anchored, setAnchored] = useState(false);
   const plotRef = useRef<HTMLDivElement | null>(null);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const [pointer, setPointer] = useState({ x: 0, y: 0 });
+  // Motion values, not state: the tooltip follows the cursor without
+  // re-rendering the panel on every mousemove.
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
   const [plotSize, setPlotSize] = useState({ w: 0, h: 0 });
-  const [cardSize, setCardSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     const el = plotRef.current;
@@ -296,26 +308,13 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
       setPlotSize({ w: r.width, h: r.height });
     };
     measure();
-    window.addEventListener("resize", measure);
     const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
     observer?.observe(el);
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer?.disconnect();
-    };
+    return () => observer?.disconnect();
   }, []);
 
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    setCardSize({ w: el.offsetWidth, h: el.offsetHeight });
-  }, [hovered, metric]);
-
-  const half = cardSize.w / 2;
   const barAnchor = (() => {
-    if (hoverSource !== "table" || !hoveredRow || hoveredIndex < 0 || plotSize.w <= 0) {
-      return null;
-    }
+    if (!anchored || !hoveredRow || plotSize.w <= 0) return null;
     const slotW = plotSize.w / rows.length;
     const pairW = barW * 2 + barGap;
     const pairLeft = hoveredIndex * slotW + (slotW - pairW) / 2;
@@ -326,26 +325,22 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
     const heightPct = metric === "count" ? hoveredRow.countHeight : hoveredRow.valueHeight;
     return { x, y: plotSize.h * (1 - heightPct / 100) };
   })();
-  const followX = barAnchor?.x ?? pointer.x;
-  const followY = barAnchor?.y ?? pointer.y;
-  const cardX = Math.min(Math.max(followX, half), Math.max(half, plotSize.w - half));
-  const above = followY - cardSize.h - 14;
-  const cardY =
-    above >= 0
-      ? above
-      : Math.min(followY + 18, Math.max(0, plotSize.h - cardSize.h));
 
   /** Dimmed by a selection elsewhere, not by the cursor: hovering brightens
    * its own tier, selecting mutes every other one. */
   const isMuted = (id: string) => selected != null && selected !== id;
 
   const toggleSelected = (id: string) => setSelected((prev) => (prev === id ? null : id));
+  const hoverTier = (id: string, anchor: boolean) => {
+    setHovered(id);
+    setAnchored(anchor);
+  };
 
   return (
     // Two cards, not one, and no box of their own: `contents` hands both
-    // straight to the page grid, which places them — under the TVL curve and
-    // the donut at xl, bars beside the donut with the tiers full-width below
-    // between lg and xl (see app/page.tsx).
+    // straight to the page grid, which places them — under the Volume chart
+    // and the donut at xl, bars beside the donut with the tiers full-width
+    // below between lg and xl (see app/page.tsx).
     <div className="contents">
       {/* ------------------------------------------------ chart card */}
       <PanelCard glossy glossDelay={-16}>
@@ -357,43 +352,14 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
           way to ask "which of these two series is the one I'm looking at" —
           hovering only explains a single tier at a time, not the whole
           chart. */}
-      {/* Left, over the chart it drives — not over the table. Flush with the
-          panel's own padding, which is where the chart below and the TVL
-          card's Current/Projected toggle above both start, so the three sit
-          on one line down the left edge. */}
+      {/* Left, over the chart it drives — not over the table. */}
       <div ref={toggleRowRef} className="flex pb-2">
-        {/* Same sliding-pill treatment as the TVL card's Current/Projected
-            toggle — a shared border+padding shell with a spring-animated
-            accent pill sliding under whichever label is active — so the two
-            toggles on this page read as one kind of control. A distinct
-            layoutId from that one ("tvl-toggle-pill"): framer-motion
-            animates a FROM/TO transition between any two elements sharing an
-            id, and both toggles are mounted on the page at once, so sharing
-            the id would have this pill leap across the page toward the TVL
-            one's position the instant either changed. */}
-        <div className="term-seg">
-          {(["count", "value"] as const).map((m) => {
-            const on = m === metric;
-            return (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMetric(m)}
-                aria-pressed={on}
-                className={cn("term-seg-btn", on ? "is-on" : "is-off")}
-              >
-                {on && (
-                  <motion.span
-                    layoutId="deposit-metric-toggle-pill"
-                    className="term-seg-pill"
-                    transition={{ type: "spring", stiffness: 480, damping: 32 }}
-                  />
-                )}
-                <span className="relative z-10">{m === "count" ? "Count" : "Aura"}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedToggle
+          options={METRIC_OPTIONS}
+          value={metric}
+          onChange={setMetric}
+          layoutId="deposit-metric-toggle-pill"
+        />
       </div>
 
         {/* Fills its own card now rather than being measured against the
@@ -427,20 +393,11 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
               {axisLabels.map((label, i) => (
                 <span
                   key={i}
-                  // IBM Plex Sans, 11px, text-secondary — matches the TVL
-                  // chart's own Y-axis labels exactly. HeroTvlChart's source
-                  // declares fontSize 10.5 and fill var(--t-text-muted) on
-                  // its YAxis ticks, but globals.css's
-                  // `.recharts-text { fill: var(--color-text-secondary) !important;
-                  // font-size: 11px !important }` overrides both on any tick
-                  // recharts renders through its own Text component (the
-                  // YAxis, unlike the X-axis's custom tick component, goes
-                  // through that path) — so 11px / text-secondary, not
-                  // 10.5px / text-muted, is what actually renders. Matched
-                  // here literally since this panel isn't recharts and gets
-                  // no such override.
+                  // 11px / text-secondary: what globals.css's `.recharts-text`
+                  // override renders on Recharts axes, matched by hand since
+                  // this panel isn't Recharts.
                   className="font-data absolute right-2 -translate-y-1/2 whitespace-nowrap text-[11px] leading-none text-text-secondary"
-                  style={{ top: (i * (ROW_H * 5)) / 5 }}
+                  style={{ top: i * ROW_H }}
                 >
                   {label}
                 </span>
@@ -448,27 +405,23 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
             </div>
 
             {/* Everything else — gridlines, bars, the tooltip — inset by the
-                gutter's width, in its own containing block so their existing
-                percentage-of-width math (the tooltip's left offset, the
-                bars' flex-1 slots) still divides the space they actually
-                have rather than the axis labels' width too. */}
+                gutter's width, in its own containing block so the bars'
+                flex-1 slots and the tooltip's clamping divide the plot's
+                width, not the axis labels' too. */}
+
             <div
               ref={plotRef}
               className="absolute inset-y-0"
               style={{ left: yAxisW, right: 0 }}
               onMouseMove={(e) => {
-                const el = plotRef.current;
-                if (!el) return;
-                const r = el.getBoundingClientRect();
-                setPointer({ x: e.clientX - r.left, y: e.clientY - r.top });
-                setPlotSize({ w: r.width, h: r.height });
+                const r = e.currentTarget.getBoundingClientRect();
+                pointerX.set(e.clientX - r.left);
+                pointerY.set(e.clientY - r.top);
               }}
             >
-              {/* The shared grid itself: five lines, each one ROW_H apart,
-                  which is what a 6-row table divides into internally (the
-                  header's own rule is the first shared line, drawn on the
-                  table side — see the header below). No line below the fifth
-                  row here: that band belongs to the range labels, not a bar. */}
+              {/* The shared grid itself: six lines, ROW_H apart, from the
+                  header's rule down to the bottom of the fifth row. The band
+                  below belongs to the range labels, not a bar. */}
               <div
                 className="pointer-events-none absolute inset-x-0 top-0 flex flex-col justify-between"
                 style={{ height: ROW_H * 5 }}
@@ -498,9 +451,8 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                   const muted = isMuted(row.id);
                   const countActive = metric === "count";
                   const isHovered = hovered === row.id;
-                  const isPrimary = i === primaryIndex;
-                  const baseColor =
-                    isPrimary ? (borrowColor ?? CHART_GOLD) : colorAt(i);
+                  const color = heldFill(i, litIndex, restColorAt);
+                  const bed = pulseBed(restColorAt(i));
                   const dimOthers = hovered != null && !isHovered;
                   // Only the series the toggle is showing solid takes the
                   // highlight. Lighting both bars of the pair made the hover
@@ -512,109 +464,63 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                   return (
                     <div
                       key={row.id}
-                      onMouseEnter={() => {
-                        setHovered(row.id);
-                        setHoverSource("plot");
-                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={selected === row.id}
+                      aria-label={`Filter to ${row.name} tier`}
+                      onMouseEnter={() => hoverTier(row.id, false)}
                       onMouseLeave={() => setHovered(null)}
+                      onFocus={(e) => {
+                        if (e.currentTarget.matches(":focus-visible")) hoverTier(row.id, true);
+                      }}
+                      onBlur={() => setHovered(null)}
                       onClick={() => toggleSelected(row.id)}
+                      onKeyDown={(e) => onPressKey(e, () => toggleSelected(row.id))}
                       className="flex h-full flex-1 cursor-pointer items-end justify-center transition-opacity duration-250"
                       style={{
                         gap: barGap,
                         opacity: muted ? 0.22 : dimOthers ? 0.4 : 1,
                       }}
                     >
-                      {/* Depositors — solid while Count is active, an
-                          outline of the same colour otherwise. Primary beds
-                          on slate while pulsing so gold↔gray reads, not gold↔gold. */}
-                      {/* Depositors, then Deposits — each drawn solid while
-                          the toggle shows it and as an outline otherwise. */}
+                      {/* Depositors, then Aura — each drawn solid while the
+                          toggle shows it and as an outline otherwise. */}
                       <TierBar
                         width={barW}
                         height={row.countHeight}
                         solid={countActive}
                         lit={countLit}
-                        color={baseColor}
-                        restColor={isPrimary ? CHART_GOLD : row.color}
+                        color={color}
+                        bed={bed}
                       />
                       <TierBar
                         width={barW}
                         height={row.valueHeight}
                         solid={!countActive}
                         lit={valueLit}
-                        color={baseColor}
-                        restColor={isPrimary ? CHART_GOLD : row.color}
+                        color={color}
+                        bed={bed}
                       />
                     </div>
                   );
                 })}
               </div>
 
+            {/* AnimatePresence keeps the card's last props through its
+                fade-out, so it goes on showing the tier it was on. */}
             <AnimatePresence>
-            {cardRow && (
-              <motion.div
-                key="tier-card"
-                className="pointer-events-none absolute left-0 top-0 z-20"
-                // Spring, not a linear move: the card lags the cursor a beat
-                // and settles, which is what reads as gliding rather than
-                // being dragged. It starts at the pointer, not the plot's
-                // corner, and fades in and out there instead of popping.
-                initial={{ x: cardX, y: cardY, opacity: 0 }}
-                animate={{ x: cardX, y: cardY, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 26,
-                  mass: 0.5,
-                  opacity: { duration: 0.18, ease: "easeOut" },
-                }}
-              >
-                <div
-                  ref={cardRef}
-                  className="-translate-x-1/2 rounded-[4px] border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3 py-2.5 shadow-[0_14px_36px_rgba(0,0,0,.55)]"
-                >
-                  {/* Tier name alone, centred. The size band it used to carry
-                      is the same string the table's own SIZE column shows for
-                      this row a few inches away, and the range labels under
-                      the bars repeat it a third time. */}
-                  <div className="mb-2 whitespace-nowrap text-center font-sans text-[13px] font-medium leading-none text-[var(--t-text-primary)]">
-                    {cardRow.name}
-                  </div>
-                  {/* Only the pair the active toggle actually explains: Count
-                      means "how many, what share of depositors" and stops
-                      there — Deposits and Avg are a different metric's
-                      answer, not a supporting detail for this one. Value flips
-                      that: Deposits and its share of TVL, plus what that
-                      averages to per
-                      wallet, with the depositor count dropped since a $
-                      reading doesn't need a headcount attached to it.
-
-                      Label and value are separate grid columns rather than one
-                      run of text: that is what stacks the numbers under each
-                      other instead of starting each one wherever its own label
-                      happened to end. */}
-                  <div className="grid grid-cols-[auto_auto] gap-x-3 gap-y-[6px] whitespace-nowrap leading-none">
-                    {(metric === "count"
-                      ? ([
-                          ["Wallets", cardRow.count.toLocaleString("en-US")],
-                          ["Share", formatShare(cardRow.pct)],
-                        ] as const)
-                      : ([
-                          ["Total Aura", auraCompact(cardRow.aura)],
-                          ["Share", formatShare(cardRow.auraPct)],
-                          ["Avg", auraExact(cardRow.avgAura)],
-                        ] as const)
-                    ).map(([label, value]) => (
-                      <Fragment key={label}>
-                        <span className="font-label text-text-muted">{label}</span>
-                        <span className="font-data text-right text-[var(--t-accent)]">{value}</span>
-                      </Fragment>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
+              {hoveredRow && (
+                <TierTooltip
+                  key="tier-card"
+                  row={hoveredRow}
+                  metric={metric}
+                  pointerX={pointerX}
+                  pointerY={pointerY}
+                  anchorX={barAnchor?.x ?? null}
+                  anchorY={barAnchor?.y ?? null}
+                  plotW={plotSize.w}
+                  plotH={plotSize.h}
+                />
+              )}
             </AnimatePresence>
             </div>
           </div>
@@ -650,8 +556,6 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
       </PanelCard>
 
       {/* ------------------------------------------------ table card */}
-      {/* A different gloss delay from the chart card's, so the two drift out
-          of step with each other rather than lighting up in unison. */}
       <PanelCard className="lg:col-span-2 xl:col-span-1">
         {/* Reserves exactly the height of the toggle sitting in the card
             beside this one. Without it the table's header rule — and every
@@ -709,16 +613,17 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 ref={(el) => {
                   tableRows.current[row.id] = el;
                 }}
-                onMouseEnter={() => {
-                  setHovered(row.id);
-                  setHoverSource("table");
-                  const el = plotRef.current;
-                  if (!el) return;
-                  const r = el.getBoundingClientRect();
-                  setPlotSize({ w: r.width, h: r.height });
-                }}
+                role="button"
+                tabIndex={0}
+                aria-pressed={selected === row.id}
+                onMouseEnter={() => hoverTier(row.id, true)}
                 onMouseLeave={() => setHovered(null)}
+                onFocus={(e) => {
+                  if (e.currentTarget.matches(":focus-visible")) hoverTier(row.id, true);
+                }}
+                onBlur={() => setHovered(null)}
                 onClick={() => toggleSelected(row.id)}
+                onKeyDown={(e) => onPressKey(e, () => toggleSelected(row.id))}
                 className={cn(
                   tableCols,
                   // Same always-on inset as MetricTableRow, so the highlight
@@ -731,14 +636,8 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
               >
                 <span className={cn("flex min-w-0 items-center gap-2", CATEGORY_NAME)} style={{ color }}>
                   <LegendDot
-                    color={
-                      lit
-                        ? CHART_GOLD
-                        : i === primaryIndex && borrowColor
-                          ? borrowColor
-                          : colorAt(i)
-                    }
-                    restColor={colorAt(i)}
+                    color={lit ? CHART_GOLD : heldFill(i, litIndex, restColorAt)}
+                    restColor={restColorAt(i)}
                     active={lit}
                     pulse={lit}
                     dimmed={dimmed}
@@ -806,23 +705,117 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
   );
 }
 
-const BAR_EASE = "300ms cubic-bezier(0.4, 0, 0.2, 1)";
+/** Spring the tooltip glides after the cursor on: it lags a beat and
+ * settles rather than being dragged. */
+const CARD_SPRING = { stiffness: 300, damping: 26, mass: 0.5 };
 
 /**
- * One bar of a tier's pair, drawn the same way whatever state it's in.
- *
- * The lit bar used to be a different element from the plain one it replaced,
- * so moving along the chart dropped the gold on one bar and picked it up on
- * the next in a single frame. Kept as one set of nodes, the colour, outline
- * and glow ease across with CSS transitions (the colours are CSS variables,
- * which only the browser can interpolate), the same hand-off as the donut and
- * the legend swatches.
- *
- * Lit, the fill turns gold and its opacity breathes over a bed in the bar's
- * resting colour — slate for a bar that rests gold, so the beat reads
- * gold↔slate rather than gold↔gold. Both bars keep a border at all times
- * (transparent on the solid one) so switching treatments never shifts either
- * by the border's width.
+ * The hover card over the plot. Positioned from motion values, so following
+ * the cursor re-renders nothing; re-placed after every render too, since a
+ * new tier or metric changes the card's own size. Clamped to the plot, and
+ * flipped under the point when there's no room above it.
+ */
+function TierTooltip({
+  row,
+  metric,
+  pointerX,
+  pointerY,
+  anchorX,
+  anchorY,
+  plotW,
+  plotH,
+}: {
+  row: DepositTier & { name: string };
+  metric: Metric;
+  pointerX: MotionValue<number>;
+  pointerY: MotionValue<number>;
+  /** Fixed point to sit over instead of the pointer (table / keyboard hover). */
+  anchorX: number | null;
+  anchorY: number | null;
+  plotW: number;
+  plotH: number;
+}) {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const x = useSpring(0, CARD_SPRING);
+  const y = useSpring(0, CARD_SPRING);
+  const placed = useRef(false);
+
+  const place = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    const w = card.offsetWidth;
+    const h = card.offsetHeight;
+    const fx = anchorX ?? pointerX.get();
+    const fy = anchorY ?? pointerY.get();
+    const half = w / 2;
+    const nx = Math.min(Math.max(fx, half), Math.max(half, plotW - half));
+    const above = fy - h - 14;
+    const ny = above >= 0 ? above : Math.min(fy + 18, Math.max(0, plotH - h));
+    // First placement jumps, so the card fades in where it lands.
+    if (placed.current) {
+      x.set(nx);
+      y.set(ny);
+    } else {
+      x.jump(nx);
+      y.jump(ny);
+      placed.current = true;
+    }
+  };
+
+  useLayoutEffect(() => place());
+  useMotionValueEvent(pointerX, "change", place);
+  useMotionValueEvent(pointerY, "change", place);
+
+  // Only the figures the active toggle explains: Count is how many and what
+  // share of depositors; Aura is the tier's total, its share and the average.
+  const figures =
+    metric === "count"
+      ? ([
+          ["Wallets", row.count.toLocaleString("en-US")],
+          ["Share", formatShare(row.pct)],
+        ] as const)
+      : ([
+          ["Total Aura", auraCompact(row.aura)],
+          ["Share", formatShare(row.auraPct)],
+          ["Avg", auraExact(row.avgAura)],
+        ] as const);
+
+  return (
+    <motion.div
+      className="pointer-events-none absolute left-0 top-0 z-20"
+      style={{ x, y }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+    >
+      <div
+        ref={cardRef}
+        className="-translate-x-1/2 rounded-[4px] border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3 py-2.5 shadow-[0_14px_36px_rgba(0,0,0,.55)]"
+      >
+        <div className="mb-2 whitespace-nowrap text-center font-sans text-[13px] font-medium leading-none text-[var(--t-text-primary)]">
+          {row.name}
+        </div>
+        {/* Separate grid columns so the values stack under each other. */}
+        <div className="grid grid-cols-[auto_auto] gap-x-3 gap-y-[6px] whitespace-nowrap leading-none">
+          {figures.map(([label, value]) => (
+            <Fragment key={label}>
+              <span className="font-label text-text-muted">{label}</span>
+              <span className="font-data text-right text-[var(--t-accent)]">{value}</span>
+            </Fragment>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/**
+ * One bar of a tier's pair, drawn the same way whatever state it's in, so
+ * the colour, outline and glow ease across with CSS transitions as the gold
+ * hands over. Lit, the fill turns gold and breathes over `bed`. Both bars
+ * keep a border at all times (transparent on the solid one) so switching
+ * treatments never shifts either by the border's width.
  */
 function TierBar({
   width,
@@ -830,7 +823,7 @@ function TierBar({
   solid,
   lit,
   color,
-  restColor,
+  bed,
 }: {
   width: number;
   /** Percent of the plot's height. */
@@ -839,8 +832,10 @@ function TierBar({
    * outline — a faint tint with a coloured border. */
   solid: boolean;
   lit: boolean;
+  /** Colour while not lit (see `heldFill`). */
   color: string;
-  restColor: string;
+  /** What the pulse breathes over (see `pulseBed`). */
+  bed: string;
 }) {
   const fill = lit
     ? CHART_GOLD
@@ -852,21 +847,19 @@ function TierBar({
   return (
     <div
       className="relative"
-      style={{ width, height: `${height}%`, transition: `height ${BAR_EASE}` }}
+      style={{ width, height: `${height}%`, transition: `height ${MARK_EASE}` }}
     >
       <div
         className="absolute inset-0 rounded-t-[2px]"
         style={{
-          background: restColor === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : restColor,
+          background: bed,
           opacity: lit ? 1 : 0,
-          transition: `opacity ${BAR_EASE}`,
+          transition: `opacity ${MARK_EASE}`,
         }}
       />
       <motion.div
         className="absolute inset-0 rounded-t-[2px] border-[0.5px]"
-        initial={false}
-        animate={lit ? CHART_GOLD_PULSE : { opacity: 1 }}
-        transition={lit ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.3 }}
+        {...pulseMotion(lit)}
         style={{
           backgroundColor: fill,
           borderColor: border,
@@ -874,7 +867,8 @@ function TierBar({
           filter: lit
             ? "drop-shadow(0 0 4px rgb(var(--t-accent-rgb) / 0.28))"
             : "drop-shadow(0 0 4px rgb(var(--t-accent-rgb) / 0))",
-          transition: `background-color ${BAR_EASE}, border-color ${BAR_EASE}, outline-color ${BAR_EASE}, filter ${BAR_EASE}`,
+          transition: `background-color ${MARK_EASE}, border-color ${MARK_EASE}, outline-color ${MARK_EASE}, filter ${MARK_EASE}`,
+
         }}
       />
     </div>

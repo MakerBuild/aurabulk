@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { CHART_GOLD } from "@/lib/overview-metrics";
-import { cn } from "@/lib/utils";
 
 export type SparkRow = { t: number; value: number };
 
@@ -16,6 +15,10 @@ const PAD_BOT = 4;
 /** Fixed sample count so 24H ↔ Total morphs the same path commands. */
 const SAMPLES = 48;
 const MORPH_MS = 420;
+/** viewBox x past which the hover tooltip hangs inward instead of centring. */
+const TIP_FLIP_LEFT = 40;
+const TIP_FLIP_RIGHT = 220;
+
 
 function sampleSeries(rows: SparkRow[], n: number): SparkRow[] {
   if (!rows.length) return [];
@@ -77,11 +80,10 @@ function pathFromYs(ys: number[]): { line: string; area: string; xs: number[] } 
   };
 }
 
+/** Content key for the series: callers may hand over a fresh array each
+ * render, so the morph keys off every point rather than the array identity. */
 function seriesSig(rows: SparkRow[]): string {
-  if (!rows.length) return "";
-  const first = rows[0];
-  const last = rows[rows.length - 1];
-  return `${rows.length}:${first.t}:${first.value}:${last.t}:${last.value}`;
+  return rows.map((r) => `${r.t}:${r.value}`).join(",");
 }
 
 function useMorphedSpark(rows: SparkRow[]): { pts: SparkPt[]; line: string; area: string } | null {
@@ -97,12 +99,9 @@ function useMorphedSpark(rows: SparkRow[]): { pts: SparkPt[]; line: string; area
   rowsRef.current = rows;
 
   useEffect(() => {
-    frameRef.current = frame;
-  }, [frame]);
-
-  useEffect(() => {
     const target = sampleSeries(rowsRef.current, SAMPLES);
     if (!target.length) {
+      frameRef.current = null;
       setFrame(null);
       return;
     }
@@ -148,12 +147,10 @@ export function MiniSpark({
   rows,
   formatValue,
   formatTime,
-  edgeLabels = true,
 }: {
   rows: SparkRow[];
   formatValue: (n: number) => string;
   formatTime: (t: number) => string;
-  edgeLabels?: boolean;
 }) {
   const gradId = useId();
   const meshId = useId();
@@ -181,21 +178,11 @@ export function MiniSpark({
 
   if (!geo) return <div className="min-h-[64px] min-w-0 flex-1" />;
 
-  const first = geo.pts[0];
   const last = geo.pts[geo.pts.length - 1];
 
   return (
     <div className="flex min-h-[56px] min-w-0 flex-1 flex-col justify-end">
-      {edgeLabels ? (
-        <div className={cn("mb-1 flex justify-between", active && "invisible")}>
-          <span className="font-mono text-[10px] leading-none text-text-dim tabular-nums">
-            {formatValue(first.value)}
-          </span>
-          <span className="font-mono text-[10px] leading-none text-text-dim tabular-nums">
-            {formatValue(last.value)}
-          </span>
-        </div>
-      ) : null}
+
       <div
         className="relative min-h-[44px] w-full flex-1 cursor-crosshair overflow-hidden"
         onPointerMove={(e) => pick(e.clientX, e.currentTarget)}
@@ -207,8 +194,13 @@ export function MiniSpark({
             style={{
               left: `${(active.x / VW) * 100}%`,
               top: 0,
+              // Near either end the tooltip hangs inward so it isn't clipped.
               transform:
-                active.x > 220 ? "translate(-100%, 0)" : active.x < 40 ? "none" : "translate(-50%, 0)",
+                active.x > TIP_FLIP_RIGHT
+                  ? "translate(-100%, 0)"
+                  : active.x < TIP_FLIP_LEFT
+                    ? "none"
+                    : "translate(-50%, 0)",
             }}
           >
             <p className="m-0 font-mono text-[9.5px] leading-none text-text-muted tabular-nums">

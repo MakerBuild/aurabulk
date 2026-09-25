@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { PreDepositsRecapCard } from "@/components/recap/PreDepositsRecapCard";
-import { CopyCardPngButton } from "@/components/calculator/CopyCardPngButton";
+import { CopyCardPngButton } from "@/components/recap/CopyCardPngButton";
 
 export default function RecapPage() {
   const exportRef = useRef<HTMLDivElement>(null);

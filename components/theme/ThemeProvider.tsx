@@ -104,8 +104,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 
   const toggleTheme = useCallback(() => {
-    setTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
-  }, [setTheme]);
+    setTheme(theme === "light" ? "dark" : "light");
+  }, [setTheme, theme]);
 
   // Follow the OS only while the visitor has never chosen for themselves.
   useEffect(() => {

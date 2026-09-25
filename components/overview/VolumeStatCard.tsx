@@ -3,18 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiveExchange, useLiveTps } from "@/components/live/LiveExchangeProvider";
 import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
+import { StatSparkCard, seriesRange } from "@/components/overview/StatSparkCard";
 import {
-  StatSparkCard,
-  seriesRange,
+  formatSignedDelta,
+  formatUtcDay,
+  formatUtcTime,
   usdBoard,
-} from "@/components/overview/StatSparkCard";
+} from "@/components/overview/spark-format";
 import type { VolumeHistoryPayload } from "@/lib/volume-history";
 import { cn } from "@/lib/utils";
 
 const MS_DAY = 86_400_000;
 const MS_HOUR = 3_600_000;
 const MODES = [
-  { id: "24h", label: "24H" },
+  { id: "24h", label: "24H Volume" },
   { id: "total", label: "Total Volume" },
 ] as const;
 type VolumeMode = (typeof MODES)[number]["id"];
@@ -58,22 +60,6 @@ function rolling24hSeries(
   return rows;
 }
 
-function formatSparkTime(t: number, mode: VolumeMode): string {
-  const date = new Date(t);
-  if (mode === "24h") {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "UTC",
-    });
-  }
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    timeZone: "UTC",
-  });
-}
 
 /** One decimal below ten, none above — 108 reads as throughput, 8.4 does not. */
 function formatTps(value: number | null): string {
@@ -90,19 +76,18 @@ export function VolumeStatCard() {
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([
-      fetch("/api/volume-history?range=1D").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/volume-history?range=W").then((r) => (r.ok ? r.json() : null)),
-    ]).then(([d, w]: [VolumeHistoryPayload | null, VolumeHistoryPayload | null]) => {
-      if (cancelled) return;
-      if (d) setDay(d);
-      if (w) setWeek(w);
-    });
-    void fetch("/api/volume-history?range=ALL&interval=1h")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((payload: VolumeHistoryPayload | null) => {
-        if (!cancelled && payload) setAll(payload);
-      });
+    // 1D and W land quickly and cover the card until the heavier hourly ALL
+    // series arrives. A failed request just leaves its fallback unused.
+    const load = (query: string, set: (p: VolumeHistoryPayload) => void) =>
+      fetch(`/api/volume-history?${query}`)
+        .then((r) => (r.ok ? (r.json() as Promise<VolumeHistoryPayload>) : null))
+        .then((payload) => {
+          if (!cancelled && payload) set(payload);
+        })
+        .catch(() => {});
+    void load("range=1D", setDay);
+    void load("range=W", setWeek);
+    void load("range=ALL&interval=1h", setAll);
     return () => {
       cancelled = true;
     };
@@ -157,7 +142,7 @@ export function VolumeStatCard() {
                     on ? "volume-mode-on" : "volume-mode-off text-text-muted hover:text-text-secondary",
                   )}
                 >
-                  {m.id === "24h" ? "24H Volume" : m.label}
+                  {m.label}
                 </button>
               </span>
             );
@@ -166,11 +151,12 @@ export function VolumeStatCard() {
       }
       badge={mode === "total" ? "ALL" : "24H"}
       figure={<KpiTerminalCounter value={value} format="usd-board" />}
-      delta={`${delta >= 0 ? "+" : "−"}${usdBoard(Math.abs(delta))}`}
+      delta={formatSignedDelta(delta, usdBoard)}
       deltaUp={delta >= 0}
       series={series}
       formatValue={usdBoard}
-      formatTime={(t) => formatSparkTime(t, mode)}
+      formatTime={mode === "24h" ? formatUtcTime : formatUtcDay}
+
       stats={[
         { label: "Low", value: range ? usdBoard(range.low) : "—" },
         { label: "High", value: range ? usdBoard(range.high) : "—" },

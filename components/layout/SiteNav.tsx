@@ -36,6 +36,7 @@ export function SiteNav() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -56,8 +57,17 @@ export function SiteNav() {
         setMenuOpen(false);
       }
     };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    };
     document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [menuOpen]);
 
   return (
@@ -103,6 +113,7 @@ export function SiteNav() {
                 <div key={item.href}>
                   <Link
                     href={item.href}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
                       "site-nav-link font-sans relative py-[6px] text-[12px] font-semibold uppercase tracking-[0.14em] transition-colors",
                       active ? "text-accent" : "text-text-muted hover:text-text-primary"
@@ -128,9 +139,10 @@ export function SiteNav() {
           {/* Flattened nav for narrow screens, where the inline bar is hidden. */}
           <div ref={menuRef} className="relative lg:hidden">
             <button
+              ref={menuButtonRef}
               type="button"
               aria-expanded={menuOpen}
-              aria-haspopup="menu"
+              aria-controls="site-nav-menu"
               onClick={() => setMenuOpen((open) => !open)}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[13px] transition-colors",
@@ -148,8 +160,12 @@ export function SiteNav() {
                 strokeWidth={2.4}
               />
             </button>
-            <div
-              role="menu"
+            {/* inert while closed: it is only faded out, and its links must
+                not stay reachable by Tab or screen reader. */}
+            <nav
+              id="site-nav-menu"
+              aria-label="Sections"
+              inert={!menuOpen}
               className={cn(
                 "absolute right-0 top-full z-[60] mt-2 min-w-[220px] origin-top-right rounded-[10px] border border-[rgb(var(--t-accent-rgb)/0.22)] bg-[var(--color-bulk-base)] p-1.5 shadow-[0_20px_48px_rgba(0,0,0,0.72)] transition-[opacity,transform] duration-150",
                 menuOpen
@@ -163,7 +179,7 @@ export function SiteNav() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    role="menuitem"
+                    aria-current={active ? "page" : undefined}
                     className={cn(
                       "relative block rounded-md px-3 py-2.5 text-[13px] transition-colors",
                       active
@@ -181,7 +197,7 @@ export function SiteNav() {
                   </Link>
                 );
               })}
-            </div>
+            </nav>
           </div>
         </div>
       </div>

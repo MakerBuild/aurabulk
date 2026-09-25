@@ -1,16 +1,8 @@
 "use client";
 
-import { PanelLabel } from "@/components/overview/PanelCard";
+import { PanelCard, PanelLabel } from "@/components/overview/PanelCard";
 import { MiniSpark, type SparkRow } from "@/components/overview/MiniSpark";
 import { cn } from "@/lib/utils";
-
-export function usdBoard(n: number): string {
-  if (!(n > 0)) return "$0";
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  if (n >= 1e3) return `$${Math.round(n / 1e3).toLocaleString("en-US")}K`;
-  return `$${Math.round(n).toLocaleString("en-US")}`;
-}
 
 export function seriesRange(rows: SparkRow[]): { low: number; high: number } | null {
   if (!rows.length) return null;
@@ -47,7 +39,7 @@ export function StatSparkCard({
   stats: SparkFootStat[];
 }) {
   return (
-    <div className="panel-gold-hover flex h-full min-w-0 flex-col rounded-[10px] border border-[var(--color-line)] bg-[var(--color-bg-primary)] px-4 py-3">
+    <PanelCard className="h-full px-4 py-3 sm:px-4 sm:py-3">
       <div className="mb-2.5 flex h-4 items-center justify-between gap-3 leading-none">
         <div className="min-w-0">
           {typeof label === "string" ? <PanelLabel>{label}</PanelLabel> : label}
@@ -72,12 +64,7 @@ export function StatSparkCard({
             </span>
           </p>
         </div>
-        <MiniSpark
-          rows={series}
-          formatValue={formatValue}
-          formatTime={formatTime}
-          edgeLabels={false}
-        />
+        <MiniSpark rows={series} formatValue={formatValue} formatTime={formatTime} />
       </div>
       <div className="grid grid-cols-3 gap-2 border-t border-[var(--color-line)] pt-2">
         {stats.map((stat) => (
@@ -89,6 +76,7 @@ export function StatSparkCard({
           </div>
         ))}
       </div>
-    </div>
+    </PanelCard>
   );
 }
+

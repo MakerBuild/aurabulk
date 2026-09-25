@@ -11,7 +11,7 @@ export default async function AuraPage() {
   return (
     <div className="shell flex min-h-[calc(100dvh-61px)] flex-col gap-4 pb-11 pt-5">
       <div className="shrink-0">
-        <PageHeading eyebrow="Aura" title="Aura analytics" centered />
+        <PageHeading eyebrow="Aura" title="Aura analytics" />
       </div>
       <AuraSourcesClient categoryBreakdown={metrics.categoryBreakdown} />
     </div>

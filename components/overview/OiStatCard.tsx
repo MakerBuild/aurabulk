@@ -2,21 +2,9 @@
 
 import { useLiveExchange } from "@/components/live/LiveExchangeProvider";
 import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
-import {
-  StatSparkCard,
-  seriesRange,
-  usdBoard,
-} from "@/components/overview/StatSparkCard";
+import { StatSparkCard, seriesRange } from "@/components/overview/StatSparkCard";
+import { formatSignedDelta, formatUtcTime, usdBoard } from "@/components/overview/spark-format";
 import { useLevelSpark } from "@/lib/session-spark";
-
-function formatTime(t: number): string {
-  return new Date(t).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "UTC",
-  });
-}
 
 export function OiStatCard() {
   const exchange = useLiveExchange();
@@ -30,11 +18,12 @@ export function OiStatCard() {
     <StatSparkCard
       label="Open Interest"
       figure={<KpiTerminalCounter value={exchange.openInterestUsd} format="usd-board" />}
-      delta={hasDelta ? `${delta >= 0 ? "+" : "−"}${usdBoard(Math.abs(delta))}` : "live"}
+      delta={hasDelta ? formatSignedDelta(delta, usdBoard) : "live"}
       deltaUp={hasDelta ? delta >= 0 : undefined}
       series={series}
       formatValue={usdBoard}
-      formatTime={formatTime}
+      formatTime={formatUtcTime}
+
       stats={[
         { label: "Low", value: range ? usdBoard(range.low) : "—" },
         { label: "High", value: range ? usdBoard(range.high) : "—" },

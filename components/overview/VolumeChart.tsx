@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Area,
   Bar,
@@ -28,6 +27,8 @@ import {
   OVERVIEW_BAR_W,
 } from "@/lib/overview-bars";
 import { cn, formatUsd } from "@/lib/utils";
+import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
+import { formatUtcDay, formatUtcTime } from "@/components/overview/spark-format";
 
 const COIN_META: Record<VolumeCoin, { label: string; color: string }> = {
   btc: { label: "BTC", color: chartPrimaryRamp(0, 4) },
@@ -42,25 +43,10 @@ const AXIS_TICK = {
   fontFamily: "var(--font-overpass-mono), ui-monospace, monospace",
 } as const;
 
-function usdCompact(value: number): string {
-  return formatUsd(value);
-}
+const RANGE_OPTIONS = VOLUME_RANGES.map((r) => ({ value: r, label: r }));
 
 function formatAxisTick(t: number, range: VolumeRange): string {
-  const date = new Date(t);
-  if (range === "1D") {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "UTC",
-    });
-  }
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    timeZone: "UTC",
-  });
+  return range === "1D" ? formatUtcTime(t) : formatUtcDay(t);
 }
 
 function niceStep(rough: number): number {
@@ -81,17 +67,22 @@ export function VolumeChart() {
   });
   const [showCumulative, setShowCumulative] = useState(true);
   const [payload, setPayload] = useState<VolumeHistoryPayload | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setPayload(null);
+    setFailed(false);
     void fetch(`/api/volume-history?range=${range}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((next: VolumeHistoryPayload | null) => {
-        if (!cancelled && next) setPayload(next);
+      .then((res) => {
+        if (!res.ok) throw new Error(`volume-history ${res.status}`);
+        return res.json() as Promise<VolumeHistoryPayload>;
+      })
+      .then((next) => {
+        if (!cancelled) setPayload(next);
       })
       .catch(() => {
-        if (!cancelled) setPayload({ range, interval: "1h", buckets: [] });
+        if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
@@ -134,30 +125,13 @@ export function VolumeChart() {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <p className="font-label m-0 text-text-muted">Total Volume</p>
-        <div className="term-seg min-w-[240px]">
-          {VOLUME_RANGES.map((r) => {
-            const on = r === range;
-            return (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRange(r)}
-                aria-pressed={on}
-                className={cn("term-seg-btn", on ? "is-on" : "is-off")}
-              >
-                {on && (
-                  <motion.span
-                    layoutId="volume-range-pill"
-                    className="term-seg-pill"
-                    aria-hidden="true"
-                    transition={{ type: "spring", stiffness: 480, damping: 32 }}
-                  />
-                )}
-                <span className="relative z-10">{r}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedToggle
+          options={RANGE_OPTIONS}
+          value={range}
+          onChange={setRange}
+          layoutId="volume-range-pill"
+          className="min-w-[240px]"
+        />
       </div>
 
       <div className="mt-2.5 flex flex-wrap items-center gap-4 text-[11px] text-text-muted select-none">
@@ -169,6 +143,7 @@ export function VolumeChart() {
               key={coin}
               type="button"
               onClick={() => toggleCoin(coin)}
+              aria-pressed={on}
               className={cn(
                 "inline-flex items-center gap-[7px] transition-opacity",
                 on ? "text-text-secondary" : "opacity-40",
@@ -185,6 +160,7 @@ export function VolumeChart() {
         <button
           type="button"
           onClick={() => setShowCumulative((v) => !v)}
+          aria-pressed={showCumulative}
           className={cn(
             "inline-flex items-center gap-[7px] transition-opacity",
             showCumulative ? "text-text-secondary" : "opacity-40",
@@ -195,8 +171,14 @@ export function VolumeChart() {
         </button>
       </div>
 
+      {/* The plot box is sized by the card alone — content sits in an
+          absolute layer — so swapping the loading line for the chart never
+          changes the height of the grid row this card shares with the donut. */}
       <div className="relative mt-2 min-h-[220px] flex-1 overflow-hidden xl:min-h-0">
-        {!payload ? (
+        <div className="absolute inset-0">
+        {failed ? (
+          <p className="font-data m-0 pt-10 text-center text-text-dim">Couldn’t load volume.</p>
+        ) : !payload ? (
           <p className="font-data m-0 pt-10 text-center text-text-dim">Loading volume…</p>
         ) : rows.length === 0 ? (
           <p className="font-data m-0 pt-10 text-center text-text-dim">No volume in this window.</p>
@@ -241,7 +223,7 @@ export function VolumeChart() {
                 yAxisId="bar"
                 orientation="left"
                 domain={[0, barHi]}
-                tickFormatter={(v) => usdCompact(Number(v))}
+                tickFormatter={(v) => formatUsd(Number(v))}
                 tick={AXIS_TICK}
                 axisLine={false}
                 tickLine={false}
@@ -251,7 +233,7 @@ export function VolumeChart() {
                 yAxisId="cum"
                 orientation="right"
                 domain={[0, cumHi]}
-                tickFormatter={(v) => usdCompact(Number(v))}
+                tickFormatter={(v) => formatUsd(Number(v))}
                 tick={AXIS_TICK}
                 axisLine={false}
                 tickLine={false}
@@ -271,17 +253,17 @@ export function VolumeChart() {
                       {VOLUME_COINS.filter((c) => enabled[c] && row[c] > 0).map((c) => (
                         <p key={c} className="m-0 flex justify-between gap-6 text-text-secondary">
                           <span>{COIN_META[c].label}</span>
-                          <span className="font-data text-text-primary">{usdCompact(row[c])}</span>
+                          <span className="font-data text-text-primary">{formatUsd(row[c])}</span>
                         </p>
                       ))}
                       <p className="m-0 mt-1 flex justify-between gap-6 text-text-secondary">
                         <span>Total</span>
-                        <span className="font-data text-text-primary">{usdCompact(row.total)}</span>
+                        <span className="font-data text-text-primary">{formatUsd(row.total)}</span>
                       </p>
                       {showCumulative && (
                         <p className="m-0 flex justify-between gap-6 text-accent">
                           <span>Cumulative</span>
-                          <span className="font-data">{usdCompact(row.cumulative)}</span>
+                          <span className="font-data">{formatUsd(row.cumulative)}</span>
                         </p>
                       )}
                     </div>
@@ -344,7 +326,9 @@ export function VolumeChart() {
             </ComposedChart>
           </ResponsiveContainer>
         )}
+        </div>
       </div>
+
     </div>
   );
 }

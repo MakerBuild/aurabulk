@@ -5,11 +5,7 @@ import { motion } from "framer-motion";
 import { Pie, PieChart, Sector } from "recharts";
 import type { OverviewDonutSegment } from "@/lib/overview-metrics";
 import { CHART_GOLD, chartPrimaryRamp } from "@/lib/overview-metrics";
-import {
-  CHART_GOLD_PULSE,
-  CHART_GOLD_PULSE_TRANSITION,
-  CHART_GOLD_PULSE_UNDERLAY,
-} from "@/lib/chart-gold-pulse";
+import { MARK_EASE, markFill, pulseBed, pulseMotion } from "@/lib/chart-gold-pulse";
 import { cn } from "@/lib/utils";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
@@ -56,6 +52,11 @@ export function donutApexInset(well = AURA_SOURCES_DONUT_WELL): number {
 const MIN_RING = 120;
 /** Matches the `gap-5` on the row below (20px). */
 const ROW_GAP = 20;
+/** Keeps sub-pixel rounding in the measured row from tipping the ring's
+ * leftover width over by one. */
+const ROUNDING_SLACK = 1;
+/** Largest ring when the legend stacks under it. */
+const STACKED_RING_MAX = 242;
 /** Tailwind's xl — where Overview stops stacking its panels (app/page.tsx). */
 const XL_BREAKPOINT = 1280;
 /** Widest the legend grows in the stacked Overview layout: wide enough to read
@@ -84,24 +85,13 @@ interface SectorGeometry {
   name?: string;
 }
 
-/** How long a slice takes to hand its colour over. Matches the legend
- * swatches and the bars, so everything lit by one hover moves together. */
-const SLICE_EASE = "0.35s cubic-bezier(0.4, 0, 0.2, 1)";
-
 /**
- * One slice, drawn the same way whatever state it's in.
+ * One slice, drawn the same way whatever state it's in. Every slice renders
+ * through this (the ring marks them all active), so each keeps its own nodes
+ * across a hover and the gold eases from one slice to the next.
  *
- * The lit slice used to be Recharts' `activeShape` — a different element from
- * the plain sector it replaced, so the gold landed on the new slice and left
- * the old one in a single frame, with nothing to transition between. Every
- * slice now renders through this (the ring marks them all active), so each
- * keeps its own nodes across a hover and the gold eases out of one slice as
- * it eases into the next — the same hand-off as the legend swatches.
- *
- * Two layers: a bed in the slice's resting colour, and the slice itself on
- * top. Lit, the slice turns gold and its opacity breathes, so the pulse reads
- * gold↔bed. A slice that rests gold (the primary) beds on slate instead, or
- * the beat would be gold↔gold. Framer Motion drives the pulse rather than CSS
+ * Two layers: a bed (`pulseBed`) and the slice on top. Lit, the slice turns
+ * gold and its opacity breathes over the bed. Framer Motion drives the pulse
  * — CSS opacity animations on SVG run on Safari but Chromium drops them.
  */
 function DonutSlice({
@@ -120,24 +110,20 @@ function DonutSlice({
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle } = geom;
   const shape = { cx, cy, innerRadius, outerRadius, startAngle, endAngle };
   return (
-    <g style={{ opacity: dimmed ? 0.5 : 1, transition: `opacity ${SLICE_EASE}` }}>
+    <g style={{ opacity: dimmed ? 0.5 : 1, transition: `opacity ${MARK_EASE}` }}>
       <Sector
         {...shape}
         fill={bed}
         stroke="none"
-        style={{ opacity: lit ? 1 : 0, transition: `opacity ${SLICE_EASE}` }}
+        style={{ opacity: lit ? 1 : 0, transition: `opacity ${MARK_EASE}` }}
       />
-      <motion.g
-        initial={false}
-        animate={lit ? CHART_GOLD_PULSE : { opacity: 1 }}
-        transition={lit ? CHART_GOLD_PULSE_TRANSITION : { duration: 0.3 }}
-      >
+      <motion.g {...pulseMotion(lit)}>
         <Sector
           {...shape}
           fill={fill}
           stroke="var(--color-bulk-base)"
           strokeWidth={1}
-          style={{ transition: `fill ${SLICE_EASE}` }}
+          style={{ transition: `fill ${MARK_EASE}` }}
         />
       </motion.g>
     </g>
@@ -151,30 +137,20 @@ interface DonutRow {
   color: string;
 }
 
+/** Resting colour of slice `i`: gold on the primary, its own ramp colour
+ * otherwise. */
+function restColorOf(rows: DonutRow[], i: number): string {
+  return i === 0 ? CHART_GOLD : rows[i].color;
+}
+
 /**
  * The ring, and the sweep that draws it in.
  *
- * Recharts' own entrance animation stays off: it runs through react-smooth,
- * which was observed leaving sectors with no rendered path at all here. So
- * the wipe is driven from this component instead — `endAngle` stepped from
- * the start angle round to a full turn, with Recharts redrawing the arcs
- * each step.
- *
- * Two things about how that used to be done cost the sweep its smoothness,
- * and both were paid on every one of its ~55 steps.
- *
- * The step ran on `setTimeout(…, 16)`. A timer is not tied to the display,
- * so the real interval was 16ms *plus* the step's own render, and it drifted
- * against the frame boundary — some frames showed the previous arc again,
- * which is the stutter. On requestAnimationFrame the step is measured off
- * the frame's own timestamp and lands on the frame that will show it. It
- * also idles in a background tab instead of burning the sweep down unseen,
- * so the animation is still there when the tab is finally opened.
- *
- * And the counter lived in `AuraDonut`, one level up, so every step also
- * re-rendered the legend beside the ring — a row per slice, each with a
- * Framer Motion colour swatch, none of which the sweep touches. Down here a
- * step redraws the arcs and nothing else.
+ * Recharts' own entrance animation stays off (react-smooth was observed
+ * leaving sectors with no rendered path here), so the wipe steps `endAngle`
+ * from the start angle round to a full turn on requestAnimationFrame. The
+ * sweep state lives here rather than in `AuraDonut` so a step redraws the
+ * arcs and not the legend beside them.
  */
 function DonutRing({
   width,
@@ -182,7 +158,6 @@ function DonutRing({
   outerRadius,
   chartData,
   hoverIndex,
-  borrowColor,
   onHoverIndex,
   onLeave,
 }: {
@@ -191,46 +166,15 @@ function DonutRing({
   outerRadius: number;
   chartData: DonutRow[];
   hoverIndex: number | undefined;
-  /** Non-null while a secondary slice is lit and has taken the gold: the
-   *  primary wears this instead for as long as that lasts. */
-  borrowColor: string | null;
   onHoverIndex: (index: number) => void;
   onLeave: () => void;
 }) {
   const [sweep, setSweep] = useState(0);
   const allSlices = useMemo(() => chartData.map((_, i) => i), [chartData]);
-  // Freeze the box the sweep was measured for. On Overview this ring shares
-  // a row with the Volume chart, which lands its own data a beat later and
-  // reallocates the row's height mid-wipe — every ResizeObserver tick then
-  // handed Recharts a new width and the arcs jumped instead of travelling.
-  // Aura's Source Breakdown never sees that: its well has a fixed min-height,
-  // so the first measure is the last. Holding the entrance geometry here
-  // makes Overview behave the same way for the wipe; after it finishes we
-  // follow live size again so a real resize still lands.
-  const [geom, setGeom] = useState({ width, innerRadius, outerRadius });
-  const sweeping = sweep < 1;
+  const restAt = (i: number) => restColorOf(chartData, i);
 
-  useEffect(() => {
-    if (sweeping) return;
-    setGeom({ width, innerRadius, outerRadius });
-  }, [width, innerRadius, outerRadius, sweeping]);
-
-  // Runs once, on mount — this component only mounts once the row has been
-  // measured, and takes no dependencies, so a resize mid-sweep cannot tear
-  // the loop down. It used to: the cleanup cancelled the timer, and the
-  // re-run bailed straight back out on a ref that had already latched. The
-  // sweep then stayed frozen at whatever it had reached, and at 0 that is an
-  // `endAngle` equal to the start angle — sectors of no length at all, so the
-  // ring never appeared while the centre readout (a plain HTML overlay)
-  // carried on showing the total.
-  //
-  // That ref is gone rather than moved down here with it. With no
-  // dependencies there is nothing left for it to guard, and it actively
-  // breaks the one re-run that does still happen: StrictMode mounts, tears
-  // down and remounts, so the cleanup cancels both timers and a latched ref
-  // sends the second mount straight out again — never scheduling anything,
-  // and leaving exactly the empty ring described above. Restarting the sweep
-  // on a genuine remount is the correct behaviour anyway.
+  // Once per mount, with no dependencies, so a resize mid-sweep can't tear
+  // the loop down. StrictMode's mount/unmount/remount simply restarts it.
   useEffect(() => {
     let frame = 0;
     let start = 0;
@@ -242,13 +186,9 @@ function DonutRing({
     };
     frame = requestAnimationFrame(step);
 
-    // A hidden tab gets no frames, and this ring at sweep 0 is not a faint
-    // ring — Recharts draws zero-length sectors as no path at all. So rather
-    // than leave a backgrounded tab holding an empty box until it is looked
-    // at, snap the sweep home once it is clear no frames are coming. Timers
-    // do still run there, which is what makes this reachable. On a visible
-    // tab the sweep has been done for two seconds by the time this fires and
-    // the state is already 1, so it costs nothing.
+    // A hidden tab gets no frames, and at sweep 0 Recharts draws no path at
+    // all — so snap the sweep home once it's clear no frames are coming.
+    // Timers still run in a hidden tab; on a visible one this is a no-op.
     const fallback = window.setTimeout(() => {
       cancelAnimationFrame(frame);
       setSweep(1);
@@ -261,19 +201,15 @@ function DonutRing({
   }, []);
 
   return (
-    <PieChart width={geom.width} height={geom.width}>
+    <PieChart width={width} height={width}>
       <Pie
         data={chartData}
         dataKey="share"
         nameKey="category"
         cx="50%"
         cy="50%"
-        // Ratios of the measured box rather than fixed pixels, so the
-        // ring can never outgrow its box on a narrow viewport — it
-        // stays correctly sized at every width instead of only at the
-        // one a hardcoded radius would have been tuned for.
-        innerRadius={geom.innerRadius}
-        outerRadius={geom.outerRadius}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
         startAngle={START_ANGLE}
         endAngle={START_ANGLE - 360 * sweep}
         // Scaled with the sweep rather than switched on at the end:
@@ -288,19 +224,13 @@ function DonutRing({
         activeShape={(props: unknown) => {
           const sector = props as SectorGeometry;
           const i = chartData.findIndex((r) => r.category === sector.name);
-          const row = chartData[i];
-          if (!row) return <g />;
-          const isPrimary = i === 0;
+          if (!chartData[i]) return <g />;
           const lit = hoverIndex === i;
-          // Gold stays on the primary at rest; on a secondary hover it
-          // borrows that slice's slate so the gold can move over.
-          const rest = isPrimary ? CHART_GOLD : row.color;
-          const fill = lit ? CHART_GOLD : isPrimary && borrowColor != null ? borrowColor : rest;
           return (
             <DonutSlice
               geom={sector}
-              fill={fill}
-              bed={rest === CHART_GOLD ? CHART_GOLD_PULSE_UNDERLAY : rest}
+              fill={markFill(i, hoverIndex, restAt)}
+              bed={pulseBed(restAt(i))}
               lit={lit}
               dimmed={hoverIndex != null && !lit}
             />
@@ -340,29 +270,16 @@ export function AuraDonut({
   const setHoverIndex = controlled ? onHoverIndexChange! : setLocalHover;
   const narrow = useNarrowViewport();
 
-  // Measured off the ROW, not the donut's own box, and against both axes.
-  // The ring is square, so its size is bounded by whichever of the two runs
-  // out first — sizing it from width alone (as this did) drew a 248px ring
-  // into whatever height the panel had left, which overflowed the card and
-  // pushed the ring up over the countdown line above it. Measured rather
-  // than handed to ResponsiveContainer because this card can mount while a
-  // FLIP swap still has it scaled down, and ResponsiveContainer latches that
-  // transformed size permanently; `clientWidth`/`clientHeight` report layout
-  // size, which a transform can't skew.
+  // Measured off the ROW, not the donut's own box, and against both axes:
+  // the ring is square, so whichever runs out first bounds it. Measured
+  // rather than handed to ResponsiveContainer because this card can mount
+  // while a FLIP swap still has it scaled down, and ResponsiveContainer
+  // latches that transformed size; `clientWidth`/`clientHeight` report
+  // layout size, which a transform can't skew.
   const rowRef = useRef<HTMLDivElement | null>(null);
   const legendRef = useRef<HTMLDivElement | null>(null);
   const legendRows = useRef<(HTMLDivElement | null)[]>([]);
   const [avail, setAvail] = useState({ w: 0, h: 0, legendFloor: 0, vw: 0 });
-  // Overview shares a flex row with the Volume chart, which is empty for a
-  // beat and then fills in — every pass reallocates this row's height. Aura's
-  // Source Breakdown never has that neighbour, so its first measure is final
-  // and the wipe reads clean. Waiting out the shuffle before mounting the
-  // ring means Overview starts the same wipe on a settled box instead of
-  // mid-reflow.
-  const [ringMountWidth, setRingMountWidth] = useState(0);
-  const ringShownRef = useRef(false);
-  const sweepLockUntilRef = useRef(0);
-  const widthRef = useRef(0);
 
   useEffect(() => {
     const el = rowRef.current;
@@ -393,64 +310,28 @@ export function AuraDonut({
 
   // The row is [inset][ring][gap][legend]; the ring gets whatever width is
   // left once the fixed-width legend, the gap and the row's own left inset
-  // are taken out, capped only by the available height. The inset has to
-  // come out by hand: clientWidth counts padding, so without this the ring
-  // would be sized as if the inset weren't there.
-  //
-  // There used to be an additional MAX_RING ceiling (248px) here too, "so the
-  // ring stayed in proportion with the legend" even in a tall, wide panel.
-  // What that actually did was leave the ring capped well below what this
-  // formula already computed for it — 248 against a formula result of 319 at
-  // 1920 — while the legend's own box (below) is flex-1 and still stretched
-  // to fill the row regardless, so the width the ring gave up did not go to
-  // the legend either: it sat as a gap belonging to neither, 105px of it at
-  // 1920. Removing the cap is what lets the ring actually claim the width
-  // this formula was already handing it.
+  // are taken out (clientWidth counts padding, so the inset comes out by
+  // hand), capped only by the available height.
   const leftover =
     avail.w === 0
       ? 0
-      : avail.w - avail.legendFloor - ROW_GAP - METRIC_TABLE_LEAD_INSET - CLIP_BLEED - 1;
+      : avail.w -
+        avail.legendFloor -
+        ROW_GAP -
+        METRIC_TABLE_LEAD_INSET -
+        CLIP_BLEED -
+        ROUNDING_SLACK;
   const stacked = narrow || (avail.w > 0 && leftover < MIN_RING);
 
   const width =
     avail.w === 0
       ? 0
       : stacked
-        ? Math.max(MIN_RING, Math.min(avail.w, 242))
+        ? Math.max(MIN_RING, Math.min(avail.w, STACKED_RING_MAX))
         : Math.max(
           Math.min(MIN_RING, avail.h),
           Math.min(avail.h, leftover)
         );
-  widthRef.current = width;
-
-  useEffect(() => {
-    if (width <= 0) return;
-    if (!ringShownRef.current) {
-      // Quiet window: as long as `width` keeps moving, this timer resets, so
-      // the ring only mounts once the Volume neighbour (or anything else
-      // reshaping the row) has stopped. Matches the settled first paint Aura
-      // gets from its fixed well.
-      let unlock = 0;
-      const settle = window.setTimeout(() => {
-        ringShownRef.current = true;
-        setRingMountWidth(widthRef.current);
-        // Hold the box still for the wipe — a Volume load landing mid-sweep
-        // used to resize the parent and make the arcs jump.
-        sweepLockUntilRef.current = performance.now() + SWEEP_MS + 80;
-        unlock = window.setTimeout(() => {
-          setRingMountWidth((prev) =>
-            prev === widthRef.current ? prev : widthRef.current,
-          );
-        }, SWEEP_MS + 80);
-      }, 120);
-      return () => {
-        window.clearTimeout(settle);
-        window.clearTimeout(unlock);
-      };
-    }
-    if (performance.now() < sweepLockUntilRef.current) return;
-    setRingMountWidth((prev) => (prev === width ? prev : width));
-  }, [width]);
 
   const chartData = useMemo<DonutRow[]>(
     () =>
@@ -485,51 +366,31 @@ export function AuraDonut({
   }, [hoverIndex, controlled, setHoverIndex]);
 
   const active = hoverIndex != null ? chartData[hoverIndex] : undefined;
-  /** Hovering a non-primary slice: gold leaves the primary mark and that
-   * slice takes it — Overview donut transfer. */
-  const borrowColor =
-    hoverIndex != null && hoverIndex > 0 ? chartData[hoverIndex].color : null;
+  const restAt = (i: number) => restColorOf(chartData, i);
 
-  // Radii, and everything sized against them, derived from the measured
-  // canvas. The cap keeps the hover glow inside the canvas; without it the
-  // outermost glow ring would be clipped once the panel got short enough to
-  // shrink the donut.
-  // Floored at 0: before the row has been measured `width` is 0, and the
-  // glow headroom alone would take the radius negative — which then read as
-  // an inset the size of the headroom and put a margin on the box while it
-  // had no geometry at all.
-  // Prefer the settled mount size so the centre readout and the ring agree
-  // during the deferred entrance; fall back to the live measure before that.
-  const paintWidth = ringMountWidth > 0 ? ringMountWidth : width;
+  // Radii derived from the measured canvas, capped so strokes stay inside it
+  // and floored at 0 for the unmeasured first render.
   const outerRadius = Math.max(
     0,
-    Math.min(paintWidth * RING_OUTER_RATIO, paintWidth / 2 - GLOW_HEADROOM)
+    Math.min(width * RING_OUTER_RATIO, width / 2 - GLOW_HEADROOM)
   );
   const innerRadius = outerRadius * (RING_INNER_RATIO / RING_OUTER_RATIO);
   /** Distance from the canvas's left edge to the ring's — the ring is
    * centred in a square box that is deliberately larger than it. */
-  const ringLeftInset = paintWidth / 2 - outerRadius;
-  // The centre readout scales with the hole it sits in. It used to be a
-  // fixed 18px, which fits a full-size donut but runs out over the ring as
-  // soon as a shorter viewport shrinks the ring around it. Capped at the
-  // top so it doesn't balloon on a tall panel, and floored so it stays
-  // legible on a short one.
-  const holeDiameter = innerRadius * 2;
+  const ringLeftInset = width / 2 - outerRadius;
+  // The centre readout scales with the hole it sits in, capped and floored.
   // Grouped ten-digit values run ~5.4× the font size; ~0.19 of the hole
-  // keeps ~15% clearance either side. Cap is high enough that the figure
-  // actually fills a normal Overview hole (the old 20px ceiling left it
-  // stranded in the middle of a ~200px opening).
+  // keeps ~15% clearance either side.
+  const holeDiameter = innerRadius * 2;
   const tightHole = holeDiameter > 0 && holeDiameter < 96;
   const valueFontPx = Math.max(11, Math.min(28, holeDiameter * (tightHole ? 0.22 : 0.19)));
   const captionFontPx = Math.max(8.5, Math.min(11, holeDiameter * 0.055));
 
   const sourcesLayout = !showShare;
-  // Below lg the Overview panels stack and this card runs the full page
-  // width, while the ring stays capped by the row's height. Pinning the
-  // legend to the right edge then left ~500px of nothing between it and the
-  // ring, so here the legend widens (to a cap) and the pair sits centred.
-  // Gated on the slack actually being there, not on the breakpoint alone:
-  // between lg and xl this card is half the page and has none to spare.
+  // Below xl the ring stays capped by the row's height while the card can be
+  // much wider, so the legend widens (to a cap) and the pair sits centred
+  // instead of leaving a gap. Gated on the slack actually being there, not on
+  // the breakpoint alone.
   const spread =
     !stacked &&
     !sourcesLayout &&
@@ -560,38 +421,29 @@ export function AuraDonut({
         if (!controlled) setHoverIndex(undefined);
       }}
     >
-      {/* Sized from the measurement above rather than by a width class, so
-          the ring shrinks to fit a short panel instead of spilling out of
-          it. The radii are ratios of this same number, so they follow. */}
-      {/* No inline geometry until the row has actually been measured. These
-          values all derive from `width`, which is 0 for the server render and
-          for the client's first paint, so emitting them early gives React two
-          descriptions of the same box to reconcile — a hydration mismatch,
-          which it refuses to patch up. Withheld as one unit, both sides
-          render the same bare div and the geometry arrives with the measure. */}
+      {/* Sized from the measurement above. No inline geometry until the row
+          has been measured (`width` is 0 on the server and first paint), so
+          server and client render the same bare div. */}
       <div
         className={cn("relative shrink-0", stacked && "mx-auto")}
         style={
-          paintWidth > 0
+          width > 0
             ? {
-                width: paintWidth,
-                height: paintWidth,
+                width,
+                height: width,
                 marginLeft: stacked ? undefined : -ringLeftInset,
               }
             : undefined
         }
       >
-        {/* Mounted only once the row has settled, which is also what
-            starts the sweep — the ring owns that state, so a step redraws
-            the arcs without touching the legend below. */}
-        {ringMountWidth > 0 && (
+        {/* Mounting is what starts the sweep. */}
+        {width > 0 && (
           <DonutRing
-            width={ringMountWidth}
+            width={width}
             innerRadius={innerRadius}
             outerRadius={outerRadius}
             chartData={chartData}
             hoverIndex={hoverIndex}
-            borrowColor={borrowColor}
             onHoverIndex={setHoverIndex}
             onLeave={() => {
               if (!controlled) setHoverIndex(undefined);
@@ -670,17 +522,12 @@ export function AuraDonut({
           target={hoverIndex != null ? (legendRows.current[hoverIndex] ?? null) : null}
         />
         {chartData.map((row, i) => {
-          const legendColor =
-            hoverIndex === i
-              ? CHART_GOLD
-              : i === 0 && borrowColor
-                ? borrowColor
-                : row.color;
           return (
             <MetricTableRow
               key={row.category}
-              color={legendColor}
-              restColor={row.color}
+              color={markFill(i, hoverIndex, restAt)}
+              restColor={restAt(i)}
+
               pulseDot={hoverIndex === i}
               name={row.category}
               count={Math.round(row.points).toLocaleString("en-US")}

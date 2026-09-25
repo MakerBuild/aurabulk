@@ -6,15 +6,16 @@ import type { LeaderboardEntry } from "@/types";
 import {
   LEADERBOARD_TAB_DEFAULT_SORT,
   LEADERBOARD_TOP_LIMIT,
+  sortLeaderboardEntries,
   type LeaderboardSortDir,
   type LeaderboardTab,
 } from "@/lib/leaderboard-table";
-import { formatNumber, formatUsd, truncateWallet } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber, formatUsd, truncateWallet } from "@/lib/utils";
 import { CopyableWallet } from "@/components/ui/CopyableWallet";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { RowHighlight } from "@/components/ui/RowHighlight";
+import { UnderlineTabs } from "@/components/ui/UnderlineTabs";
 
 interface ColumnDef {
   key: string;
@@ -88,14 +89,28 @@ function getColumns(tab: LeaderboardTab): ColumnDef[] {
 
 function defaultSortDirForKey(tab: LeaderboardTab, key: string): LeaderboardSortDir {
   const defaults = LEADERBOARD_TAB_DEFAULT_SORT[tab];
-  if (key === defaults.key) return defaults.dir;
-  if (key.endsWith("_rank")) return "asc";
-  return "desc";
+  return key === defaults.key ? defaults.dir : "desc";
 }
 
-function cacheKey(tab: LeaderboardTab, sortKey: string, sortDir: LeaderboardSortDir) {
-  return `${tab}:${sortKey}:${sortDir}`;
+function fetchTopRows(tab: LeaderboardTab, signal: AbortSignal): Promise<LeaderboardEntry[]> {
+  const defaults = LEADERBOARD_TAB_DEFAULT_SORT[tab];
+  const params = new URLSearchParams({
+    tab,
+    sort: defaults.key,
+    dir: defaults.dir,
+    limit: String(LEADERBOARD_TOP_LIMIT),
+  });
+  return fetch(`/api/leaderboard?${params.toString()}`, { signal }).then(async (res) => {
+    if (!res.ok) throw new Error("Failed to load leaderboard");
+    return ((await res.json()) as { items: LeaderboardEntry[] }).items;
+  });
 }
+
+const TABS: readonly { id: LeaderboardTab; label: string }[] = [
+  { id: "aura", label: "Aura Rank" },
+  { id: "volume", label: "Volume Rank" },
+  { id: "pnl", label: "PnL Rank" },
+];
 
 export function LeaderboardTable({
   initialRows = [],
@@ -104,10 +119,6 @@ export function LeaderboardTable({
   initialRows?: LeaderboardEntry[];
 }) {
   const [tab, setTab] = useState<LeaderboardTab>("aura");
-  // Bumped on every press and used as the underline's key, so the mark
-  // restarts even when the tab pressed is the one already open. Same control
-  // as the tools page — see the note on .switch-underline.
-  const [tabClickCount, setTabClickCount] = useState(0);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -117,78 +128,61 @@ export function LeaderboardTable({
   const [sortDir, setSortDir] = useState<LeaderboardSortDir>(
     LEADERBOARD_TAB_DEFAULT_SORT.aura.dir
   );
-  const [rows, setRows] = useState<LeaderboardEntry[]>(initialRows);
-  const [loading, setLoading] = useState(initialRows.length === 0);
-  const cacheRef = useRef(new Map<string, LeaderboardEntry[]>());
+  // Each tab's top N in its own ranking order, fetched once. Header sorts
+  // reorder that set here rather than asking the server for a different N.
+  const [topByTab, setTopByTab] = useState<Partial<Record<LeaderboardTab, LeaderboardEntry[]>>>(
+    () => (initialRows.length > 0 ? { aura: initialRows } : {})
+  );
+  const [failedTab, setFailedTab] = useState<LeaderboardTab | null>(null);
   const pageSize = 25;
 
   const columns = useMemo(() => getColumns(tab), [tab]);
+  const top = topByTab[tab];
+  const loading = top == null && failedTab !== tab;
 
   useEffect(() => {
-    const auraKey = cacheKey("aura", LEADERBOARD_TAB_DEFAULT_SORT.aura.key, LEADERBOARD_TAB_DEFAULT_SORT.aura.dir);
-    if (initialRows.length > 0 && !cacheRef.current.has(auraKey)) {
-      cacheRef.current.set(auraKey, initialRows);
-    }
-  }, [initialRows]);
+    const controller = new AbortController();
+    fetchTopRows(tab, controller.signal)
+      .then((items) => {
+        setTopByTab((prev) => ({ ...prev, [tab]: items }));
+        setFailedTab((prev) => (prev === tab ? null : prev));
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setFailedTab(tab);
+      });
+    return () => controller.abort();
+  }, [tab]);
 
+  // Warm the other two tabs shortly after mount so switching is instant.
   useEffect(() => {
-    let cancelled = false;
-    const key = cacheKey(tab, sortKey, sortDir);
-    const cached = cacheRef.current.get(key);
-    if (cached) {
-      setRows(cached);
-      setLoading(false);
-    }
-
-    async function load() {
-      if (!cached) setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          tab,
-          sort: sortKey,
-          dir: sortDir,
-          limit: String(LEADERBOARD_TOP_LIMIT),
-        });
-        const res = await fetch(`/api/leaderboard?${params.toString()}`);
-        if (!res.ok) throw new Error("Failed to load leaderboard");
-        const data = (await res.json()) as { items: LeaderboardEntry[] };
-        cacheRef.current.set(key, data.items);
-        if (!cancelled) setRows(data.items);
-      } catch {
-        if (!cancelled && !cached) setRows([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [tab, sortKey, sortDir]);
-
-  useEffect(() => {
-    const others: LeaderboardTab[] = ["volume", "pnl"];
+    const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      for (const other of others) {
-        const defaults = LEADERBOARD_TAB_DEFAULT_SORT[other];
-        const key = cacheKey(other, defaults.key, defaults.dir);
-        if (cacheRef.current.has(key)) continue;
-        const params = new URLSearchParams({
-          tab: other,
-          sort: defaults.key,
-          dir: defaults.dir,
-          limit: String(LEADERBOARD_TOP_LIMIT),
-        });
-        void fetch(`/api/leaderboard?${params.toString()}`)
-          .then((res) => (res.ok ? res.json() : null))
-          .then((data: { items: LeaderboardEntry[] } | null) => {
-            if (data?.items) cacheRef.current.set(key, data.items);
-          });
+      for (const other of ["volume", "pnl"] as const) {
+        fetchTopRows(other, controller.signal)
+          .then((items) => setTopByTab((prev) => (prev[other] ? prev : { ...prev, [other]: items })))
+          .catch(() => {});
       }
     }, 250);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, []);
+
+  // A wallet's place on this tab's ranking — stays put under header sorts
+  // and search, unlike the row index.
+  const rankOf = useMemo(() => {
+    const ranks = new Map<string, number>();
+    (top ?? []).forEach((entry, i) => {
+      ranks.set(entry.wallet, tab === "aura" && entry.aura_rank > 0 ? entry.aura_rank : i + 1);
+    });
+    return ranks;
+  }, [top, tab]);
+
+  const rows = useMemo(
+    () => sortLeaderboardEntries(top ?? [], tab, sortKey, sortDir),
+    [top, tab, sortKey, sortDir]
+  );
 
   const filtered = useMemo(() => {
     if (!search.trim()) return rows;
@@ -210,18 +204,12 @@ export function LeaderboardTable({
   function handleSort(key: string) {
     if (sortKey === key) {
       setSortDir((dir) => (dir === "desc" ? "asc" : "desc"));
-      return;
+    } else {
+      setSortKey(key);
+      setSortDir(defaultSortDirForKey(tab, key));
     }
-    setSortKey(key);
-    setSortDir(defaultSortDirForKey(tab, key));
     setPage(1);
   }
-
-  const tabs: { id: LeaderboardTab; label: string }[] = [
-    { id: "aura", label: "Aura Rank" },
-    { id: "volume", label: "Volume Rank" },
-    { id: "pnl", label: "PnL Rank" },
-  ];
 
   return (
     <div className="flex flex-col gap-4">
@@ -229,35 +217,8 @@ export function LeaderboardTable({
           tool tabs do on /tools. They choose what the page IS, which is the
           heading's own question — as a strip of ghost buttons above the table
           they read as one more table control, alongside search and paging. */}
-      <PageHeading eyebrow="Leaderboards" title="Top wallets" centered>
-        <div className="flex flex-wrap items-center justify-center gap-7">
-          {tabs.map((t) => {
-            const on = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => {
-                  handleTabChange(t.id);
-                  setTabClickCount((n) => n + 1);
-                }}
-                aria-pressed={on}
-                className={cn(
-                  "relative cursor-pointer pb-2.5 text-[13px] font-medium transition-colors",
-                  on ? "text-accent" : "text-text-muted hover:text-text-primary"
-                )}
-              >
-                {t.label}
-                {on && (
-                  <span
-                    key={tabClickCount}
-                    className="switch-underline pointer-events-none absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-[linear-gradient(90deg,transparent_0%,var(--color-accent)_22%,var(--color-accent)_78%,transparent_100%)]"
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
+      <PageHeading eyebrow="Leaderboards" title="Top wallets">
+        <UnderlineTabs tabs={TABS} value={tab} onChange={handleTabChange} />
       </PageHeading>
 
       <PanelCard glossy glossDelay={-11} className="overflow-hidden p-0">
@@ -265,6 +226,7 @@ export function LeaderboardTable({
           <input
             type="text"
             placeholder="Search wallet..."
+            aria-label="Search wallet"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -326,7 +288,7 @@ export function LeaderboardTable({
                 </td>
               </tr>
             ) : (
-              pageData.map((entry, i) => (
+              pageData.map((entry) => (
                 <tr
                   key={entry.wallet}
                   ref={(el) => {
@@ -337,7 +299,7 @@ export function LeaderboardTable({
                 >
                   {columns.map((col) => {
                     const value = col.isDisplayRank
-                      ? `#${(page - 1) * pageSize + i + 1}`
+                      ? `#${rankOf.get(entry.wallet) ?? "—"}`
                       : col.render(entry);
                     const alignRight = col.align === "right";
                     const sortable = col.sortable !== false;
@@ -460,7 +422,10 @@ function SortableHeader({
   const Icon = active && direction === "asc" ? ChevronUp : ChevronDown;
 
   return (
-    <th className={cn(th, align === "right" ? "text-right" : "text-left")}>
+    <th
+      className={cn(th, align === "right" ? "text-right" : "text-left")}
+      aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
+    >
       <button
         type="button"
         onClick={onClick}

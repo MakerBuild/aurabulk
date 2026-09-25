@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -13,23 +14,20 @@ import { cn } from "@/lib/utils";
 
 interface InfoTooltipProps {
   text: ReactNode;
-  className?: string;
   panelClassName?: string;
-  /**
-   * When true, the panel is rendered in a portal with fixed positioning and is
-   * clamped to the viewport so the full content is always visible, regardless of
-   * where the trigger sits on the page or how far the user has scrolled.
-   */
-  floating?: boolean;
+  /** The panel is always portaled, fixed and clamped to the viewport. Still
+   * accepted because existing callers pass it; it changes nothing. */
+  floating?: true;
 }
 
-export function InfoTooltip({ text, className, panelClassName, floating }: InfoTooltipProps) {
+export function InfoTooltip({ text, panelClassName }: InfoTooltipProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const touchPointer = useRef(false);
+  const panelId = useId();
 
   useEffect(() => setMounted(true), []);
 
@@ -40,12 +38,19 @@ export function InfoTooltip({ text, className, panelClassName, floating }: InfoT
       if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
       setOpen(false);
     }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
     document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   useLayoutEffect(() => {
-    if (!floating || !open) return;
+    if (!open) return;
 
     const reposition = () => {
       const trigger = triggerRef.current;
@@ -78,24 +83,19 @@ export function InfoTooltip({ text, className, panelClassName, floating }: InfoT
       window.removeEventListener("scroll", reposition, true);
       window.removeEventListener("resize", reposition);
     };
-  }, [floating, open, text]);
+  }, [open, text]);
 
   const show = () => setOpen(true);
   const hide = () => setOpen(false);
 
-  const panelClasses = cn(
-    "z-50 rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] p-3 text-left text-xs font-normal leading-relaxed text-text-secondary shadow-[0_12px_30px_rgba(0,0,0,0.45)]",
-    floating ? "w-60" : "absolute bottom-full left-1/2 mb-2 w-60 -translate-x-1/2",
-    panelClassName
-  );
-
   return (
-    <span className={cn("relative inline-flex align-middle", className)}>
+    <span className="relative inline-flex align-middle">
       <button
         ref={triggerRef}
         type="button"
         aria-label="More information"
         aria-expanded={open}
+        aria-describedby={open ? panelId : undefined}
         onPointerDown={(event) => {
           touchPointer.current = event.pointerType !== "mouse";
           if (!touchPointer.current) return;
@@ -123,13 +123,13 @@ export function InfoTooltip({ text, className, panelClassName, floating }: InfoT
         ?
       </button>
 
-      {floating ? (
-        mounted &&
+      {mounted &&
         createPortal(
           <AnimatePresence>
             {open && (
               <motion.span
                 ref={panelRef}
+                id={panelId}
                 role="tooltip"
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -141,30 +141,17 @@ export function InfoTooltip({ text, className, panelClassName, floating }: InfoT
                   left: coords?.left ?? -9999,
                   visibility: coords ? "visible" : "hidden",
                 }}
-                className={panelClasses}
+                className={cn(
+                  "z-50 w-60 rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] p-3 text-left text-xs font-normal leading-relaxed text-text-secondary shadow-[0_12px_30px_rgba(0,0,0,0.45)]",
+                  panelClassName
+                )}
               >
                 {text}
               </motion.span>
             )}
           </AnimatePresence>,
           document.body
-        )
-      ) : (
-        <AnimatePresence>
-          {open && (
-            <motion.span
-              role="tooltip"
-              initial={{ opacity: 0, y: 4, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.98 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              className={panelClasses}
-            >
-              {text}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      )}
+        )}
     </span>
   );
 }
