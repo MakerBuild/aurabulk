@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RowHighlight } from "@/components/ui/RowHighlight";
 
 export interface SelectOption {
   value: string;
@@ -45,6 +46,7 @@ export function Select({ value, onChange, options, className, compact }: SelectP
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const optionEls = useRef<(HTMLLIElement | null)[]>([]);
 
   useEffect(() => setMounted(true), []);
 
@@ -211,9 +213,12 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                 tabIndex={-1}
                 aria-activedescendant={`${listId}-${activeIndex}`}
                 onKeyDown={onListKeyDown}
-                initial={{ opacity: 0, y: coords?.bottom != null ? 8 : -8, scaleY: 0.96 }}
-                animate={{ opacity: 1, y: 0, scaleY: 1 }}
-                exit={{ opacity: 0, y: coords?.bottom != null ? 8 : -8, scaleY: 0.96 }}
+                // Slide and fade only, no scale: the highlight measures option
+                // positions on screen, and a scaled list would throw its box
+                // off by a few pixels per row.
+                initial={{ opacity: 0, y: coords?.bottom != null ? 8 : -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: coords?.bottom != null ? 8 : -8 }}
                 transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   position: "fixed",
@@ -223,31 +228,40 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                   width: coords?.width,
                   maxHeight: coords?.maxHeight,
                   visibility: coords ? "visible" : "hidden",
-                  transformOrigin: coords?.bottom != null ? "bottom" : "top",
                 }}
                 className={cn(
-                  "z-50 overflow-x-hidden overflow-y-auto rounded-[10px] outline-none border border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] p-1 font-sans shadow-[0_12px_30px_rgba(0,0,0,0.45)]",
+                  "isolate z-50 overflow-x-hidden overflow-y-auto rounded-[10px] outline-none border border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] p-1 font-sans shadow-[0_12px_30px_rgba(0,0,0,0.45)]",
                   compact ? "text-[13px]" : "text-sm"
                 )}
               >
+                {/* The same sliding box the tables use: it glides to the option
+                    the pointer or the arrows are on instead of each option
+                    lighting its own background. */}
+                <RowHighlight
+                  containerRef={listRef}
+                  target={optionEls.current[activeIndex] ?? null}
+                />
                 {options.map((o, i) => {
                   const selectedOption = o.value === value;
                   const current = i === activeIndex;
                   return (
                     <li
                       key={o.value}
+                      ref={(el) => {
+                        optionEls.current[i] = el;
+                      }}
                       id={`${listId}-${i}`}
                       role="option"
                       aria-selected={selectedOption}
                       onMouseEnter={() => setActiveIndex(i)}
                       onClick={() => choose(i)}
                       className={cn(
-                        "flex w-full cursor-pointer items-center justify-between rounded-md text-left transition-colors",
+                        "flex w-full cursor-pointer items-center justify-between text-left transition-colors",
                         compact ? "h-[30px] px-2.5" : "px-3 py-2",
                         selectedOption
-                          ? "bg-[rgb(var(--t-accent-rgb)/0.12)] text-accent"
+                          ? "text-accent"
                           : current
-                            ? "bg-[rgb(var(--t-accent-rgb)/0.06)] text-text-primary"
+                            ? "text-text-primary"
                             : "text-text-secondary"
                       )}
                     >
