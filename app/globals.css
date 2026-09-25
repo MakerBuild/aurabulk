@@ -610,6 +610,23 @@ body {
   animation: volume-mode-glow 1.2s ease-in-out infinite;
 }
 
+/* On cream the plum accent is nearly as dark as the muted grey, and the glow
+   just smears it. Dark mode separates the two by hue (gold vs grey); light
+   mode has no second hue to lean on, so it separates them by weight — the
+   active range stays solid plum and the other one fades well back. */
+:root[data-theme="light"] .volume-mode-on {
+  animation: none;
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .volume-mode-off {
+  color: rgb(110 106 92 / 0.5);
+}
+
+:root[data-theme="light"] .volume-mode-off:hover {
+  color: var(--t-text-secondary);
+}
+
 /* Same beat as APR week bars — gold chart marks / legend dots.
    Brightness (not opacity): the primary slice is already solid gold, so an
    opacity pulse is invisible on top of itself, and Chromium also cancels

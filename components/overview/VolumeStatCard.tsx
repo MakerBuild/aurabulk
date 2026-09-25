@@ -154,7 +154,7 @@ export function VolumeStatCard() {
                   aria-pressed={on}
                   className={cn(
                     "font-label m-0 h-4 border-0 bg-transparent p-0 leading-none transition-colors",
-                    on ? "volume-mode-on" : "text-text-muted hover:text-text-secondary",
+                    on ? "volume-mode-on" : "volume-mode-off text-text-muted hover:text-text-secondary",
                   )}
                 >
                   {m.id === "24h" ? "24H Volume" : m.label}
