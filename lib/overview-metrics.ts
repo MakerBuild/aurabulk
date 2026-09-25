@@ -152,9 +152,13 @@ export function buildOverviewPanels(input: {
   const MIN_DONUT_SHARE = 2.5;
   const allSources = aggregateBySource(categoryBreakdown).filter((s) => s.share > 0);
   // Leftover "other" joins the small-source tail so the ring never shows
-  // both "Other" and "Others".
-  const named = allSources.filter((s) => s.key !== "other" && s.share >= MIN_DONUT_SHARE);
-  const tail = allSources.filter((s) => s.key === "other" || s.share < MIN_DONUT_SHARE);
+  // both "Other" and "Others". Maker stays named however small: it is split
+  // out of Mainnet precisely so it can be seen, and folding it into Others
+  // would hide it again.
+  const isNamed = (s: CategoryBreakdownItem) =>
+    s.key !== "other" && (s.key === "maker" || s.share >= MIN_DONUT_SHARE);
+  const named = allSources.filter(isNamed);
+  const tail = allSources.filter((s) => !isNamed(s));
   const tailShare = tail.reduce((sum, s) => sum + s.share, 0);
   const tailPoints = tail.reduce((sum, s) => sum + s.points, 0);
 

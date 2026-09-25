@@ -26,6 +26,7 @@ const WEEK_RE = /^week(\d+)$/;
 // same sequence instead of letting them fall into the "Other" catch-all.
 const MAINNET_WEEK_RE = /^mainnet_week(\d+)(?:_.+)?$/;
 const MAINNET_WEEK_OFFSET = 14;
+const MAINNET_MAKER_RE = /^mainnet_week\d+_maker$/i;
 
 /**
  * Campaign week a "mainnet_weekN" key belongs to, or null for anything else.
@@ -71,15 +72,13 @@ export function parseAuraCategoryKey(key: string): ParsedAuraCategory {
   return { group: "other" };
 }
 
-// Mainnet trading arrives as one "trading" bucket plus maker rebates kept
-// separate; before 2026-09-17 upstream split the first into fees, held OI and
-// liquidations/ADL instead. Both shapes are the same activity, so a week's
-// drill-down shows them as one row either way. Referrals and the protocol
-// bonus stay on their own.
+// Mainnet trading arrives as one "trading" bucket; before 2026-09-17 upstream
+// split it into fees, held OI and liquidations/ADL instead. Both shapes are
+// the same activity, so a week's drill-down shows them as one row either way.
+// Maker rebates, referrals and the protocol bonus stay on their own rows.
 const MAINNET_SUFFIX_RE = /^mainnet_week(\d+)_(.+)$/;
 const MAINNET_TRADING_SUFFIXES = new Set([
   "trading",
-  "maker",
   // Retired upstream keys — kept so older snapshots still collapse correctly.
   "fees",
   "held_oi",
@@ -131,12 +130,15 @@ const SOURCE_LABEL_OVERRIDES: Record<string, string> = {
   "pre-deposits": "Pre-Deposits",
   referrals: "Referrals",
   "trading-mainnet": "Mainnet",
+  maker: "Maker",
 };
 
 const FIXED_SOURCE_ORDER = ["retro", "pre-deposits", "referrals"];
 
 function sourceBucketKey(key: string): string {
   if (key.startsWith("retro_")) return "retro";
+  // Maker rebates are their own source, split out of the rest of mainnet.
+  if (MAINNET_MAKER_RE.test(key)) return "maker";
   // Mainnet trading is its own source, not part of the small-source tail.
   if (MAINNET_WEEK_RE.test(key)) return "trading-mainnet";
   if (/^week\d+$/i.test(key) || /^predeposit_week\d+$/i.test(key)) return "pre-deposits";
