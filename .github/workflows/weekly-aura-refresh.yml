@@ -17,7 +17,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: bulk-data
+  # Shared with the daily TVL refresh — see daily-tvl-refresh.yml.
+  group: bulk-leaderboard
   cancel-in-progress: false
 
 jobs:

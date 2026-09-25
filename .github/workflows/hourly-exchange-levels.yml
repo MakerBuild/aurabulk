@@ -10,7 +10,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: bulk-data
+  # Its own group: it only writes exchange-levels.json.
+  group: exchange-levels
   cancel-in-progress: false
 
 jobs:

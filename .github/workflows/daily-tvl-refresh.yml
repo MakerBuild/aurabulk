@@ -12,12 +12,17 @@ permissions:
   contents: write
 
 concurrency:
-  group: bulk-data
+  # Shared with the weekly Aura refresh only: both rewrite leaderboard.json and
+  # dashboard-metrics.json, so they must not run at once. The hourly jobs each
+  # write their own file and queue separately — a shared group let them cancel
+  # a pending daily or weekly run, since GitHub keeps one pending run per group.
+  group: bulk-leaderboard
   cancel-in-progress: false
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -79,5 +84,5 @@ jobs:
             sleep $((RANDOM % 8 + 3))
           done
 
-          echo "::error::Failed to push hourly totals after 5 attempts."
+          echo "::error::Failed to push the daily TVL refresh after 5 attempts."
           exit 1

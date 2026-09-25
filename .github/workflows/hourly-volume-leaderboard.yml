@@ -10,7 +10,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: bulk-data
+  # Its own group: it only writes volume-leaderboard.json.
+  group: volume-leaderboard
   cancel-in-progress: false
 
 jobs:
