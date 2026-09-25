@@ -1,3 +1,4 @@
+import type { WalletExchangeStats } from "@/lib/volume-leaderboard";
 import type { WalletAuraBreakdown } from "@/lib/wallet-aura-breakdown";
 
 export interface LeaderboardEntry {
@@ -20,7 +21,7 @@ export interface LeaderboardEntry {
   updated_at?: string;
   /** 14-day rolling trading volume from the exchange fee-tier quote. */
   volume_usd?: number;
-  /** Live exchange account equity (fullAccount margin.totalBalance). */
+  /** Live exchange account equity (fullAccount margin.totalMargin, else totalBalance). */
   balance_usd?: number;
   /** Realized + unrealized PnL from the exchange account snapshot. */
   pnl_usd?: number;
@@ -33,8 +34,6 @@ export interface WalletData extends LeaderboardEntry {
   /** Exchange figures for this wallet, or null when it has never traded. */
   exchange: WalletExchangeStats | null;
 }
-
-import type { WalletExchangeStats } from "@/lib/volume-leaderboard";
 
 export interface Snapshot {
   timestamp: string;
@@ -102,7 +101,3 @@ export interface DashboardMetrics {
   ogHodlers: number;
   categoryBreakdown: { key: string; category: string; points: number; share: number }[];
 }
-
-export type LeaderboardTab = "aura" | "volume" | "pnl";
-
-export type ChartRange = "24H" | "7D" | "30D" | "ALL";

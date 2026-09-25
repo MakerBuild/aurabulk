@@ -1,11 +1,12 @@
 import fs from "fs";
 import path from "path";
+import { writeFileAtomic } from "@/lib/atomic-write";
 import type { LeaderboardEntry } from "@/types";
 import { fetchAccountSnapshot } from "@/lib/bulk-exchange";
 
 const VOLUME_FILE = path.join(process.cwd(), "data", "volume-leaderboard.json");
 
-export type VolumeRow = {
+type VolumeRow = {
   wallet: string;
   volumeUsd: number;
   balanceUsd?: number;
@@ -17,7 +18,7 @@ export type VolumeRow = {
   updatedAt: string;
 };
 
-export type VolumeLeaderboardFile = {
+type VolumeLeaderboardFile = {
   updatedAt: string;
   cursor: number;
   windowDays: number;
@@ -62,8 +63,7 @@ export function writeVolumeLeaderboardFile(
     windowDays: next.windowDays,
     rows: next.rows.filter(hasExchangeActivity).sort((a, b) => b.volumeUsd - a.volumeUsd),
   };
-  fs.mkdirSync(path.dirname(VOLUME_FILE), { recursive: true });
-  fs.writeFileSync(VOLUME_FILE, `${JSON.stringify(payload, null, 2)}\n`);
+  writeFileAtomic(VOLUME_FILE,`${JSON.stringify(payload, null, 2)}\n`);
   return payload;
 }
 
@@ -144,23 +144,25 @@ export async function sampleWalletVolumes(
         noAnswer += 1;
         continue;
       }
-      const row: VolumeRow = {
+      // Inactive rows are returned too: they have to overwrite a wallet's
+      // earlier row, or volume that has rolled out of the window would stick.
+      // writeVolumeLeaderboardFile drops them before saving.
+      rows.push({
         wallet,
         volumeUsd: snapshot.volumeUsd,
         balanceUsd: snapshot.balanceUsd,
         pnlUsd: snapshot.pnlUsd,
         feesUsd: snapshot.feesUsd,
         updatedAt: now,
-      };
-      if (!hasExchangeActivity(row)) continue;
-      rows.push(row);
+      });
     }
   }
 
   // Loud on purpose: a silent shortfall here is indistinguishable from "these
   // wallets do not trade", which is exactly how stale rows went unnoticed.
   console.log(
-    `[volume] asked=${wallets.length} withActivity=${rows.length} noAnswer=${noAnswer}`,
+    `[volume] asked=${wallets.length} answered=${rows.length}` +
+      ` withActivity=${rows.filter(hasExchangeActivity).length} noAnswer=${noAnswer}`,
   );
   return rows;
 }

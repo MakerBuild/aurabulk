@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { writeFileAtomic } from "@/lib/atomic-write";
 import type { DashboardMetrics } from "@/types";
 
 const METRICS_FILE = path.join(process.cwd(), "data", "dashboard-metrics.json");
@@ -16,7 +17,7 @@ const METRICS_FILE = path.join(process.cwd(), "data", "dashboard-metrics.json");
  * The cron writes this file next to the data it derives from, so the running
  * app only reads a small JSON and never touches the 34MB source.
  */
-export interface DashboardMetricsFile {
+interface DashboardMetricsFile {
   /** When the cron generated this, for staleness reporting. */
   generatedAt: string;
   /** mtime of leaderboard.json at generation time, so a data refresh that
@@ -52,7 +53,6 @@ export function writeDashboardMetricsFile(
     sourceMtimeMs,
     metrics,
   };
-  fs.mkdirSync(path.dirname(METRICS_FILE), { recursive: true });
-  fs.writeFileSync(METRICS_FILE, `${JSON.stringify(payload)}\n`);
+  writeFileAtomic(METRICS_FILE,`${JSON.stringify(payload)}\n`);
   return payload;
 }

@@ -1,11 +1,12 @@
 import type { LeaderboardEntry } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
-import { getLeaderboardWithLiveFinancials } from "@/lib/live-leaderboard-financials";
+import { getLeaderboardForApp } from "@/lib/live-leaderboard";
 import { attachExchangeStats } from "@/lib/volume-leaderboard";
 import {
   LEADERBOARD_TAB_DEFAULT_SORT,
   LEADERBOARD_TOP_LIMIT,
   getLeaderboardTop,
+  isLeaderboardSortKey,
   type LeaderboardSortDir,
   type LeaderboardTab,
 } from "@/lib/leaderboard-table";
@@ -24,7 +25,10 @@ export async function GET(request: NextRequest) {
     : "aura";
 
   const defaults = LEADERBOARD_TAB_DEFAULT_SORT[selectedTab];
-  const sortKey = request.nextUrl.searchParams.get("sort") ?? defaults.key;
+  // Validated before it reaches the cache key, which would otherwise grow
+  // with every distinct string a caller sends.
+  const sortParam = request.nextUrl.searchParams.get("sort");
+  const sortKey = sortParam && isLeaderboardSortKey(sortParam) ? sortParam : defaults.key;
   const dirParam = request.nextUrl.searchParams.get("dir");
   const sortDir: LeaderboardSortDir =
     dirParam === "asc" || dirParam === "desc" ? dirParam : defaults.dir;
@@ -48,7 +52,8 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const entries = attachExchangeStats(await getLeaderboardWithLiveFinancials());
+  // Disk/memory only (waitMs 0): the table must not block on a full upstream pull.
+  const entries = attachExchangeStats(await getLeaderboardForApp({ waitMs: 0 }));
   const items = getLeaderboardTop(entries, selectedTab, sortKey, sortDir, limit);
   topCache.set(cacheKey, { at: Date.now(), items });
 

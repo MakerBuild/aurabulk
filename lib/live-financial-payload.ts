@@ -2,8 +2,7 @@ import { buildCampaignClock, type CampaignClock } from "@/lib/campaign-clock";
 import { getLeaderboard, getLeaderboardMtimeMs } from "@/lib/fetcher";
 import { getLiveTotals } from "@/lib/live-totals";
 import { computeProjectedSnapshotTvl, type ProjectedSnapshotTvl } from "@/lib/projected-snapshot-tvl";
-import { getSnapshotsMtimeMs } from "@/lib/snapshots";
-import { getChartSnapshots } from "@/lib/stats";
+import { getSnapshotsMtimeMs, readSnapshots } from "@/lib/snapshots";
 import { getTotalsMtimeMs, readTotals } from "@/lib/totals";
 import type { LeaderboardEntry, Totals } from "@/types";
 import {
@@ -32,9 +31,8 @@ export interface LiveFinancialPayload {
 function assembleLiveFinancialPayload(
   totals: Totals | null,
   entries: LeaderboardEntry[],
-  options?: { fresh?: boolean },
 ): LiveFinancialPayload {
-  const snapshots = getChartSnapshots("ALL");
+  const snapshots = readSnapshots();
 
   const currentTvl =
     totals?.tvl ?? entries.reduce((sum, entry) => sum + entry.current_amount, 0);
@@ -50,7 +48,8 @@ function assembleLiveFinancialPayload(
     (snapshots.length > 0
       ? snapshots[snapshots.length - 1].timestamp
       : new Date().toISOString());
-  const referenceTimeMs = options?.fresh ? Date.now() : Date.parse(updatedAt);
+  // Derived figures are measured as of the data's own timestamp.
+  const referenceTimeMs = Date.parse(updatedAt) || Date.now();
 
   const projection = computeProjectedSnapshotTvl(snapshots, currentTvl, referenceTimeMs);
   const secondaryMetrics = computeTvlKpiSecondaryMetrics(
@@ -122,7 +121,7 @@ export async function buildLiveFinancialPayload(): Promise<LiveFinancialPayload>
     return base;
   }
 
-  const snapshots = getChartSnapshots("ALL");
+  const snapshots = readSnapshots();
   const referenceTimeMs = now;
   const data: LiveFinancialPayload = {
     ...base,

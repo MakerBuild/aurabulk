@@ -3,17 +3,14 @@ import { getLeaderboard } from "@/lib/fetcher";
 import { readDashboardMetricsFile } from "@/lib/dashboard-metrics-store";
 import { getLeaderboardForApp } from "@/lib/live-leaderboard";
 import { percentileValue } from "@/lib/percentiles";
-import { filterSnapshotsByRange, readSnapshots } from "@/lib/snapshots";
-import { getLeaderboardTop } from "@/lib/leaderboard-table";
+import {
+  getLeaderboardTop,
+  type LeaderboardSortDir,
+  type LeaderboardTab,
+} from "@/lib/leaderboard-table";
 import { DEPOSITOR_AURA_RANGES, categoryLabel } from "@/lib/utils";
 import { buildWalletData } from "@/lib/wallet-data";
-import type {
-  ChartRange,
-  DashboardMetrics,
-  LeaderboardEntry,
-  Snapshot,
-  WalletData,
-} from "@/types";
+import type { DashboardMetrics, LeaderboardEntry, WalletData } from "@/types";
 
 const DEPOSIT_SIZE_BUCKETS = [
   { label: "<$100", min: 0, max: 100 },
@@ -29,11 +26,15 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
   const entries = await getLeaderboardForApp({ waitMs: 0 });
   const totalAura = entries.reduce((sum, e) => sum + e.aura, 0);
 
-  // "OG Hodlers" — earned Aura during week 1 and never withdrawn since.
+  // "OG Hodlers" — earned deposit Aura during week 1 and never withdrawn since.
   // `first_seen` is unpopulated on every real entry, so the weekly category
-  // (points earned that week) is the only honest signal available.
+  // (points earned that week) is the only honest signal available. Upstream
+  // keys it `predeposit_week1`; bare `week1` is the older shape.
   const ogHodlers = entries.filter(
-    (e) => e.deposited_amount > 0 && e.withdrawn_amount === 0 && (e.categories?.week1 ?? 0) > 0
+    (e) =>
+      e.deposited_amount > 0 &&
+      e.withdrawn_amount === 0 &&
+      (e.categories?.predeposit_week1 ?? e.categories?.week1 ?? 0) > 0
   ).length;
 
   const depositSizeDistribution = DEPOSIT_SIZE_BUCKETS.map((bucket) => {
@@ -136,7 +137,8 @@ export const computeDashboardMetrics = unstable_cache(
 
 export function getWalletData(address: string): WalletData | null {
   const entries = getLeaderboard();
-  const entry = entries.find((e) => e.wallet.toLowerCase() === address.toLowerCase());
+  // Exact match: base58 addresses are case-sensitive.
+  const entry = entries.find((e) => e.wallet === address);
   if (!entry) return null;
 
   const allAura = entries.map((e) => e.aura);
@@ -144,15 +146,10 @@ export function getWalletData(address: string): WalletData | null {
 }
 
 export function getSortedLeaderboard(
-  tab: "aura" | "volume" | "pnl",
+  tab: LeaderboardTab,
   sortKey?: string,
-  sortDir?: "asc" | "desc",
+  sortDir?: LeaderboardSortDir,
   limit?: number
 ): LeaderboardEntry[] {
   return getLeaderboardTop(getLeaderboard(), tab, sortKey, sortDir, limit);
-}
-
-export function getChartSnapshots(range: ChartRange): Snapshot[] {
-  const snapshots = readSnapshots();
-  return filterSnapshotsByRange(snapshots, range);
 }

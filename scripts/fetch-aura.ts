@@ -12,7 +12,8 @@
  */
 import fs from "fs";
 import path from "path";
-import type { Snapshot } from "../types/index";
+import { writeFileAtomic } from "../lib/atomic-write";
+import { readLeaderboardFromDisk } from "../lib/fetcher";
 import {
   fetchAllLeaderboardPages,
   finalizeLeaderboardEntries,
@@ -20,19 +21,18 @@ import {
   normalizeUpstreamRow,
   type LeaderboardUpstreamPage,
 } from "../lib/leaderboard-upstream";
-import { getUpstreamBase } from "../lib/upstream";
+import { appendSnapshot } from "../lib/snapshots";
+import { getUpstreamBase, upstreamFetch, upstreamJson } from "../lib/upstream";
+import type { LeaderboardEntry } from "../types/index";
 
 const BASE_URL = getUpstreamBase();
-const LEADERBOARD_ENDPOINT = `${BASE_URL}/v1/aura/predeposit/leaderboard`;
-const WALLET_ENDPOINT = `${BASE_URL}/v1/aura/wallet`;
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const LEADERBOARD_FILE = path.join(DATA_DIR, "leaderboard.json");
-const SNAPSHOTS_FILE = path.join(DATA_DIR, "snapshots.json");
 
 const MAX_RETRIES = 6;
-const BASE_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 60_000;
+const FETCH_TIMEOUT_MS = 30_000;
 const ENRICH_CONCURRENCY = 12;
 
 interface WalletProfile {
@@ -67,99 +67,41 @@ function parseArgs(): Options {
   return { pageSize, maxPages, enrichReferrals, writeSnapshot };
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function parseRetryAfter(header: string | null): number | null {
-  if (!header) return null;
-  const seconds = Number(header);
-  if (!Number.isNaN(seconds)) return Math.max(0, seconds * 1000);
-  const date = Date.parse(header);
-  if (!Number.isNaN(date)) return Math.max(0, date - Date.now());
-  return null;
-}
-
 async function fetchPage(page: number, pageSize: number, noTotal: boolean): Promise<LeaderboardUpstreamPage> {
   const params = new URLSearchParams({
     page: String(page),
     page_size: String(pageSize),
   });
   if (noTotal) params.set("no_total", "true");
-  const url = `${LEADERBOARD_ENDPOINT}?${params.toString()}`;
 
-  let attempt = 0;
-  while (true) {
-    let res: Response;
-    try {
-      res = await fetch(url, {
-        headers: { "User-Agent": "AURA-Intelligence/1.0", Accept: "application/json" },
-      });
-    } catch (err) {
-      if (attempt >= MAX_RETRIES) throw err;
-      const wait = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
-      attempt += 1;
-      console.warn(`[fetch] network error on page ${page} — retry ${attempt}/${MAX_RETRIES} in ${wait}ms`);
-      await sleep(wait);
-      continue;
-    }
-
-    if (res.ok) {
-      return (await res.json()) as LeaderboardUpstreamPage;
-    }
-
-    if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES) {
-      const retryAfter = parseRetryAfter(res.headers.get("retry-after"));
-      const backoff = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
-      const wait = (retryAfter ?? backoff) + Math.floor(Math.random() * 250);
-      attempt += 1;
-      console.warn(
-        `[fetch] ${res.status} on page ${page} — retry ${attempt}/${MAX_RETRIES} in ${wait}ms` +
-          (retryAfter != null ? " (Retry-After honored)" : ""),
-      );
-      await sleep(wait);
-      continue;
-    }
-
+  const res = await upstreamFetch(`/v1/aura/predeposit/leaderboard?${params.toString()}`, {
+    noStore: true,
+    maxRetries: MAX_RETRIES,
+    maxBackoffMs: MAX_BACKOFF_MS,
+    timeoutMs: FETCH_TIMEOUT_MS,
+    onRetry: (attempt, wait, reason) =>
+      console.warn(`[fetch] ${reason} on page ${page} — retry ${attempt}/${MAX_RETRIES} in ${wait}ms`),
+  });
+  if (!res.ok) {
     throw new Error(`Leaderboard fetch failed on page ${page}: ${res.status} ${res.statusText}`);
   }
+  return (await res.json()) as LeaderboardUpstreamPage;
 }
 
 async function fetchWalletProfile(wallet: string): Promise<WalletProfile | null> {
-  let attempt = 0;
-  while (true) {
-    let res: Response;
-    try {
-      res = await fetch(`${WALLET_ENDPOINT}/${wallet}`, {
-        headers: { "User-Agent": "AURA-Intelligence/1.0", Accept: "application/json" },
-      });
-    } catch {
-      if (attempt >= 3) return null;
-      await sleep(Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS));
-      attempt += 1;
-      continue;
-    }
-
-    if (res.ok) return (await res.json()) as WalletProfile;
-    if (res.status === 404) return null;
-    if ((res.status === 429 || res.status >= 500) && attempt < 4) {
-      const retryAfter = parseRetryAfter(res.headers.get("retry-after"));
-      const backoff = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
-      await sleep((retryAfter ?? backoff) + Math.floor(Math.random() * 200));
-      attempt += 1;
-      continue;
-    }
+  try {
+    return await upstreamJson<WalletProfile>(`/v1/aura/wallet/${wallet}`, {
+      noStore: true,
+      timeoutMs: FETCH_TIMEOUT_MS,
+      maxBackoffMs: MAX_BACKOFF_MS,
+    });
+  } catch {
     return null;
   }
 }
 
-async function enrichReferrerProfiles(
-  entries: ReturnType<typeof normalizeUpstreamRow>[],
-): Promise<void> {
-  const targets = entries.filter(
-    (entry): entry is NonNullable<typeof entry> =>
-      entry !== null && (entry.referral_number ?? 0) > 0,
-  );
+async function enrichReferrerProfiles(entries: LeaderboardEntry[]): Promise<void> {
+  const targets = entries.filter((entry) => (entry.referral_number ?? 0) > 0);
 
   if (targets.length === 0) return;
 
@@ -186,30 +128,6 @@ async function enrichReferrerProfiles(
   }
 }
 
-function appendSnapshot(entries: NonNullable<ReturnType<typeof normalizeUpstreamRow>>[]): void {
-  const tvl = entries.reduce((sum, entry) => sum + entry.current_amount, 0);
-  const totalAura = entries.reduce((sum, entry) => sum + entry.aura, 0);
-
-  let snapshots: Snapshot[] = [];
-  if (fs.existsSync(SNAPSHOTS_FILE)) {
-    try {
-      snapshots = JSON.parse(fs.readFileSync(SNAPSHOTS_FILE, "utf-8")) as Snapshot[];
-    } catch {
-      snapshots = [];
-    }
-  }
-
-  snapshots.push({
-    timestamp: new Date().toISOString(),
-    tvl,
-    totalAura,
-    wallets: entries.length,
-  });
-
-  const MAX_SNAPSHOTS = 2160;
-  fs.writeFileSync(SNAPSHOTS_FILE, JSON.stringify(snapshots.slice(-MAX_SNAPSHOTS), null, 2));
-}
-
 async function main() {
   const { pageSize, maxPages, enrichReferrals, writeSnapshot } = parseArgs();
   console.log(
@@ -230,19 +148,13 @@ async function main() {
 
   const entries = rows
     .map(normalizeUpstreamRow)
-    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+    .filter((entry): entry is LeaderboardEntry => entry !== null);
 
   finalizeLeaderboardEntries(entries);
 
-  let diskEntries: NonNullable<ReturnType<typeof normalizeUpstreamRow>>[] = [];
-  if (fs.existsSync(LEADERBOARD_FILE)) {
-    try {
-      diskEntries = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, "utf-8"));
-    } catch {
-      diskEntries = [];
-    }
-  }
-  const merged = mergeReferralFieldsFromDisk(entries, diskEntries);
+  // Throws on a malformed file rather than silently dropping every wallet's
+  // referral fields.
+  const merged = mergeReferralFieldsFromDisk(entries, readLeaderboardFromDisk());
 
   if (enrichReferrals) {
     await enrichReferrerProfiles(merged);
@@ -254,9 +166,13 @@ async function main() {
     console.log("Backed up previous leaderboard → leaderboard.backup.json");
   }
 
-  fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(merged, null, 2));
+  writeFileAtomic(LEADERBOARD_FILE, JSON.stringify(merged, null, 2));
   if (writeSnapshot) {
-    appendSnapshot(merged);
+    appendSnapshot({
+      tvl: merged.reduce((sum, entry) => sum + entry.current_amount, 0),
+      totalAura: merged.reduce((sum, entry) => sum + entry.aura, 0),
+      wallets: merged.length,
+    });
   } else {
     console.log("Skipping snapshot append (--no-snapshot).");
   }

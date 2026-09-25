@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { writeFileAtomic } from "@/lib/atomic-write";
 import {
   mergeLevelPoints,
   type LevelPoint,
@@ -7,7 +8,7 @@ import {
 
 const LEVELS_FILE = path.join(process.cwd(), "data", "exchange-levels.json");
 
-export type ExchangeLevelsFile = {
+type ExchangeLevelsFile = {
   updatedAt: string;
   oi: LevelPoint[];
   traders: LevelPoint[];
@@ -36,8 +37,7 @@ export function writeExchangeLevelsFile(next: Omit<ExchangeLevelsFile, "updatedA
     oi: mergeLevelPoints(next.oi),
     traders: mergeLevelPoints(next.traders),
   };
-  fs.mkdirSync(path.dirname(LEVELS_FILE), { recursive: true });
-  fs.writeFileSync(LEVELS_FILE, `${JSON.stringify(payload, null, 2)}\n`);
+  writeFileAtomic(LEVELS_FILE,`${JSON.stringify(payload, null, 2)}\n`);
   return payload;
 }
 

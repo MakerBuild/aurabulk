@@ -19,11 +19,13 @@
  */
 import fs from "fs";
 import path from "path";
-import type { LeaderboardEntry, Snapshot } from "../types/index";
+import { writeFileAtomic } from "../lib/atomic-write";
+import { finalizeLeaderboardEntries } from "../lib/leaderboard-upstream";
+import { appendSnapshot } from "../lib/snapshots";
+import type { LeaderboardEntry } from "../types/index";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const LEADERBOARD_FILE = path.join(DATA_DIR, "leaderboard.json");
-const SNAPSHOTS_FILE = path.join(DATA_DIR, "snapshots.json");
 
 function num(value: unknown, fallback = 0): number {
   const n = Number(value);
@@ -104,41 +106,6 @@ function extractArray(parsed: unknown): Record<string, unknown>[] {
   );
 }
 
-function recomputeRanks(entries: LeaderboardEntry[]): void {
-  const byAura = [...entries].sort((a, b) => b.aura - a.aura);
-  byAura.forEach((e, i) => {
-    e.aura_rank = i + 1;
-  });
-
-  const byDeposit = [...entries].sort((a, b) => b.current_amount - a.current_amount);
-  byDeposit.forEach((e, i) => {
-    e.deposit_rank = i + 1;
-  });
-}
-
-function appendSnapshot(entries: LeaderboardEntry[]): void {
-  const tvl = entries.reduce((s, e) => s + e.current_amount, 0);
-  const totalAura = entries.reduce((s, e) => s + e.aura, 0);
-
-  let snapshots: Snapshot[] = [];
-  if (fs.existsSync(SNAPSHOTS_FILE)) {
-    try {
-      snapshots = JSON.parse(fs.readFileSync(SNAPSHOTS_FILE, "utf-8")) as Snapshot[];
-    } catch {
-      snapshots = [];
-    }
-  }
-
-  snapshots.push({
-    timestamp: new Date().toISOString(),
-    tvl,
-    totalAura,
-    wallets: entries.length,
-  });
-
-  fs.writeFileSync(SNAPSHOTS_FILE, JSON.stringify(snapshots, null, 2));
-}
-
 function main() {
   const inputPath = process.argv[2];
   if (!inputPath) {
@@ -173,7 +140,7 @@ function main() {
   const needsRanks = entries.some((e) => e.aura_rank === 0 || e.deposit_rank === 0);
   if (needsRanks) {
     console.log("Recomputing aura/deposit ranks from data...");
-    recomputeRanks(entries);
+    finalizeLeaderboardEntries(entries);
   }
 
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -184,11 +151,11 @@ function main() {
     console.log(`Backed up previous leaderboard → ${path.basename(backup)}`);
   }
 
-  fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(entries, null, 2));
-  appendSnapshot(entries);
+  writeFileAtomic(LEADERBOARD_FILE, JSON.stringify(entries, null, 2));
 
   const tvl = entries.reduce((s, e) => s + e.current_amount, 0);
   const totalAura = entries.reduce((s, e) => s + e.aura, 0);
+  appendSnapshot({ tvl, totalAura, wallets: entries.length });
 
   console.log(`Imported ${entries.length.toLocaleString()} wallets`);
   console.log(`   TVL:        $${tvl.toLocaleString()}`);

@@ -13,7 +13,7 @@ import { getNextSnapshotTimestamp } from "@/lib/projected-snapshot-tvl";
 /** Week 1 ran from the 1 Jun 2026 launch to this first Saturday snapshot;
  *  every week after it is a flat 7 days. The launch date itself is not needed
  *  to place a week — anything before this boundary is week 1. */
-export const CAMPAIGN_WEEK1_SNAPSHOT_MS = Date.parse("2026-06-06T12:00:00.000Z");
+const CAMPAIGN_WEEK1_SNAPSHOT_MS = Date.parse("2026-06-06T12:00:00.000Z");
 
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 

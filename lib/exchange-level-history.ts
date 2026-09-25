@@ -1,11 +1,11 @@
 export type LevelPoint = { t: number; value: number };
 
 /** Same 1h step as the volume 24h spark (klines are hourly). */
-export const LEVEL_SAMPLE_MS = 3_600_000;
-export const LEVEL_KEEP_MS = 86_400_000;
-export const LEVEL_MAX_POINTS = 24;
+const LEVEL_SAMPLE_MS = 3_600_000;
+const LEVEL_KEEP_MS = 86_400_000;
+const LEVEL_MAX_POINTS = 24;
 
-export function bucketLevelTime(t: number): number {
+function bucketLevelTime(t: number): number {
   return Math.floor(t / LEVEL_SAMPLE_MS) * LEVEL_SAMPLE_MS;
 }
 

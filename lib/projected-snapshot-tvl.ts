@@ -6,7 +6,7 @@ const SNAPSHOT_HOUR_UTC = 12;
 const MAX_TREND_DAYS = 7;
 const OUTLIER_MEDIAN_MULTIPLIER = 3;
 
-export interface ProjectedSnapshotTvlResult {
+interface ProjectedSnapshotTvlResult {
   available: true;
   currentTvl: number;
   projectedTvl: number;
@@ -21,7 +21,7 @@ export interface ProjectedSnapshotTvlResult {
 
 export type ProjectedSnapshotTvl = { available: false } | ProjectedSnapshotTvlResult;
 
-/** Next Saturday 12:00 UTC strictly after `now`, or on `now` if exactly at snapshot time. */
+/** Next Saturday 12:00 UTC strictly after `now` (exactly at snapshot time rolls to the following week). */
 export function getNextSnapshotTimestamp(nowMs: number = Date.now()): number {
   const now = new Date(nowMs);
   const saturday = new Date(

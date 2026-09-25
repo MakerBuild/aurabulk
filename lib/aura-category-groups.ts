@@ -7,9 +7,9 @@ export interface CategoryBreakdownItem {
   share: number;
 }
 
-export type AuraCategoryGroup = "retro" | "week" | "other";
+type AuraCategoryGroup = "retro" | "week" | "other";
 
-export interface ParsedAuraCategory {
+interface ParsedAuraCategory {
   group: AuraCategoryGroup;
   week?: number;
 }
@@ -25,14 +25,14 @@ const WEEK_RE = /^week(\d+)$/;
 // 1-14, so mainnet week 1 is week 15 of the campaign — offset them onto the
 // same sequence instead of letting them fall into the "Other" catch-all.
 const MAINNET_WEEK_RE = /^mainnet_week(\d+)(?:_.+)?$/;
-export const MAINNET_WEEK_OFFSET = 14;
+const MAINNET_WEEK_OFFSET = 14;
 
 /**
  * Campaign week a "mainnet_weekN" key belongs to, or null for anything else.
  * The one place that offset lives, so every view agrees on which week mainnet
  * categories land in.
  */
-export function mainnetCampaignWeek(key: string): number | null {
+function mainnetCampaignWeek(key: string): number | null {
   const match = key.match(MAINNET_WEEK_RE);
   return match ? Number(match[1]) + MAINNET_WEEK_OFFSET : null;
 }

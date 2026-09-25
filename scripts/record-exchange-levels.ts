@@ -4,39 +4,22 @@
  *
  *   npm run record:levels
  */
+import { fetchExchangeMetrics, fetchExchangeStats } from "../lib/bulk-exchange";
 import { mergeLevelPoints } from "../lib/exchange-level-history";
 import {
   readExchangeLevelsFile,
   writeExchangeLevelsFile,
 } from "../lib/exchange-level-store";
 
-const EXCHANGE_API_BASE =
-  process.env.BULK_EXCHANGE_API_BASE?.replace(/\/$/, "") ||
-  "https://mainnet-api1.bulk.trade/api/v1";
-/** One side, as the exchange itself displays it — see lib/live-exchange-payload. */
-const OI_SIDES = 1;
-
-async function fetchJson<T>(path: string): Promise<T> {
-  const url = `${EXCHANGE_API_BASE}${path}`;
-  const res = await fetch(url, {
-    headers: { Accept: "application/json", "User-Agent": "AURA-Intelligence/1.0" },
-  });
-  if (!res.ok) {
-    throw new Error(`${path} ${res.status} ${res.statusText}`);
-  }
-  return (await res.json()) as T;
-}
-
 async function main() {
-  const [stats, metrics] = await Promise.all([
-    fetchJson<{ openInterest?: { totalUsd?: number } }>("/stats?period=1d"),
-    fetchJson<{
-      executor_cardinality?: { primary?: { cached_accounts?: number } };
-    }>("/metrics"),
-  ]);
+  const [stats, metrics] = await Promise.all([fetchExchangeStats(), fetchExchangeMetrics(true)]);
+  if (!stats || !metrics) {
+    throw new Error(`exchange unavailable stats=${!!stats} metrics=${!!metrics}`);
+  }
 
   const now = Date.now();
-  const openInterestUsd = (Number(stats.openInterest?.totalUsd) || 0) * OI_SIDES;
+  // One side, priced at mark — as the exchange itself displays it.
+  const openInterestUsd = Number(stats.openInterest?.totalUsd) || 0;
   // Accounts with a position or an open order — see lib/live-exchange-payload.
   const activeTraders = Number(metrics.executor_cardinality?.primary?.cached_accounts) || 0;
   if (!(openInterestUsd > 0) || !(activeTraders > 0)) {

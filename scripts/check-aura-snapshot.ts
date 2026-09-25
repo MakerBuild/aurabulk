@@ -1,9 +1,9 @@
 /**
  * Decide whether the indexer is holding data we do not have yet.
  *
- * The weekly refresh is scheduled for Saturday 13:00 UTC but GitHub has been
- * starting it three to four hours late every week, so the site sat on last
- * week's numbers until someone triggered the job by hand. The hourly watcher
+ * The weekly refresh is scheduled for Saturday 12:13 UTC but GitHub starts it
+ * hours late, so the site sat on last week's numbers until someone triggered
+ * the job by hand. The hourly watcher
  * runs this first and only pays for a full refresh when there is something new.
  *
  * It compares the top wallets by Aura against our stored copy of the same
@@ -18,10 +18,10 @@
  */
 import fs from "fs";
 import path from "path";
+import { upstreamFetch } from "../lib/upstream";
 
-const BASE_URL = (process.env.BULK_API_BASE ?? "https://indexer.bulk.trade").replace(/\/$/, "");
 // Ranked by Aura, so the sample is the wallets a new snapshot moves first.
-const ENDPOINT = `${BASE_URL}/v1/aura/leaderboard`;
+const ENDPOINT = "/v1/aura/leaderboard";
 const SAMPLE_SIZE = 1000;
 const LEADERBOARD_FILE = path.join(process.cwd(), "data", "leaderboard.json");
 
@@ -55,8 +55,10 @@ async function main() {
   const local = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, "utf8")) as WalletRow[];
   const ours = new Map(local.map((row) => [row.wallet, row]));
 
-  const res = await fetch(`${ENDPOINT}?page=1&page_size=${SAMPLE_SIZE}`, {
-    headers: { "User-Agent": "AURA-Intelligence/1.0", Accept: "application/json" },
+  const res = await upstreamFetch(`${ENDPOINT}?page=1&page_size=${SAMPLE_SIZE}`, {
+    noStore: true,
+    maxRetries: 2,
+    timeoutMs: 30_000,
   });
   if (!res.ok) throw new Error(`upstream responded ${res.status}`);
 

@@ -1,6 +1,6 @@
 import type { LeaderboardEntry } from "@/types";
 
-export interface LeaderboardFinancialRow {
+interface LeaderboardFinancialRow {
   wallet: string;
   deposited_amount: number;
   withdrawn_amount: number;
@@ -22,7 +22,7 @@ export interface LeaderboardFinancialPage {
   }>;
 }
 
-export function normalizeFinancialRow(
+function normalizeFinancialRow(
   row: LeaderboardFinancialPage["rows"][number]
 ): LeaderboardFinancialRow | null {
   if (!row.wallet) return null;
@@ -35,7 +35,7 @@ export function normalizeFinancialRow(
   };
 }
 
-export function financialRowsToMap(
+function financialRowsToMap(
   rows: LeaderboardFinancialRow[]
 ): Map<string, LeaderboardFinancialRow> {
   return new Map(rows.map((row) => [row.wallet, row]));

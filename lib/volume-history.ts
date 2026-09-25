@@ -61,38 +61,42 @@ function candleUsd(candle: ExchangeCandle): number {
   return close * vol;
 }
 
-function floorToInterval(t: number, interval: string): number {
-  const ms =
-    interval === "1h"
-      ? 3_600_000
-      : interval === "4h"
-        ? 4 * 3_600_000
-        : interval === "1d"
-          ? 86_400_000
-          : interval === "1w"
-            ? 7 * 86_400_000
-            : 3_600_000;
-  return Math.floor(t / ms) * ms;
+const INTERVAL_MS: Record<string, number> = {
+  "1h": 3_600_000,
+  "4h": 4 * 3_600_000,
+  "1d": 86_400_000,
+};
+
+/** Bucket start for a candle. Weekly candles keep their own open time: epoch
+ *  weeks start on a Thursday, so flooring would shift every bar by days. */
+function bucketTime(t: number, interval: string): number {
+  const ms = INTERVAL_MS[interval];
+  return ms ? Math.floor(t / ms) * ms : t;
 }
 
 function coinForSymbol(symbol: string): VolumeCoin {
   return NAMED[marketBase(symbol)] ?? "others";
 }
 
-export async function buildVolumeHistory(range: VolumeRange): Promise<VolumeHistoryPayload> {
-  const now = Date.now();
-  const cached = historyCache.get(range);
-  if (cached && now - cached.at < HISTORY_TTL_MS) {
-    return cached.data;
-  }
+/**
+ * Markets to sum over. Throws rather than returning an empty list: with no
+ * markets every sum below is a clean-looking zero, which callers would cache
+ * and publish over the last good figure.
+ */
+async function marketSymbols(revalidate?: number): Promise<string[]> {
+  const stats = await fetchExchangeStats(revalidate);
+  const symbols = (stats?.markets ?? []).map((m) => m.symbol).filter((s) => s && s !== "MEGA-USD");
+  if (!symbols.length) throw new Error("exchange /stats returned no markets");
+  return symbols;
+}
 
-  const interval = RANGE_INTERVAL[range];
-  const startTime = range === "ALL" ? undefined : now - RANGE_MS[range];
-  const stats = await fetchExchangeStats();
-  const symbols = (stats?.markets ?? [])
-    .map((m) => m.symbol)
-    .filter((s) => s && s !== "MEGA-USD");
-
+async function buildBuckets(
+  range: VolumeRange,
+  interval: string,
+  startTime: number | undefined,
+  now: number,
+): Promise<VolumeHistoryPayload> {
+  const symbols = await marketSymbols();
   const series = await Promise.all(
     symbols.map(async (symbol) => ({
       symbol,
@@ -104,7 +108,7 @@ export async function buildVolumeHistory(range: VolumeRange): Promise<VolumeHist
   for (const { symbol, candles } of series) {
     const coin = coinForSymbol(symbol);
     for (const candle of candles) {
-      const t = floorToInterval(Number(candle.t) || 0, interval);
+      const t = bucketTime(Number(candle.t) || 0, interval);
       if (!t) continue;
       const usd = candleUsd(candle);
       if (!(usd > 0)) continue;
@@ -124,7 +128,18 @@ export async function buildVolumeHistory(range: VolumeRange): Promise<VolumeHist
     row.cumulative = running;
   }
 
-  const data: VolumeHistoryPayload = { range, interval, buckets };
+  return { range, interval, buckets };
+}
+
+export async function buildVolumeHistory(range: VolumeRange): Promise<VolumeHistoryPayload> {
+  const now = Date.now();
+  const cached = historyCache.get(range);
+  if (cached && now - cached.at < HISTORY_TTL_MS) {
+    return cached.data;
+  }
+
+  const startTime = range === "ALL" ? undefined : now - RANGE_MS[range];
+  const data = await buildBuckets(range, RANGE_INTERVAL[range], startTime, now);
   historyCache.set(range, { at: now, data });
   return data;
 }
@@ -135,11 +150,6 @@ let volumeCache: {
   volume24hUsd: number;
   volumeTotalUsd: number;
 } | null = null;
-
-async function marketSymbols(revalidate?: number): Promise<string[]> {
-  const stats = await fetchExchangeStats(revalidate);
-  return (stats?.markets ?? []).map((m) => m.symbol).filter((s) => s && s !== "MEGA-USD");
-}
 
 function sumCandlesUsd(candles: ExchangeCandle[], from?: number): number {
   let usd = 0;
@@ -208,7 +218,6 @@ export async function sumCandleVolumes(revalidate = 60): Promise<{
   return data;
 }
 
-
 /** Hourly buckets from trading mainnet start — for the Total KPI spark. */
 export async function buildAllTimeHourly(): Promise<VolumeHistoryPayload> {
   const now = Date.now();
@@ -217,39 +226,7 @@ export async function buildAllTimeHourly(): Promise<VolumeHistoryPayload> {
     return cached.data;
   }
 
-  const symbols = await marketSymbols();
-  const series = await Promise.all(
-    symbols.map(async (symbol) => ({
-      symbol,
-      candles: await fetchKlines(symbol, "1h", MAINNET_START_MS, now),
-    })),
-  );
-
-  const byTime = new Map<number, VolumeBucket>();
-  for (const { symbol, candles } of series) {
-    const coin = coinForSymbol(symbol);
-    for (const candle of candles) {
-      const t = floorToInterval(Number(candle.t) || 0, "1h");
-      if (!t) continue;
-      const usd = candleUsd(candle);
-      if (!(usd > 0)) continue;
-      const row =
-        byTime.get(t) ??
-        ({ t, btc: 0, eth: 0, sol: 0, others: 0, total: 0, cumulative: 0 } satisfies VolumeBucket);
-      row[coin] += usd;
-      byTime.set(t, row);
-    }
-  }
-
-  const buckets = [...byTime.values()].sort((a, b) => a.t - b.t);
-  let running = 0;
-  for (const row of buckets) {
-    row.total = row.btc + row.eth + row.sol + row.others;
-    running += row.total;
-    row.cumulative = running;
-  }
-
-  const data: VolumeHistoryPayload = { range: "ALL", interval: "1h", buckets };
+  const data = await buildBuckets("ALL", "1h", MAINNET_START_MS, now);
   historyCache.set("ALL:1h", { at: now, data });
   return data;
 }

@@ -4,14 +4,6 @@ import { getExchangeLevelHistory, recordExchangeLevels } from "@/lib/exchange-le
 import { sumCandleVolumes } from "@/lib/volume-history";
 
 export const LIVE_EXCHANGE_TTL_MS = 15_000;
-/**
- * `/stats` reports open interest the way the exchange's own market list does —
- * one side, priced at mark. We used to double it on the theory that the
- * official figure needed longs and shorts added together, which put $12.36M on
- * the card against $6.18M upstream and $6.14M summed off BULK's own per-market
- * column. Take it as given.
- */
-const OI_SIDES = 1;
 
 export interface LiveExchangePayload {
   volume24hUsd: number;
@@ -72,7 +64,7 @@ export async function buildLiveExchangePayload(
   }
 
   try {
-    // allSettled, not all: these are four independent upstreams and every
+    // allSettled, not all: these are three independent upstreams and every
     // reader below already tolerates a missing one. Under Promise.all a single
     // network-level rejection rejected the lot and dropped the payload to
     // zeros — which is what blanked every KPI in production while /stats and
@@ -112,9 +104,10 @@ export async function buildLiveExchangePayload(
         0,
       submissionsTotal: unique || payloadCache?.data.submissionsTotal || 0,
       // A source that is down holds its previous reading rather than
-      // reporting a real zero.
+      // reporting a real zero. `/stats` reports open interest one side, priced
+      // at mark — the way the exchange's own market list shows it.
       openInterestUsd:
-        (Number(stats?.openInterest?.totalUsd) || 0) * OI_SIDES ||
+        Number(stats?.openInterest?.totalUsd) ||
         (payloadCache?.data.openInterestUsd ?? 0),
       // `cached_accounts` is accounts holding a position or an open order —
       // confirmed by BULK, and it behaves that way: the series rises and falls

@@ -107,5 +107,3 @@ export async function getLeaderboardForApp(
     return disk;
   }
 }
-
-/** Full upstream wait — for API routes where freshness matters. */

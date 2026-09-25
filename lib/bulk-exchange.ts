@@ -1,12 +1,16 @@
+import { USER_AGENT, fetchWithRetry } from "@/lib/http";
+
 /**
  * Mainnet exchange HTTP (not the Aura indexer).
  * https://mainnet-api1.bulk.trade/api/v1
  */
-export const EXCHANGE_API_BASE =
+const EXCHANGE_API_BASE =
   process.env.BULK_EXCHANGE_API_BASE?.replace(/\/$/, "") ||
   "https://mainnet-api1.bulk.trade/api/v1";
 
-export interface ExchangeMarketStat {
+const EXCHANGE_TIMEOUT_MS = 10_000;
+
+interface ExchangeMarketStat {
   symbol: string;
   volume: number;
   quoteVolume: number;
@@ -15,7 +19,7 @@ export interface ExchangeMarketStat {
   markPrice: number;
 }
 
-export interface ExchangeStats {
+interface ExchangeStats {
   timestamp: number;
   period: string;
   volume: { totalUsd: number };
@@ -23,7 +27,7 @@ export interface ExchangeStats {
   markets: ExchangeMarketStat[];
 }
 
-export interface ExchangeMetrics {
+interface ExchangeMetrics {
   received_count?: number;
   unique_submissions?: number;
   http_received_count?: number;
@@ -54,8 +58,9 @@ async function exchangeFetch(
   const { revalidate = 15, noStore = false } = options;
   const url = `${EXCHANGE_API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
   return fetch(url, {
-    headers: { Accept: "application/json", "User-Agent": "AURA-Intelligence/1.0" },
+    headers: { Accept: "application/json", "User-Agent": USER_AGENT },
     ...(noStore ? { cache: "no-store" as const } : { next: { revalidate } }),
+    signal: AbortSignal.timeout(EXCHANGE_TIMEOUT_MS),
   });
 }
 
@@ -88,16 +93,20 @@ export async function fetchKlines(
   if (startTime != null) params.set("startTime", String(startTime));
   if (endTime != null) params.set("endTime", String(endTime));
   const res = await exchangeFetch(`/klines?${params.toString()}`, { revalidate });
-  if (!res.ok) return [];
-  const data = (await res.json()) as ExchangeCandle[];
-  return Array.isArray(data) ? data : [];
+  // A market with no candles is a real empty series; anything else is a
+  // failure and must not be summed as zero volume.
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error(`klines ${symbol} ${interval} failed: ${res.status}`);
+  const data = (await res.json()) as unknown;
+  if (!Array.isArray(data)) throw new Error(`klines ${symbol} ${interval}: unexpected payload`);
+  return data as ExchangeCandle[];
 }
 
 export function marketBase(symbol: string): string {
   return symbol.replace(/-USD$/i, "").toUpperCase();
 }
 
-export interface AccountSnapshot {
+interface AccountSnapshot {
   volumeUsd: number;
   windowDays: number;
   balanceUsd: number;
@@ -144,10 +153,7 @@ function readAccountSnapshot(payload: unknown): AccountSnapshot | null {
 }
 
 const ACCOUNT_MAX_RETRIES = 4;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const ACCOUNT_MAX_WAIT_MS = 8_000;
 
 /**
  * The exchange rate-limits this endpoint hard: a walk of 400 wallets at eight
@@ -158,35 +164,29 @@ function sleep(ms: number): Promise<void> {
  * ends the attempt.
  */
 async function postAccount(wallet: string): Promise<unknown> {
-  for (let attempt = 0; ; attempt += 1) {
-    let res: Response;
-    try {
-      res = await fetch(`${EXCHANGE_API_BASE}/account`, {
+  try {
+    const res = await fetchWithRetry(
+      `${EXCHANGE_API_BASE}/account`,
+      {
         method: "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          "User-Agent": "AURA-Intelligence/1.0",
+          "User-Agent": USER_AGENT,
         },
         body: JSON.stringify({ type: "fullAccount", user: wallet }),
         cache: "no-store",
-      });
-    } catch {
-      if (attempt >= ACCOUNT_MAX_RETRIES) return null;
-      await sleep(Math.min(500 * 2 ** attempt, 8_000));
-      continue;
-    }
-
-    if (res.ok) return res.json();
-    if (res.status !== 429 && res.status < 500) return null;
-    if (attempt >= ACCOUNT_MAX_RETRIES) return null;
-
-    const retryAfter = Number(res.headers.get("retry-after"));
-    await sleep(
-      Number.isFinite(retryAfter) && retryAfter > 0
-        ? retryAfter * 1_000
-        : Math.min(500 * 2 ** attempt, 8_000),
+      },
+      {
+        maxRetries: ACCOUNT_MAX_RETRIES,
+        timeoutMs: EXCHANGE_TIMEOUT_MS,
+        baseBackoffMs: 500,
+        maxBackoffMs: ACCOUNT_MAX_WAIT_MS,
+      },
     );
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
   }
 }
 

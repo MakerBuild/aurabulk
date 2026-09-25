@@ -24,6 +24,13 @@ interface UpstreamWallet {
   updated_at?: string;
 }
 
+/** Upstream value when it sent one (a real 0 included), else the stored one. */
+function orStored(value: number | undefined, stored: number): number {
+  if (value == null) return stored;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : stored;
+}
+
 function withLiveFinancials(
   entry: LeaderboardEntry,
   remote: UpstreamWallet,
@@ -31,9 +38,9 @@ function withLiveFinancials(
 ): WalletData {
   const merged = mergeFinancialRow(entry, {
     wallet: remote.wallet,
-    deposited_amount: Number(remote.deposited_amount) || entry.deposited_amount,
-    withdrawn_amount: Number(remote.withdrawn_amount) || entry.withdrawn_amount,
-    current_amount: Number(remote.current_amount) || entry.current_amount,
+    deposited_amount: orStored(remote.deposited_amount, entry.deposited_amount),
+    withdrawn_amount: orStored(remote.withdrawn_amount, entry.withdrawn_amount),
+    current_amount: orStored(remote.current_amount, entry.current_amount),
     updated_at: remote.updated_at ?? entry.updated_at,
   });
 

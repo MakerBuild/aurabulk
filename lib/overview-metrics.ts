@@ -63,13 +63,10 @@ const EMPTY_BUCKET: DepositSizeBucket = {
   auraMax: 0,
 };
 
-/** Shared by the Overview ring, Aura Sources breakdown, and Aura Distribution
- * histogram, so a source that is gold on one chart is gold on the others.
- * Drill-down views (Retro, Week N) can have more than six slices; the extra
- * four stop Roles / Others wrapping back onto Bulk validator stake / Testnet
- * and give the ten Aura buckets a unique bar each. */
 /**
- * Chart colours are CSS custom properties, not literals: SVG `fill` and
+ * Chart colours are shared by the Overview ring, Aura Sources breakdown and
+ * Aura Distribution histogram, so a source that is gold on one chart is gold
+ * on the others. They are CSS custom properties, not literals: SVG `fill` and
  * `stroke` resolve var() at paint time, so the same server-rendered payload
  * repaints when the theme flips without re-fetching or re-computing.
  *
@@ -140,7 +137,9 @@ export interface OverviewPanelsData {
 
 export function buildOverviewPanels(input: {
   totalAura: number;
-  depositWallets: number;
+  /** Unused: the bar shares are taken against the buckets' own total. Kept
+   *  optional until app/page.tsx stops passing it. */
+  depositWallets?: number;
   depositSizeDistribution: DepositSizeBucket[];
   auraDistribution: DepositSizeBucket[];
   ogHodlers: number;
@@ -148,7 +147,6 @@ export function buildOverviewPanels(input: {
 }): OverviewPanelsData {
   const {
     totalAura,
-    depositWallets,
     depositSizeDistribution,
     auraDistribution,
     ogHodlers,
@@ -235,6 +233,12 @@ export function buildOverviewPanels(input: {
     auraRange: t.rangeLabel,
   }));
 
+  // Same rule for the deposit-size bars and the OG share: both are cut from
+  // the leaderboard's depositors, so that count is their base — not the live
+  // totals endpoint's wallet count, which is a different population.
+  const depositorCount = depositSizeDistribution.reduce((sum, b) => sum + b.count, 0);
+  const depositorBase = depositorCount > 0 ? depositorCount : 1;
+
   const depositorsAnalysis = {
     // The population the tiers actually describe — see the note on tierBase.
     totalWallets: tierCountTotal,
@@ -242,11 +246,11 @@ export function buildOverviewPanels(input: {
       id: b.bucket,
       label: b.bucket,
       count: b.count,
-      pct: depositWallets > 0 ? (b.count / depositWallets) * 100 : 0,
+      pct: (b.count / depositorBase) * 100,
     })),
     ogHodlers: {
       count: ogHodlers,
-      pctOfDepositors: depositWallets > 0 ? (ogHodlers / depositWallets) * 100 : 0,
+      pctOfDepositors: (ogHodlers / depositorBase) * 100,
     },
     tiers,
   };

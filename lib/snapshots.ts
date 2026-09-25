@@ -1,8 +1,12 @@
 import fs from "fs";
 import path from "path";
+import { writeFileAtomic } from "@/lib/atomic-write";
 import type { Snapshot } from "@/types";
 
 const SNAPSHOTS_FILE = path.join(process.cwd(), "data", "snapshots.json");
+
+/** Retention for the daily TVL snapshots (roughly six years). */
+const MAX_SNAPSHOTS = 2160;
 
 let cache: { mtimeMs: number; data: Snapshot[] } | null = null;
 
@@ -14,46 +18,27 @@ export function getSnapshotsMtimeMs(): number {
   }
 }
 
+/** Snapshots on disk; [] when the file is absent. Throws on a malformed file. */
 export function readSnapshots(): Snapshot[] {
   if (!fs.existsSync(SNAPSHOTS_FILE)) return [];
   const mtimeMs = fs.statSync(SNAPSHOTS_FILE).mtimeMs;
   if (cache && cache.mtimeMs === mtimeMs) return cache.data;
   const data = JSON.parse(fs.readFileSync(SNAPSHOTS_FILE, "utf-8")) as Snapshot[];
+  if (!Array.isArray(data)) throw new Error(`${SNAPSHOTS_FILE} is not an array`);
   cache = { mtimeMs, data };
   return data;
 }
 
-export function writeSnapshots(snapshots: Snapshot[]): void {
-  const dir = path.dirname(SNAPSHOTS_FILE);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(SNAPSHOTS_FILE, JSON.stringify(snapshots, null, 2));
-  cache = null;
-}
-
+/**
+ * Append one snapshot, stamped now, for the data scripts. An unreadable
+ * history aborts the run instead of being replaced by a one-entry file.
+ */
 export function appendSnapshot(snapshot: Omit<Snapshot, "timestamp">): Snapshot[] {
-  const snapshots = readSnapshots();
-  const entry: Snapshot = {
-    ...snapshot,
-    timestamp: new Date().toISOString(),
-  };
-  snapshots.push(entry);
-  writeSnapshots(snapshots);
+  const snapshots = [
+    ...readSnapshots(),
+    { ...snapshot, timestamp: new Date().toISOString() },
+  ].slice(-MAX_SNAPSHOTS);
+  writeFileAtomic(SNAPSHOTS_FILE, JSON.stringify(snapshots, null, 2));
+  cache = null;
   return snapshots;
-}
-
-export function filterSnapshotsByRange(
-  snapshots: Snapshot[],
-  range: "24H" | "7D" | "30D" | "ALL"
-): Snapshot[] {
-  if (range === "ALL" || snapshots.length === 0) return snapshots;
-
-  const now = Date.now();
-  const ms =
-    range === "24H"
-      ? 24 * 60 * 60 * 1000
-      : range === "7D"
-        ? 7 * 24 * 60 * 60 * 1000
-        : 30 * 24 * 60 * 60 * 1000;
-
-  return snapshots.filter((s) => now - new Date(s.timestamp).getTime() <= ms);
 }

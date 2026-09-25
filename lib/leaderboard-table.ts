@@ -14,7 +14,14 @@ export const LEADERBOARD_TAB_DEFAULT_SORT: Record<
   pnl: { key: "pnl", dir: "desc" },
 };
 
-export function getLeaderboardPool(
+/** Every key getLeaderboardSortValue understands. */
+const LEADERBOARD_SORT_KEYS = new Set(["aura_rank", "wallet", "aura", "volume", "pnl"]);
+
+export function isLeaderboardSortKey(key: string): boolean {
+  return LEADERBOARD_SORT_KEYS.has(key);
+}
+
+function getLeaderboardPool(
   entries: LeaderboardEntry[],
   tab: LeaderboardTab
 ): LeaderboardEntry[] {
@@ -27,7 +34,7 @@ export function getLeaderboardPool(
   return entries;
 }
 
-export function getLeaderboardSortValue(
+function getLeaderboardSortValue(
   entry: LeaderboardEntry,
   tab: LeaderboardTab,
   sortKey: string

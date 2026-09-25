@@ -1,6 +1,6 @@
 import type { LeaderboardEntry } from "@/types";
 
-export interface LeaderboardUpstreamRow {
+interface LeaderboardUpstreamRow {
   rank?: number;
   wallet: string;
   referral_number?: number;

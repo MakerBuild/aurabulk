@@ -1,9 +1,9 @@
 import { parseAuraCategoryKey } from "@/lib/aura-category-groups";
 import { getCurrentCampaignWeek } from "@/lib/campaign-clock";
 
-export type AuraSource = "deposit" | "referral" | "other";
+type AuraSource = "deposit" | "referral" | "other";
 
-export interface AuraSourceBreakdown {
+interface AuraSourceBreakdown {
   deposit: number;
   referral: number;
   other: number;
@@ -20,7 +20,7 @@ export interface WalletAuraBreakdown {
 const DEPOSIT_RE = /^(?:predeposit_)?week(\d+)$/;
 const REFERRAL_RE = /^(?:predeposit_)?referral_week(\d+)$/;
 
-export function classifyAuraSource(key: string): AuraSource {
+function classifyAuraSource(key: string): AuraSource {
   if (DEPOSIT_RE.test(key)) return "deposit";
   if (REFERRAL_RE.test(key)) return "referral";
   return "other";

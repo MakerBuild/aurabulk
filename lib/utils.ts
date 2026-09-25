@@ -63,8 +63,6 @@ export function categoryLabel(key: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-/** Exclusive Aura bands for the Overview depositor chart. A wallet sits in
- * exactly one — `<10` is [0, 10), `100000+` is [100000, ∞). */
 /** Tier names in band order, smallest to largest. The Overview ring and the
  *  wallet lookup both read them from here so they cannot drift apart. */
 export const AURA_TIER_NAMES = [
@@ -85,6 +83,8 @@ export function auraTierName(aura: number): string | null {
   return index >= 0 ? AURA_TIER_NAMES[index] : null;
 }
 
+/** Exclusive Aura bands for the Overview depositor chart. A wallet sits in
+ * exactly one — `<10` is [0, 10), `100000+` is [100000, ∞). */
 export const DEPOSITOR_AURA_RANGES = [
   { id: "under10", label: "<10 AURA", min: 0, max: 10 },
   { id: "10-100", label: "10-100 AURA", min: 10, max: 100 },
