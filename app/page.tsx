@@ -15,10 +15,8 @@ export default async function OverviewPage() {
 
   const panels = buildOverviewPanels({
     totalAura: live.totalAura,
-    depositWallets: live.depositWallets,
     depositSizeDistribution: metrics.depositSizeDistribution,
     auraDistribution: metrics.auraDistribution,
-    ogHodlers: metrics.ogHodlers,
     categoryBreakdown: metrics.categoryBreakdown,
   });
 

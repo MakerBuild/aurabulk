@@ -34,8 +34,7 @@ async function main() {
     `[metrics] computed in ${Date.now() - startedAt}ms · ` +
       `${(bytes / 1024).toFixed(0)}KB · ` +
       `buckets=${metrics.depositSizeDistribution.length} ` +
-      `categories=${metrics.categoryBreakdown.length} ` +
-      `ogHodlers=${metrics.ogHodlers}`,
+      `categories=${metrics.categoryBreakdown.length}`,
   );
 }
 

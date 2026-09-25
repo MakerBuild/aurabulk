@@ -128,7 +128,6 @@ export interface OverviewPanelsData {
     /** Wallets the tiers describe: every Aura holder, depositor or not. */
     totalWallets: number;
     bars: OverviewDistributionBar[];
-    ogHodlers: { count: number; pctOfDepositors: number };
     /** Six mutually exclusive Aura bands — what the ring and the stat list
      * both draw from directly. */
     tiers: DepositTier[];
@@ -137,19 +136,14 @@ export interface OverviewPanelsData {
 
 export function buildOverviewPanels(input: {
   totalAura: number;
-  /** Unused: the bar shares are taken against the buckets' own total. Kept
-   *  optional until app/page.tsx stops passing it. */
-  depositWallets?: number;
   depositSizeDistribution: DepositSizeBucket[];
   auraDistribution: DepositSizeBucket[];
-  ogHodlers: number;
   categoryBreakdown: CategoryBreakdownItem[];
 }): OverviewPanelsData {
   const {
     totalAura,
     depositSizeDistribution,
     auraDistribution,
-    ogHodlers,
     categoryBreakdown,
   } = input;
 
@@ -248,10 +242,6 @@ export function buildOverviewPanels(input: {
       count: b.count,
       pct: (b.count / depositorBase) * 100,
     })),
-    ogHodlers: {
-      count: ogHodlers,
-      pctOfDepositors: (ogHodlers / depositorBase) * 100,
-    },
     tiers,
   };
 

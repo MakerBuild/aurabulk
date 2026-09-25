@@ -95,9 +95,5 @@ export interface DashboardMetrics {
     auraMin: number;
     auraMax: number;
   }[];
-  /**
-   * "OG Hodlers": earned Aura in week 1 and have never withdrawn since.
-   */
-  ogHodlers: number;
   categoryBreakdown: { key: string; category: string; points: number; share: number }[];
 }

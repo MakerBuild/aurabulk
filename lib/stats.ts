@@ -26,17 +26,6 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
   const entries = await getLeaderboardForApp({ waitMs: 0 });
   const totalAura = entries.reduce((sum, e) => sum + e.aura, 0);
 
-  // "OG Hodlers" — earned deposit Aura during week 1 and never withdrawn since.
-  // `first_seen` is unpopulated on every real entry, so the weekly category
-  // (points earned that week) is the only honest signal available. Upstream
-  // keys it `predeposit_week1`; bare `week1` is the older shape.
-  const ogHodlers = entries.filter(
-    (e) =>
-      e.deposited_amount > 0 &&
-      e.withdrawn_amount === 0 &&
-      (e.categories?.predeposit_week1 ?? e.categories?.week1 ?? 0) > 0
-  ).length;
-
   const depositSizeDistribution = DEPOSIT_SIZE_BUCKETS.map((bucket) => {
     // Filtered once and then counted and summed, rather than filtered twice:
     // this runs over every leaderboard entry for each of seven buckets.
@@ -107,7 +96,7 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
     }))
     .sort((a, b) => b.points - a.points);
 
-  return { depositSizeDistribution, auraDistribution, ogHodlers, categoryBreakdown };
+  return { depositSizeDistribution, auraDistribution, categoryBreakdown };
 }
 
 /**
