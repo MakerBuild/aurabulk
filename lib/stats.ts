@@ -65,7 +65,10 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
     const inRank = entries.filter(
       (e) => (Number(e.aura) || 0) > 0 && (rankOf.get(e.wallet) ?? "Unranked") === rank,
     );
-    const tradingAura = inRank.map((e) => tradingAuraOf(e.categories));
+    // Unranked wallets count for nothing in the ranking — the indexer reports
+    // their trading Aura as 0 — so their row shows none rather than a range.
+    const tradingAura =
+      rank === "Unranked" ? [] : inRank.map((e) => tradingAuraOf(e.categories));
     return {
       bucket: rank,
       count: inRank.length,
