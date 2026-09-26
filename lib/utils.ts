@@ -41,13 +41,14 @@ export function categoryLabel(key: string): string {
   if (weekPrefixMatch) return categoryLabel(weekPrefixMatch[1]);
 
   // Same for "mainnet_weekN_*": the drill-down is already scoped to that week,
-  // so the prefix is a redundant echo. "protocol" is the week's bonus bucket
-  // and is the one remainder that must not be stripped further — the filter
-  // below drops that word as noise, which would leave nothing to show.
+  // so the prefix is a redundant echo. "protocol" is the week's protocol pool,
+  // shown as BulkSOL like every other protocol reward, and is the one
+  // remainder that must not be stripped further — the filter below drops
+  // that word as noise, which would leave nothing to show.
   const mainnetPrefixMatch = key.match(/^mainnet_week\d+_(.+)$/i);
   if (mainnetPrefixMatch) {
     const rest = mainnetPrefixMatch[1];
-    return rest.toLowerCase() === "protocol" ? "Protocols" : categoryLabel(rest);
+    return rest.toLowerCase() === "protocol" ? "BulkSOL" : categoryLabel(rest);
   }
 
   const parts = key.split("_").filter((part) => part.toLowerCase() !== "protocol");
