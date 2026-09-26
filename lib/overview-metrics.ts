@@ -118,14 +118,14 @@ const MAX_OVERVIEW_DONUT_SLICES = 6;
  *   - Pre-Deposits: pre-deposit weeks and their referral bonuses.
  *   - BulkSOL: every protocol reward from any week, pre-deposit or mainnet,
  *     and the Exponent corrections to them.
- *   - Mainnet: everything else earned on mainnet — trading, maker rebates,
+ *   - Trading: everything else earned on mainnet — trading, maker rebates,
  *     trading referrals, boosts.
  *   - Retro: every retro category, retro protocol staking included.
  * Anything unrecognised lands in "Others", which only shows when non-empty.
  */
 const OVERVIEW_SOURCE_LABELS = {
   "pre-deposits": "Pre-Deposits",
-  mainnet: "Mainnet",
+  mainnet: "Trading",
   bulksol: "BulkSOL",
   retro: "Retro",
   others: "Others",
