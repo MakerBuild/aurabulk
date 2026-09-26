@@ -16,7 +16,7 @@ export default async function OverviewPage() {
   const panels = buildOverviewPanels({
     totalAura: live.totalAura,
     depositSizeDistribution: metrics.depositSizeDistribution,
-    auraDistribution: metrics.auraDistribution,
+    rankDistribution: metrics.rankDistribution,
     categoryBreakdown: metrics.categoryBreakdown,
   });
 

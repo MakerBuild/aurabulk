@@ -8,7 +8,9 @@ import {
   type LeaderboardSortDir,
   type LeaderboardTab,
 } from "@/lib/leaderboard-table";
-import { DEPOSITOR_AURA_RANGES, categoryLabel } from "@/lib/utils";
+import { RANK_NAMES, tradingAuraOf } from "@/lib/ranks";
+import { tradingRankByWallet } from "@/lib/trading-leagues";
+import { categoryLabel } from "@/lib/utils";
 import { buildWalletData } from "@/lib/wallet-data";
 import type { DashboardMetrics, LeaderboardEntry, WalletData } from "@/types";
 
@@ -55,28 +57,28 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
     };
   });
 
-  // Cut by the Aura a wallet holds, across every wallet that holds any — the
-  // tiers on the Overview are an Aura distribution and say so, so they have to
-  // be counted that way rather than by deposit size.
-  const auraDistribution = DEPOSITOR_AURA_RANGES.map((range) => {
-    const inBand = entries.filter((e) => {
-      const aura = Number(e.aura) || 0;
-      return aura > 0 && aura >= range.min && aura < range.max;
-    });
+  // Every Aura holder in their official trading rank. The ranks are ordered
+  // by Aura from trading, so that is the Aura each rank reports; anyone the
+  // indexer did not rank is Unranked.
+  const rankOf = tradingRankByWallet();
+  const rankDistribution = RANK_NAMES.map((rank) => {
+    const inRank = entries.filter(
+      (e) => (Number(e.aura) || 0) > 0 && (rankOf.get(e.wallet) ?? "Unranked") === rank,
+    );
+    const tradingAura = inRank.map((e) => tradingAuraOf(e.categories));
     return {
-      bucket: range.label,
-      count: inBand.length,
+      bucket: rank,
+      count: inRank.length,
       // Same netting as the deposit buckets: a trader who never deposited
       // holds nothing, and contributes only to count and Aura.
-      held: inBand.reduce(
+      held: inRank.reduce(
         (sum, e) => sum + Math.max(0, e.deposited_amount - e.withdrawn_amount),
         0
       ),
-      aura: inBand.reduce((sum, e) => sum + (Number(e.aura) || 0), 0),
-      // The band's own edges — exact by construction now, not a percentile
-      // estimate of where the cohort happens to sit.
-      auraMin: range.min,
-      auraMax: Number.isFinite(range.max) ? range.max : 0,
+      aura: tradingAura.reduce((sum, value) => sum + value, 0),
+      // Reduced, not spread: Unranked alone is ~55k wallets.
+      auraMin: tradingAura.length ? tradingAura.reduce((a, b) => Math.min(a, b)) : 0,
+      auraMax: tradingAura.reduce((a, b) => Math.max(a, b), 0),
     };
   });
 
@@ -96,7 +98,7 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
     }))
     .sort((a, b) => b.points - a.points);
 
-  return { depositSizeDistribution, auraDistribution, categoryBreakdown };
+  return { depositSizeDistribution, rankDistribution, categoryBreakdown };
 }
 
 /**
@@ -114,7 +116,7 @@ async function loadDashboardMetrics(): Promise<DashboardMetrics> {
 
 export const computeDashboardMetrics = unstable_cache(
   loadDashboardMetrics,
-  ["dashboard-metrics-v5"],
+  ["dashboard-metrics-v6"],
   // Hourly. This is the expensive one — ~450ms of CPU to parse the 34MB
   // leaderboard and run twenty passes plus eight sorts over 56k entries.
   // Its inputs are a weekly aura refresh and a daily totals refresh, so a

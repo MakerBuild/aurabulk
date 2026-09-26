@@ -46,20 +46,27 @@ jobs:
         env:
           BULK_API_BASE: https://indexer.bulk.trade
 
+      # Trading ranks are only reported per wallet, and they move when the
+      # snapshot does — record them before the metrics that group by them.
+      - name: Record trading ranks
+        run: npm run record:leagues
+        env:
+          BULK_API_BASE: https://indexer.bulk.trade
+
       - name: Precompute dashboard metrics
         run: npm run build:metrics
 
       - name: Commit updated leaderboard
         shell: bash
         run: |
-          if git diff --quiet -- data/leaderboard.json data/dashboard-metrics.json; then
+          if git diff --quiet -- data/leaderboard.json data/dashboard-metrics.json data/trading-leagues.json; then
             echo "No data changes to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/leaderboard.json data/dashboard-metrics.json
+          git add data/leaderboard.json data/dashboard-metrics.json data/trading-leagues.json
           git commit -m "chore: refresh weekly aura leaderboard"
 
           # main may have moved on (manual pushes or the hourly job). Retry:
@@ -72,7 +79,7 @@ jobs:
             echo "Push rejected on attempt $attempt — syncing with latest main..."
             git fetch origin main
             git reset --soft origin/main
-            git add data/leaderboard.json data/dashboard-metrics.json
+            git add data/leaderboard.json data/dashboard-metrics.json data/trading-leagues.json
             if git diff --cached --quiet; then
               echo "Remote already up to date with our data."
               exit 0

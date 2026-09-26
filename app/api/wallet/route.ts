@@ -3,6 +3,7 @@ import { getWalletData } from "@/lib/stats";
 import { mergeFinancialRow } from "@/lib/leaderboard-financial-sync";
 import { upstreamJson } from "@/lib/upstream";
 import { getLeaderboardForApp } from "@/lib/live-leaderboard";
+import { toRankName } from "@/lib/ranks";
 import { buildWalletData } from "@/lib/wallet-data";
 import type { LeaderboardEntry, WalletData } from "@/types";
 
@@ -24,6 +25,14 @@ interface UpstreamWallet {
   aura?: number;
   categories?: Record<string, number>;
   updated_at?: string;
+  trading_league?: { qualified?: boolean; league?: { name?: string } | null } | null;
+}
+
+/** The live trading rank when upstream sent one, over the last recorded one. */
+function withLiveRank(wallet: WalletData, remote: UpstreamWallet): WalletData {
+  const league = remote.trading_league;
+  if (!league) return wallet;
+  return { ...wallet, rank: league.qualified ? toRankName(league.league?.name) : "Unranked" };
 }
 
 /** Upstream value when it sent one (a real 0 included), else the stored one. */
@@ -82,7 +91,7 @@ export async function GET(request: NextRequest) {
 
     if (remote) {
       if (local) {
-        return NextResponse.json(withLiveFinancials(local, remote, allAura));
+        return NextResponse.json(withLiveRank(withLiveFinancials(local, remote, allAura), remote));
       }
 
       const entry: LeaderboardEntry = {
@@ -101,8 +110,7 @@ export async function GET(request: NextRequest) {
         total_held_time_hours: remote.total_held_time_hours ?? 0,
         updated_at: remote.updated_at,
       };
-      const wallet = buildWalletData(entry, allAura);
-      return NextResponse.json(wallet);
+      return NextResponse.json(withLiveRank(buildWalletData(entry, allAura), remote));
     }
   } catch {
     if (local) return NextResponse.json(local);

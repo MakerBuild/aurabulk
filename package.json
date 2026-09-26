@@ -17,7 +17,8 @@
     "generate:fud": "node scripts/make-fud-transparent.mjs",
     "generate:recap": "node scripts/generate-recap-png.mjs",
     "import": "tsx scripts/import-leaderboard.ts",
-    "enrich-referrers": "tsx scripts/enrich-referrer-deposits.ts"
+    "enrich-referrers": "tsx scripts/enrich-referrer-deposits.ts",
+    "record:leagues": "tsx scripts/record-trading-leagues.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

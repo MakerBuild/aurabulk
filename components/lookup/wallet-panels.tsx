@@ -15,7 +15,7 @@ import {
   chartPrimaryRamp,
   type OverviewDonutSegment,
 } from "@/lib/overview-metrics";
-import { auraTierName, categoryLabel, cn, formatNumber, formatUsd } from "@/lib/utils";
+import { categoryLabel, cn, formatNumber, formatUsd } from "@/lib/utils";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 
 function weekBreakdown(categories: Record<string, number> | undefined) {
@@ -147,7 +147,6 @@ function formatSignedUsd(value: number | null | undefined): string {
 export function AuraStatsPanel({ data }: { data: WalletData }) {
   const narrow = useNarrowViewport();
   const exchange = data.exchange;
-  const tier = auraTierName(data.aura);
 
   const stats: { label: string; value: string; accent?: boolean }[] = [
     { label: "Total Aura", value: formatNumber(data.aura), accent: true },
@@ -163,7 +162,8 @@ export function AuraStatsPanel({ data }: { data: WalletData }) {
       label: "Volume rank",
       value: exchange?.volumeRank ? `#${exchange.volumeRank.toLocaleString("en-US")}` : "—",
     },
-    { label: "Aura tier", value: tier ?? "—" },
+    // Older cached payloads predate the field.
+    { label: "Rank", value: data.rank ?? "Unranked" },
     {
       label: "Fees paid",
       value: typeof exchange?.feesUsd === "number" ? formatUsd(exchange.feesUsd) : "—",

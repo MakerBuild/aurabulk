@@ -1,5 +1,5 @@
 import type { CategoryBreakdownItem } from "@/lib/aura-category-groups";
-import { AURA_TIER_NAMES, DEPOSITOR_AURA_RANGES } from "@/lib/utils";
+import { RANK_NAMES } from "@/lib/ranks";
 
 function numFull(value: number): string {
   return Math.round(value).toLocaleString("en-US");
@@ -21,7 +21,7 @@ export interface OverviewDistributionBar {
   pct: number;
 }
 
-/** One of the size tiers in the depositor cohort ring. */
+/** One official trading rank in the Overview rank table. */
 export interface DepositTier {
   id: string;
   label: string;
@@ -62,6 +62,22 @@ const EMPTY_BUCKET: DepositSizeBucket = {
   auraMin: 0,
   auraMax: 0,
 };
+
+/** 1234 → "1.2k", 19000 → "19k", 298424 → "298k". */
+function compactAura(value: number): string {
+  if (value >= 1_000_000) return `${+(value / 1_000_000).toFixed(value >= 10_000_000 ? 0 : 1)}M`;
+  if (value >= 1_000) return `${+(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}k`;
+  return Math.round(value).toLocaleString("en-US");
+}
+
+/** The rank's actual trading-Aura span, e.g. "30-221"; one figure when the
+ * rank holds a single value, a dash when it is empty. */
+function auraRangeLabel(bucket: DepositSizeBucket): string {
+  if (!(bucket.count > 0)) return "—";
+  const min = compactAura(bucket.auraMin);
+  const max = compactAura(bucket.auraMax);
+  return min === max ? max : `${min}-${max}`;
+}
 
 /**
  * Chart colours are shared by the Overview ring, Aura Sources breakdown and
@@ -178,8 +194,7 @@ export interface OverviewPanelsData {
     /** Wallets the tiers describe: every Aura holder, depositor or not. */
     totalWallets: number;
     bars: OverviewDistributionBar[];
-    /** Six mutually exclusive Aura bands — what the ring and the stat list
-     * both draw from directly. */
+    /** Every Aura holder by official trading rank, Unranked first. */
     tiers: DepositTier[];
   };
 }
@@ -187,13 +202,13 @@ export interface OverviewPanelsData {
 export function buildOverviewPanels(input: {
   totalAura: number;
   depositSizeDistribution: DepositSizeBucket[];
-  auraDistribution: DepositSizeBucket[];
+  rankDistribution: DepositSizeBucket[];
   categoryBreakdown: CategoryBreakdownItem[];
 }): OverviewPanelsData {
   const {
     totalAura,
     depositSizeDistribution,
-    auraDistribution,
+    rankDistribution,
     categoryBreakdown,
   } = input;
 
@@ -215,25 +230,19 @@ export function buildOverviewPanels(input: {
     })),
   };
 
-  // The tiers keep their names but are cut by the Aura a wallet holds, over
-  // every holder rather than only depositors. They were cut by deposit size
-  // and labelled with an Aura band, which stopped being true once mainnet
-  // trading started paying Aura to wallets that never deposited.
   // Optional access, not an assertion: a metrics file written before this
   // field existed would otherwise take the whole Overview down with it.
-  const at = (i: number) => auraDistribution?.[i] ?? EMPTY_BUCKET;
-  const auraTiers = AURA_TIER_NAMES.map((name, i) => ({
-    id: name.replace(/\s+/g, "").toLowerCase(),
-    label: `${name} (${DEPOSITOR_AURA_RANGES[i].label})`,
-    bucket: at(i),
-  }));
-  const tierDefs = auraTiers.map((t, i) => ({
-    id: t.id,
-    label: t.label,
-    ...t.bucket,
-    rangeLabel: DEPOSITOR_AURA_RANGES[i].label.replace(/\s+AURA$/i, ""),
-    color: chartPrimaryRamp(i, auraTiers.length),
-  }));
+  const at = (i: number) => rankDistribution?.[i] ?? EMPTY_BUCKET;
+  const tierDefs = RANK_NAMES.map((name, i) => {
+    const bucket = at(i);
+    return {
+      id: name.toLowerCase(),
+      label: name,
+      ...bucket,
+      rangeLabel: auraRangeLabel(bucket),
+      color: chartPrimaryRamp(i, RANK_NAMES.length),
+    };
+  });
 
   // Both shares are taken against the tiers' own totals rather than against
   // the wallet count the rest of the page quotes: the tiers are cut from the

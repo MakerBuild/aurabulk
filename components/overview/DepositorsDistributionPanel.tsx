@@ -104,9 +104,13 @@ const CELL = "font-data";
  * Below xl the cards stack and this one runs the full width of the page, and
  * ~500px of content-fit columns left the whole right half of the table empty
  * — so there the columns share the width instead, the name column a bit
- * more than the figures. */
+ * more than the figures.
+ *
+ * At xl the gap ramps up later (16px at 1280, the full 36 from ~1800). The
+ * card is only ~510px wide at 1280, and 2.5vw of gap there left the name
+ * column 41px — "Challenger" needs 79 — so the rank names truncated. */
 const TABLE_COLS =
-  "grid grid-cols-[minmax(0,1.6fr)_repeat(5,minmax(0,1fr))] xl:grid-cols-[minmax(0,180px)_minmax(0,74px)_minmax(0,44px)_minmax(0,64px)_minmax(0,84px)_minmax(0,56px)] items-center [column-gap:clamp(16px,2.5vw,36px)]";
+  "grid grid-cols-[minmax(0,1.6fr)_repeat(5,minmax(0,1fr))] xl:grid-cols-[minmax(0,180px)_minmax(0,74px)_minmax(0,44px)_minmax(0,64px)_minmax(0,84px)_minmax(0,56px)] items-center [column-gap:clamp(16px,2.5vw,36px)] xl:[column-gap:clamp(16px,calc(4vw_-_36px),36px)]";
 const TABLE_COLS_NARROW =
   "grid grid-cols-[minmax(0,1fr)_minmax(0,72px)_minmax(0,52px)] items-center gap-x-3";
 
@@ -467,7 +471,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                       role="button"
                       tabIndex={0}
                       aria-pressed={selected === row.id}
-                      aria-label={`Filter to ${row.name} tier`}
+                      aria-label={`Filter to ${row.name} rank`}
                       onMouseEnter={() => hoverTier(row.id, false)}
                       onMouseLeave={() => setHovered(null)}
                       onFocus={(e) => {
@@ -583,7 +587,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
             )}
             style={{ height: HEAD_H }}
           >
-            <span className="pl-[17px] text-left">Tier</span>
+            <span className="pl-[17px] text-left">Rank</span>
             {narrow && metric === "value" ? (
               <>
                 <span className="text-right">Total Aura</span>

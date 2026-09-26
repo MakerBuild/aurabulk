@@ -1,3 +1,4 @@
+import type { RankName } from "@/lib/ranks";
 import type { WalletExchangeStats } from "@/lib/volume-leaderboard";
 import type { WalletAuraBreakdown } from "@/lib/wallet-aura-breakdown";
 
@@ -33,6 +34,8 @@ export interface WalletData extends LeaderboardEntry {
   aura_breakdown: WalletAuraBreakdown;
   /** Exchange figures for this wallet, or null when it has never traded. */
   exchange: WalletExchangeStats | null;
+  /** Official trading rank (Challenger Series). */
+  rank: RankName;
 }
 
 export interface Snapshot {
@@ -78,16 +81,11 @@ export interface DashboardMetrics {
     auraMax: number;
   }[];
   /**
-   * Wallet count, Aura and still-held USD per Aura band, smallest to largest —
-   * over every wallet holding Aura, not only depositors.
-   *
-   * The Overview tiers used to be cut by deposit size and merely labelled with
-   * an Aura band, which held while Aura came from deposits alone. Mainnet
-   * trading broke it: 42,329 wallets now hold Aura with no deposit at all, and
-   * the labels drifted an order of magnitude from the cohorts they sat on — the
-   * "<$100" tier, labelled "<10", actually spanned 2 to 44 Aura.
+   * Every Aura holder by official trading rank, Unranked first and Challenger
+   * last (see lib/trading-leagues). `aura`, `auraMin` and `auraMax` are Aura
+   * from trading — what the ranks are ordered by — not the wallets' total.
    */
-  auraDistribution: {
+  rankDistribution: {
     bucket: string;
     count: number;
     held: number;
