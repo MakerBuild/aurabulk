@@ -10,7 +10,9 @@ const SOLANA_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 interface UpstreamWallet {
   wallet: string;
-  rank?: number;
+  /** Rank by Aura. Upstream's plain `rank` is the pre-deposit rank by hold
+   * time, which is neither this nor our deposit_rank (by current amount). */
+  aura_rank?: number;
   referrals_sent?: number;
   referrals_qualified?: number;
   referrals_rewarded?: number;
@@ -86,7 +88,7 @@ export async function GET(request: NextRequest) {
       const entry: LeaderboardEntry = {
         wallet: remote.wallet,
         aura: remote.aura ?? 0,
-        aura_rank: remote.rank ?? 0,
+        aura_rank: remote.aura_rank ?? 0,
         deposit_rank: 0,
         deposited_amount: remote.deposited_amount ?? 0,
         withdrawn_amount: remote.withdrawn_amount ?? 0,
