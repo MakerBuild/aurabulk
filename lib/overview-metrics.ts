@@ -117,10 +117,10 @@ const MAX_OVERVIEW_DONUT_SLICES = 6;
  * protocol on their own rows):
  *   - Pre-Deposits: pre-deposit weeks and their referral bonuses.
  *   - BulkSOL: every protocol reward from any week, pre-deposit or mainnet,
- *     the Exponent corrections to them, and retro bulkSOL staking.
+ *     and the Exponent corrections to them.
  *   - Mainnet: everything else earned on mainnet — trading, maker rebates,
  *     trading referrals, boosts.
- *   - Retro: the remaining retro categories.
+ *   - Retro: every retro category, retro protocol staking included.
  * Anything unrecognised lands in "Others", which only shows when non-empty.
  */
 const OVERVIEW_SOURCE_LABELS = {
@@ -134,7 +134,6 @@ const OVERVIEW_SOURCE_LABELS = {
 type OverviewSourceKey = keyof typeof OVERVIEW_SOURCE_LABELS;
 
 function overviewSourceKey(key: string): OverviewSourceKey {
-  if (key === "retro_bulksol_stake") return "bulksol";
   if (key.startsWith("retro_")) return "retro";
   if (/^mainnet_week\d+_protocol(?:_.+)?$/.test(key)) return "bulksol";
   if (/^mainnet_week\d+(?:_.+)?$/.test(key)) return "mainnet";
