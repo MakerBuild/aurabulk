@@ -46,8 +46,8 @@ jobs:
         env:
           BULK_API_BASE: https://indexer.bulk.trade
 
-      # Trading ranks are only reported per wallet, and they move when the
-      # snapshot does — record them before the metrics that group by them.
+      # Trading ranks move when the snapshot does — record them before the
+      # metrics that group by them.
       - name: Record trading ranks
         run: npm run record:leagues
         env:

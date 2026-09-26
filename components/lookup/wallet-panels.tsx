@@ -148,7 +148,10 @@ export function AuraStatsPanel({ data }: { data: WalletData }) {
   const narrow = useNarrowViewport();
   const exchange = data.exchange;
 
-  const stats: { label: string; value: string; accent?: boolean }[] = [
+  // Older cached payloads predate the field.
+  const rank = data.rank ?? "Unranked";
+
+  const stats: { label: string; value: string; accent?: boolean; badge?: string }[] = [
     { label: "Total Aura", value: formatNumber(data.aura), accent: true },
     { label: "Aura rank", value: `#${data.aura_rank.toLocaleString("en-US")}` },
     { label: "Peak PnL", value: formatSignedUsd(exchange?.peakPnlUsd) },
@@ -162,8 +165,8 @@ export function AuraStatsPanel({ data }: { data: WalletData }) {
       label: "Volume rank",
       value: exchange?.volumeRank ? `#${exchange.volumeRank.toLocaleString("en-US")}` : "—",
     },
-    // Older cached payloads predate the field.
-    { label: "Rank", value: data.rank ?? "Unranked" },
+    // The Challenger Series trading rank, with its official badge.
+    { label: "Rank", value: rank, badge: `/ranks/${rank.toLowerCase()}.webp` },
     {
       label: "Fees paid",
       value: typeof exchange?.feesUsd === "number" ? formatUsd(exchange.feesUsd) : "—",
@@ -193,9 +196,15 @@ export function AuraStatsPanel({ data }: { data: WalletData }) {
             <p
               className={cn(
                 "mt-1 font-data text-[15px] font-medium tabular-nums",
+                stat.badge && "flex items-center gap-1.5",
                 stat.accent ? "text-accent" : "text-text-primary"
               )}
             >
+              {stat.badge && (
+                // Decorative: the rank's name sits right beside it.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={stat.badge} alt="" width={20} height={20} className="size-5 shrink-0 object-contain" />
+              )}
               {stat.value}
             </p>
           </div>

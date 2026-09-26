@@ -3,20 +3,19 @@ import path from "path";
 import { writeFileAtomic } from "@/lib/atomic-write";
 import type { RankName } from "@/lib/ranks";
 
-/** One qualified wallet, as `/v1/aura/wallet/{addr}` reported it. */
+/** One ranked wallet, as the trading leaderboard reported it. */
 export interface TradingLeagueRow {
   wallet: string;
   rank: RankName;
   /** Position among qualified wallets, 1 = most trading Aura. */
   position: number | null;
   tradingAura: number;
-  volume: number;
 }
 
 /**
  * Every wallet's official trading rank, recorded by
- * scripts/record-trading-leagues.ts — the indexer reports ranks one wallet
- * at a time, so they are collected offline rather than per request.
+ * scripts/record-trading-leagues.ts with the weekly refresh rather than
+ * fetched per request.
  */
 export interface TradingLeaguesFile {
   updatedAt: string;
@@ -24,7 +23,7 @@ export interface TradingLeaguesFile {
   population: number;
   /** Lifetime volume (USD) a wallet needs to be ranked at all. */
   qualificationThreshold: number;
-  /** Only qualified wallets; anyone missing is Unranked. */
+  /** Only ranked wallets; anyone missing is Unranked. */
   rows: TradingLeagueRow[];
 }
 
