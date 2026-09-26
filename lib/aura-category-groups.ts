@@ -1,5 +1,3 @@
-import { categoryLabel } from "@/lib/utils";
-
 export interface CategoryBreakdownItem {
   key: string;
   category: string;
@@ -26,7 +24,6 @@ const WEEK_RE = /^week(\d+)$/;
 // same sequence instead of letting them fall into the "Other" catch-all.
 const MAINNET_WEEK_RE = /^mainnet_week(\d+)(?:_.+)?$/;
 const MAINNET_WEEK_OFFSET = 14;
-const MAINNET_MAKER_RE = /^mainnet_week\d+_maker$/i;
 
 /**
  * Campaign week a "mainnet_weekN" key belongs to, or null for anything else.
@@ -124,68 +121,56 @@ function mergeMainnetTrading(items: CategoryBreakdownItem[]): CategoryBreakdownI
 
 export const OVERVIEW_GROUP = "overview";
 
-/** One bucket per source *type*, combined across every week (not per-week). */
-const SOURCE_LABEL_OVERRIDES: Record<string, string> = {
-  retro: "Retro",
+/**
+ * The four sources every Aura overview is grouped into, summed across every
+ * week — the homepage ring and the /aura Overview (market and wallet) read
+ * the same buckets, so their figures agree:
+ *   - Pre-Deposits: pre-deposit weeks and their referral bonuses.
+ *   - Mainnet Trading: everything earned on mainnet except the protocol
+ *     pool — trading, maker rebates, trading referrals, boosts.
+ *   - BulkSOL: every protocol reward from any week, pre-deposit or mainnet,
+ *     and the Exponent corrections to them.
+ *   - Retro: every retro category, retro protocol staking included.
+ * Anything unrecognised lands in "other" rather than being guessed at.
+ */
+export type AuraSourceKey = "pre-deposits" | "mainnet-trading" | "bulksol" | "retro" | "other";
+
+export const AURA_SOURCE_LABELS: Record<AuraSourceKey, string> = {
   "pre-deposits": "Pre-Deposits",
-  referrals: "Referrals",
-  "trading-mainnet": "Mainnet",
-  maker: "Maker",
+  "mainnet-trading": "Mainnet Trading",
+  bulksol: "BulkSOL",
+  retro: "Retro",
+  other: "Other",
 };
 
-const FIXED_SOURCE_ORDER = ["retro", "pre-deposits", "referrals"];
-
-function sourceBucketKey(key: string): string {
+export function auraSourceKey(key: string): AuraSourceKey {
   if (key.startsWith("retro_")) return "retro";
-  // Maker rebates are their own source, split out of the rest of mainnet.
-  if (MAINNET_MAKER_RE.test(key)) return "maker";
-  // Mainnet trading is its own source, not part of the small-source tail.
-  if (MAINNET_WEEK_RE.test(key)) return "trading-mainnet";
-  if (/^week\d+$/i.test(key) || /^predeposit_week\d+$/i.test(key)) return "pre-deposits";
-  if (/^(?:predeposit_)?referral_week\d+$/i.test(key)) return "referrals";
-
-  const suffixMatch = key.match(/^week\d+_(.+)$/i);
-  if (suffixMatch) return suffixMatch[1];
-
+  if (/^mainnet_week\d+_protocol(?:_.+)?$/.test(key)) return "bulksol";
+  if (MAINNET_WEEK_RE.test(key)) return "mainnet-trading";
+  if (/^(?:predeposit_)?(?:referral_)?week\d+$/.test(key)) return "pre-deposits";
+  if (/^week\d+_(?:protocol_.+|.*exponent.*correction)$/.test(key)) return "bulksol";
   return "other";
 }
 
-function sourceBucketLabel(bucketKey: string): string {
-  return SOURCE_LABEL_OVERRIDES[bucketKey] ?? categoryLabel(bucketKey);
-}
-
-function sortSourceKeys(a: string, b: string, pointsByKey: Map<string, number>): number {
-  const rank = (key: string) => {
-    const fixedIndex = FIXED_SOURCE_ORDER.indexOf(key);
-    if (fixedIndex !== -1) return fixedIndex;
-    if (key === "other") return 9_000;
-    return 100;
-  };
-  const rankDiff = rank(a) - rank(b);
-  if (rankDiff !== 0) return rankDiff;
-  return (pointsByKey.get(b) ?? 0) - (pointsByKey.get(a) ?? 0);
-}
-
-/** Overview bucketed by source type (Retro / Pre-Deposits / Referrals /
- * Protocol Exponent / …), summed across every week — not by week number. */
+/** Overview by source (see auraSourceKey), largest first, "other" last. */
 export function aggregateBySource(data: CategoryBreakdownItem[]): CategoryBreakdownItem[] {
-  const buckets = new Map<string, number>();
+  const buckets = new Map<AuraSourceKey, number>();
   let totalPoints = 0;
 
   for (const item of data) {
     totalPoints += item.points;
-    const bucketKey = sourceBucketKey(item.key);
+    const bucketKey = auraSourceKey(item.key);
     buckets.set(bucketKey, (buckets.get(bucketKey) ?? 0) + item.points);
   }
 
   return [...buckets.entries()]
     .map(([key, points]) => ({
       key,
-      category: sourceBucketLabel(key),
+      category: AURA_SOURCE_LABELS[key],
       points,
       share: totalPoints > 0 ? (points / totalPoints) * 100 : 0,
     }))
-    .sort((a, b) => sortSourceKeys(a.key, b.key, buckets));
+    .sort((a, b) => Number(a.key === "other") - Number(b.key === "other") || b.points - a.points);
 }
 
 export function filterCategoryBreakdown(

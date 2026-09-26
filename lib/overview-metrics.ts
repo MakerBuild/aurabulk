@@ -1,4 +1,4 @@
-import type { CategoryBreakdownItem } from "@/lib/aura-category-groups";
+import { aggregateBySource, type CategoryBreakdownItem } from "@/lib/aura-category-groups";
 import { RANK_NAMES } from "@/lib/ranks";
 
 function numFull(value: number): string {
@@ -127,53 +127,19 @@ export function chartPrimaryRamp(index: number, count: number): string {
  * table it has to line up with. */
 const MAX_OVERVIEW_DONUT_SLICES = 6;
 
-/**
- * The homepage ring's own grouping, coarser than the by-source breakdown on
- * /aura and in wallet lookups (those still show Maker, Referrals and each
- * protocol on their own rows):
- *   - Pre-Deposits: pre-deposit weeks and their referral bonuses.
- *   - BulkSOL: every protocol reward from any week, pre-deposit or mainnet,
- *     and the Exponent corrections to them.
- *   - Trading: everything else earned on mainnet — trading, maker rebates,
- *     trading referrals, boosts.
- *   - Retro: every retro category, retro protocol staking included.
- * Anything unrecognised lands in "Others", which only shows when non-empty.
- */
-const OVERVIEW_SOURCE_LABELS = {
-  "pre-deposits": "Pre-Deposits",
-  mainnet: "Trading",
-  bulksol: "BulkSOL",
-  retro: "Retro",
-  others: "Others",
-} as const;
-
-type OverviewSourceKey = keyof typeof OVERVIEW_SOURCE_LABELS;
-
-function overviewSourceKey(key: string): OverviewSourceKey {
-  if (key.startsWith("retro_")) return "retro";
-  if (/^mainnet_week\d+_protocol(?:_.+)?$/.test(key)) return "bulksol";
-  if (/^mainnet_week\d+(?:_.+)?$/.test(key)) return "mainnet";
-  if (/^(?:predeposit_)?(?:referral_)?week\d+$/.test(key)) return "pre-deposits";
-  if (/^week\d+_(?:protocol_.+|.*exponent.*correction)$/.test(key)) return "bulksol";
-  return "others";
-}
+/** The homepage ring uses the shared source buckets (see auraSourceKey) under
+ * its own shorter names. */
+const HOMEPAGE_SOURCE_LABELS: Partial<Record<string, string>> = {
+  "mainnet-trading": "Trading",
+  other: "Others",
+};
 
 function overviewSources(items: CategoryBreakdownItem[]): CategoryBreakdownItem[] {
-  const points = new Map<OverviewSourceKey, number>();
-  let total = 0;
-  for (const item of items) {
-    const key = overviewSourceKey(item.key);
-    points.set(key, (points.get(key) ?? 0) + item.points);
-    total += item.points;
-  }
-
-  return [...points.entries()]
-    .filter(([, value]) => value > 0)
-    .map(([key, value]) => ({
-      key,
-      category: OVERVIEW_SOURCE_LABELS[key],
-      points: value,
-      share: total > 0 ? (value / total) * 100 : 0,
+  return aggregateBySource(items)
+    .filter((source) => source.points > 0)
+    .map((source) => ({
+      ...source,
+      category: HOMEPAGE_SOURCE_LABELS[source.key] ?? source.category,
     }));
 }
 
