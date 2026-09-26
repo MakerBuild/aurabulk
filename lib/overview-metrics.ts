@@ -1,4 +1,4 @@
-import { aggregateBySource, type CategoryBreakdownItem } from "@/lib/aura-category-groups";
+import type { CategoryBreakdownItem } from "@/lib/aura-category-groups";
 import { AURA_TIER_NAMES, DEPOSITOR_AURA_RANGES } from "@/lib/utils";
 
 function numFull(value: number): string {
@@ -112,6 +112,57 @@ export function chartPrimaryRamp(index: number, count: number): string {
 const MAX_OVERVIEW_DONUT_SLICES = 6;
 
 /**
+ * The homepage ring's own grouping, coarser than the by-source breakdown on
+ * /aura and in wallet lookups (those still show Maker, Referrals and each
+ * protocol on their own rows):
+ *   - Pre-Deposits: pre-deposit weeks and their referral bonuses.
+ *   - BulkSOL: every protocol reward from any week, pre-deposit or mainnet,
+ *     the Exponent corrections to them, and retro bulkSOL staking.
+ *   - Mainnet: everything else earned on mainnet — trading, maker rebates,
+ *     trading referrals, boosts.
+ *   - Retro: the remaining retro categories.
+ * Anything unrecognised lands in "Others", which only shows when non-empty.
+ */
+const OVERVIEW_SOURCE_LABELS = {
+  "pre-deposits": "Pre-Deposits",
+  mainnet: "Mainnet",
+  bulksol: "BulkSOL",
+  retro: "Retro",
+  others: "Others",
+} as const;
+
+type OverviewSourceKey = keyof typeof OVERVIEW_SOURCE_LABELS;
+
+function overviewSourceKey(key: string): OverviewSourceKey {
+  if (key === "retro_bulksol_stake") return "bulksol";
+  if (key.startsWith("retro_")) return "retro";
+  if (/^mainnet_week\d+_protocol(?:_.+)?$/.test(key)) return "bulksol";
+  if (/^mainnet_week\d+(?:_.+)?$/.test(key)) return "mainnet";
+  if (/^(?:predeposit_)?(?:referral_)?week\d+$/.test(key)) return "pre-deposits";
+  if (/^week\d+_(?:protocol_.+|.*exponent.*correction)$/.test(key)) return "bulksol";
+  return "others";
+}
+
+function overviewSources(items: CategoryBreakdownItem[]): CategoryBreakdownItem[] {
+  const points = new Map<OverviewSourceKey, number>();
+  let total = 0;
+  for (const item of items) {
+    const key = overviewSourceKey(item.key);
+    points.set(key, (points.get(key) ?? 0) + item.points);
+    total += item.points;
+  }
+
+  return [...points.entries()]
+    .filter(([, value]) => value > 0)
+    .map(([key, value]) => ({
+      key,
+      category: OVERVIEW_SOURCE_LABELS[key],
+      points: value,
+      share: total > 0 ? (value / total) * 100 : 0,
+    }));
+}
+
+/**
  * The campaign's total distributable AURA supply — fixed, not the "earned
  * so far" figure shown elsewhere on the page (that one only grows over the
  * campaign and would make the modelled price drift for the wrong reason).
@@ -147,29 +198,9 @@ export function buildOverviewPanels(input: {
     categoryBreakdown,
   } = input;
 
-  // Keep the meaningful sources named and roll the long tail into "Others", so
-  // the ring stays readable instead of fraying into 1% slivers.
-  const MIN_DONUT_SHARE = 2.5;
-  const allSources = aggregateBySource(categoryBreakdown).filter((s) => s.share > 0);
-  // Leftover "other" joins the small-source tail so the ring never shows
-  // both "Other" and "Others". Maker stays named however small: it is split
-  // out of Mainnet precisely so it can be seen, and folding it into Others
-  // would hide it again.
-  const isNamed = (s: CategoryBreakdownItem) =>
-    s.key !== "other" && (s.key === "maker" || s.share >= MIN_DONUT_SHARE);
-  const named = allSources.filter(isNamed);
-  const tail = allSources.filter((s) => !isNamed(s));
-  const tailShare = tail.reduce((sum, s) => sum + s.share, 0);
-  const tailPoints = tail.reduce((sum, s) => sum + s.points, 0);
-
   // Largest share first, so colours are assigned the same way everywhere —
   // the biggest source always takes the accent gold.
-  const sources = [
-    ...named.map((s) => ({ key: s.key, category: s.category, share: s.share, points: s.points })),
-    ...(tailShare > 0
-      ? [{ key: "others", category: "Others", share: tailShare, points: tailPoints }]
-      : []),
-  ]
+  const sources = overviewSources(categoryBreakdown)
     .sort((a, b) => b.share - a.share)
     .slice(0, MAX_OVERVIEW_DONUT_SLICES);
 
