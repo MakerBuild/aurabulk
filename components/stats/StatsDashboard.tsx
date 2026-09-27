@@ -1,0 +1,246 @@
+"use client";
+
+import { useMemo, useState, type ReactNode } from "react";
+import { PanelCard } from "@/components/overview/PanelCard";
+import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
+import { usePolledJson } from "@/components/live/use-polled-json";
+import { SwapProvider, SwapValue } from "@/components/ui/SwapValue";
+import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
+import { CostCalculator } from "@/components/stats/CostCalculator";
+import { CostCurve } from "@/components/stats/CostCurve";
+import { DepthChart } from "@/components/stats/DepthChart";
+import { FeeTierTable } from "@/components/stats/FeeTierTable";
+import { DEFAULT_BAND, TwoSidedLiquidity } from "@/components/stats/TwoSidedLiquidity";
+import { fmtBp, fmtPrice, fmtSignedBp } from "@/components/stats/format";
+import { FEE_TIERS, MAKER_REBATES } from "@/lib/fee-tiers";
+import type { MarketQualityPayload } from "@/lib/market-quality";
+import {
+  bookTop,
+  executionCost,
+  type Book,
+  type OrderType,
+  type Side,
+} from "@/lib/order-book-math";
+import { cn } from "@/lib/utils";
+
+/** Every 2s: the depth chart eases into each book, so a faster beat reads as
+ *  a live book rather than a flicker. Matches the server cache below it. */
+const POLL = { intervalMs: 2_000, minGapMs: 1_500 };
+const EMPTY_BOOK: Book = { bids: [], asks: [] };
+
+/** Supporting figure in the market strip: label over a mono value. */
+function StripStat({ label, value, tone }: { label: string; value: ReactNode; tone?: string }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <span className="font-label leading-none text-text-muted">{label}</span>
+      <span className={cn("font-data truncate leading-none text-text-primary", tone)}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/** A strip figure that counts to each new value — the Overview KPIs' fast
+ *  recount — so a market switch runs the numbers over rather than swapping
+ *  them. A missing value is a dash, not a count toward zero. */
+function Counted({ value, format }: { value: number | null | undefined; format: (n: number) => string }) {
+  if (value == null || !Number.isFinite(value)) return <>—</>;
+  return <KpiTerminalCounter value={value} format={format} />;
+}
+
+export function StatsDashboard() {
+  const [symbol, setSymbol] = useState("BTC-USD");
+  const [data, setData] = useState<MarketQualityPayload | null>(null);
+  const [markets, setMarkets] = useState<string[]>(["BTC-USD"]);
+
+  const [side, setSide] = useState<Side>("buy");
+  const [orderType, setOrderType] = useState<OrderType>("taker");
+  const [sizeUsd, setSizeUsd] = useState(100_000);
+  const [tier, setTier] = useState(1);
+  const [rebateId, setRebateId] = useState(0);
+  const [walletTier, setWalletTier] = useState<number | null>(null);
+  const [band, setBand] = useState(DEFAULT_BAND);
+  // Where the next market's data slides in from: a ticker to the left of the
+  // current one brings it in from the right (travelling right to left), one
+  // to the right brings it in from the left.
+  const [slideDir, setSlideDir] = useState<1 | -1>(1);
+
+  function pickMarket(next: string) {
+    if (next === symbol) return;
+    setSlideDir(markets.indexOf(next) < markets.indexOf(symbol) ? 1 : -1);
+    setSymbol(next);
+  }
+
+  usePolledJson<MarketQualityPayload>(
+    `/api/market-quality?symbol=${encodeURIComponent(symbol)}`,
+    POLL,
+    (next) => {
+      setData(next);
+      if (next.markets.length) {
+        setMarkets((prev) => (prev.join() === next.markets.join() ? prev : next.markets));
+      }
+    },
+  );
+
+  // The last payload stays on screen — under its own market's name — until
+  // the next market's lands, and then the two swap with a slide. Blanking to
+  // dashes in between is what made a switch read as wipe-and-repaint.
+  const live = data;
+  const shownSymbol = live?.symbol ?? symbol;
+  const pending = live != null && live.symbol !== symbol;
+  const book = useMemo<Book>(() => (live ? { bids: live.bids, asks: live.asks } : EMPTY_BOOK), [live]);
+  const top = useMemo(() => bookTop(book), [book]);
+  const decimals = live?.pricePrecision ?? 2;
+  const base = shownSymbol.replace(/-USD$/i, "");
+
+  const feeTier = FEE_TIERS.find((t) => t.tier === tier) ?? FEE_TIERS[0];
+  const rebateBps = MAKER_REBATES.find((r) => r.id === rebateId)?.bps ?? 0;
+  const feeBps = orderType === "taker" ? feeTier.takerBps : feeTier.makerBps + rebateBps;
+
+  const cost = useMemo(
+    () => executionCost(book, side, sizeUsd, feeBps, orderType),
+    [book, side, sizeUsd, feeBps, orderType],
+  );
+  const marketCost = useMemo(
+    () => (orderType === "maker" ? executionCost(book, side, sizeUsd, feeTier.takerBps, "taker") : cost),
+    [orderType, book, side, sizeUsd, feeTier.takerBps, cost],
+  );
+
+  const markVsOracle =
+    live?.markPrice != null && live.oraclePrice != null
+      ? ((live.markPrice - live.oraclePrice) / live.oraclePrice) * 1e4
+      : null;
+  const updated = live
+    ? new Date(live.updatedAt).toLocaleTimeString("en-US", { hour12: false, timeZone: "UTC" })
+    : null;
+
+  return (
+    // Every value on the page slides when the market changes; labels,
+    // headings and charts stay put. The provider says which market the
+    // values belong to and which way to slide.
+    <SwapProvider swapKey={shownSymbol} direction={slideDir} pending={pending}>
+    <div className="flex flex-col gap-4">
+      {/* Market strip — one line. The market and its price lead at headline
+          size; everything else is supporting data a step down, so the eye
+          lands on what is being traded before the detail around it. */}
+      <PanelCard glossy glossDelay={-4} className="py-3 sm:py-3.5">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+          <div className="flex min-w-0 items-center gap-5">
+            <div className="flex flex-col gap-1.5">
+              <span className="flex items-baseline gap-2">
+                <span className="font-figure text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
+                  <SwapValue>{base}</SwapValue>
+                </span>
+                <span className="font-label text-accent">Perp</span>
+              </span>
+              <span className="flex items-center gap-1.5 font-data text-[11px] leading-none text-text-muted">
+                <span
+                  className={cn("h-1.5 w-1.5 rounded-full", updated ? "bg-bid-green" : "bg-[var(--t-text-dim)]")}
+                  aria-hidden
+                />
+                <SwapValue>{updated ? `${updated} UTC` : "Connecting…"}</SwapValue>
+              </span>
+            </div>
+            <div className="flex flex-col gap-1.5 border-l border-[var(--color-line)] pl-5">
+              <span className="font-figure text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
+                <Counted value={top.mid} format={(n) => fmtPrice(n, decimals)} />
+              </span>
+              <span className="font-label leading-none text-text-muted">Mid price</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
+            <StripStat label="Spread" value={<Counted value={top.spreadBp} format={(n) => fmtBp(n)} />} />
+            <StripStat
+              label="Mark"
+              value={<Counted value={live?.markPrice} format={(n) => fmtPrice(n, decimals)} />}
+            />
+            <StripStat
+              label="Oracle"
+              value={<Counted value={live?.oraclePrice} format={(n) => fmtPrice(n, decimals)} />}
+            />
+            <StripStat
+              label="Mark vs oracle"
+              value={<Counted value={markVsOracle} format={(n) => fmtSignedBp(n)} />}
+              tone={
+                markVsOracle == null || Math.abs(markVsOracle) < 0.005
+                  ? undefined
+                  : markVsOracle > 0
+                    ? "text-bid-green"
+                    : "text-ask-red"
+              }
+            />
+            <StripStat
+              label="Funding / h"
+              value={<Counted value={live?.fundingRate} format={(n) => `${(n * 100).toFixed(4)}%`} />}
+            />
+          </div>
+
+          <div className="-mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none] xl:ml-auto [&::-webkit-scrollbar]:hidden">
+            <SegmentedToggle
+              options={markets.map((m) => ({ value: m, label: m.replace(/-USD$/i, "") }))}
+              value={symbol}
+              onChange={pickMarket}
+              layoutId="stats-market-pill"
+            />
+          </div>
+        </div>
+      </PanelCard>
+
+      <PanelCard glossy glossDelay={-11}>
+        <TwoSidedLiquidity book={book} mid={top.mid} focus={band} onFocus={setBand} />
+      </PanelCard>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <PanelCard glossy glossDelay={-9}>
+          <CostCalculator
+            base={base}
+            decimals={decimals}
+            top={top}
+            side={side}
+            onSide={setSide}
+            orderType={orderType}
+            onOrderType={setOrderType}
+            sizeUsd={sizeUsd}
+            onSize={setSizeUsd}
+            tier={tier}
+            onTier={setTier}
+            rebateId={rebateId}
+            onRebate={setRebateId}
+            onWalletTier={setWalletTier}
+            cost={cost}
+            marketCost={marketCost}
+          />
+        </PanelCard>
+        {/* Both chart cards grow to split the height the calculator sets,
+            so the column ends level with it instead of leaving a gap. */}
+        <div className="flex min-w-0 flex-col gap-4">
+          <PanelCard glossy glossDelay={-13} className="flex-[3]">
+            <DepthChart market={shownSymbol} book={book} mid={top.mid} cost={marketCost} decimals={decimals} />
+          </PanelCard>
+          <PanelCard glossy glossDelay={-2} className="flex-[2]">
+            <CostCurve
+              book={book}
+              side={side}
+              takerBps={feeTier.takerBps}
+              sizeUsd={sizeUsd}
+              onPickSize={setSizeUsd}
+            />
+          </PanelCard>
+        </div>
+      </div>
+
+      <PanelCard glossy glossDelay={-6}>
+        <FeeTierTable
+          selected={tier}
+          onSelect={setTier}
+          walletTier={walletTier}
+          cost={cost}
+          orderType={orderType}
+          rebateBps={rebateBps}
+        />
+      </PanelCard>
+    </div>
+    </SwapProvider>
+  );
+}

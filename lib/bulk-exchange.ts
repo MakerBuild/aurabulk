@@ -102,6 +102,55 @@ export async function fetchKlines(
   return data as ExchangeCandle[];
 }
 
+export interface BookLevel {
+  px: number;
+  sz: number;
+  n: number;
+}
+
+/** Full L2 snapshot, best price first on each side. The endpoint takes
+ *  `coin` and `type=l2book` — lowercase: `l2Book` is a bare 400. */
+export async function fetchL2Book(
+  symbol: string,
+): Promise<{ bids: BookLevel[]; asks: BookLevel[]; timestamp: number } | null> {
+  const params = new URLSearchParams({ coin: symbol, type: "l2book" });
+  const res = await exchangeFetch(`/l2book?${params.toString()}`, { noStore: true });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { levels?: [BookLevel[], BookLevel[]]; timestamp?: number };
+  if (!Array.isArray(data.levels) || data.levels.length < 2) return null;
+  return { bids: data.levels[0], asks: data.levels[1], timestamp: Number(data.timestamp) || 0 };
+}
+
+export interface ExchangeTicker {
+  symbol: string;
+  lastPrice: number;
+  markPrice: number;
+  oraclePrice: number;
+  fundingRate: number;
+  openInterest: number;
+}
+
+export async function fetchTicker(symbol: string): Promise<ExchangeTicker | null> {
+  const res = await exchangeFetch(`/ticker/${encodeURIComponent(symbol)}`, { noStore: true });
+  if (!res.ok) return null;
+  return (await res.json()) as ExchangeTicker;
+}
+
+export interface ExchangeMarketInfo {
+  symbol: string;
+  status: string;
+  pricePrecision: number;
+}
+
+/** Markets currently open for trading — the rest are listed as SUSPENDED. */
+export async function fetchTradingMarkets(revalidate = 3600): Promise<ExchangeMarketInfo[]> {
+  const res = await exchangeFetch("/exchangeInfo", { revalidate });
+  if (!res.ok) return [];
+  const data = (await res.json()) as unknown;
+  if (!Array.isArray(data)) return [];
+  return (data as ExchangeMarketInfo[]).filter((m) => m.status === "TRADING");
+}
+
 export function marketBase(symbol: string): string {
   return symbol.replace(/-USD$/i, "").toUpperCase();
 }

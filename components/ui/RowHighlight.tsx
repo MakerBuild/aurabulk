@@ -2,12 +2,16 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { cn } from "@/lib/utils";
 
 type Box = { x: number; y: number; w: number; h: number };
 
 /** Tuned to glide rather than bounce: it has to keep up with a cursor
- * sweeping down a table without trailing a row behind it. */
-const SLIDE = { type: "spring", stiffness: 520, damping: 44, mass: 0.7 } as const;
+ * sweeping down a table without trailing a row behind it. The slider thumb
+ * rides the same spring, so everything that follows the pointer on the site
+ * moves with one feel. */
+export const GLIDE_SPRING = { stiffness: 520, damping: 44, mass: 0.7 } as const;
+const SLIDE = { type: "spring", ...GLIDE_SPRING } as const;
 const FADE = { duration: 0.18, ease: "easeOut" } as const;
 
 /**
@@ -32,10 +36,14 @@ const FADE = { duration: 0.18, ease: "easeOut" } as const;
 export function RowHighlight({
   containerRef,
   target,
+  className,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   /** The row to sit on, or null to fade out where it is. */
   target: HTMLElement | null;
+  /** Replaces the default fill — e.g. an accent tint for a selected row that
+   *  should glide the same way the hover does. */
+  className?: string;
 }) {
   const [box, setBox] = useState<Box | null>(null);
   const shown = target != null && box != null;
@@ -73,7 +81,10 @@ export function RowHighlight({
   return (
     <motion.div
       aria-hidden="true"
-      className="pointer-events-none absolute left-0 top-0 -z-10 rounded-md bg-[rgb(var(--t-veil-rgb)/0.045)]"
+      className={cn(
+        "pointer-events-none absolute left-0 top-0 -z-10 rounded-md bg-[rgb(var(--t-veil-rgb)/0.045)]",
+        className,
+      )}
       initial={false}
       animate={
         box

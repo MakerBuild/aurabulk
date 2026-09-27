@@ -1,16 +1,17 @@
 "use client";
 
-import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FDV_SCENARIOS, cn, formatNumber, formatUsd } from "@/lib/utils";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
 import { APR_TOTAL_AURA_SUPPLY } from "@/lib/overview-metrics";
 import { computeFdv } from "@/lib/percentiles";
 import { useLiveFinancials } from "@/components/live/LiveFinancialProvider";
-import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { PanelCard, PanelLabel } from "@/components/overview/PanelCard";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { UnderlineTabs } from "@/components/ui/UnderlineTabs";
+import { TickSlider } from "@/components/ui/TickSlider";
+import { FieldLabel } from "@/components/ui/FieldLabel";
 import {
   Area,
   AreaChart,
@@ -489,7 +490,12 @@ function EstimatorWorkbench({
                   {Math.round(allocation)}%
                 </span>
               </div>
-              <AllocationSlider value={allocation} onChange={setAllocation} />
+              <TickSlider
+                value={allocation}
+                onChange={setAllocation}
+                label="Allocation"
+                valueText={`${Math.round(allocation)}%`}
+              />
             </div>
 
             {/* Market assumptions — collapsible FDV + airdrop cap */}
@@ -632,181 +638,6 @@ function EstimatorWorkbench({
         currentValue={result.userValue}
       />
     </>
-  );
-}
-
-/** Vertical-tick track + pill thumb. Ticks are integer device-pixel rects —
- *  a CSS repeating mask aliases into broken strokes and uneven gaps. */
-function AllocationSlider({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const valueRef = useRef(value);
-  valueRef.current = value;
-  const uid = useId().replace(/:/g, "");
-  const [dragging, setDragging] = useState(false);
-  const [trackW, setTrackW] = useState(0);
-  const clamped = Math.min(100, Math.max(0, value));
-  const padX = 10;
-  const innerW = Math.max(0, trackW - padX * 2);
-
-  useLayoutEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    let raf = 0;
-    const update = () => {
-      const next = el.clientWidth;
-      setTrackW((prev) => (prev === next ? prev : next));
-    };
-    update();
-    const ro = new ResizeObserver(() => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        update();
-      });
-    });
-    ro.observe(el);
-    return () => {
-      ro.disconnect();
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
-  const ticks = useMemo(() => {
-    const devW = Math.max(0, Math.round(innerW * dpr));
-    const tick = Math.max(1, Math.round(dpr));
-    const gap = Math.max(2, Math.round(3 * dpr));
-    const n = Math.max(1, Math.floor((devW + gap) / (tick + gap)));
-    const used = n * tick + (n - 1) * gap;
-    const origin = Math.floor((devW - used) / 2);
-    const xs: number[] = [];
-    for (let i = 0; i < n; i++) xs.push(origin + i * (tick + gap));
-    return { devW, tick, xs };
-  }, [innerW, dpr]);
-
-  const commit = (next: number) => {
-    const snapped = Math.min(100, Math.max(0, Math.round(next)));
-    if (snapped === valueRef.current) return;
-    onChange(snapped);
-  };
-
-  const setFromClientX = (clientX: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const inner = rect.width - padX * 2;
-    if (inner <= 0) return;
-    const ratio = Math.min(1, Math.max(0, (clientX - rect.left - padX) / inner));
-    commit(ratio * 100);
-  };
-
-  const maskId = `${uid}-ticks`;
-  const clipId = `${uid}-clip`;
-  const svgH = Math.max(8, Math.round(14 * dpr));
-  const fillW = ticks.devW * (clamped / 100);
-
-  return (
-    <div
-      ref={trackRef}
-      role="slider"
-      aria-label="Allocation"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(clamped)}
-      aria-valuetext={`${Math.round(clamped)}%`}
-      tabIndex={0}
-      className="relative h-8 min-w-0 cursor-pointer touch-none overflow-hidden rounded-full border border-[var(--color-line-strong)] bg-[rgb(var(--t-veil-rgb)/0.035)] outline-none select-none focus-visible:ring-1 focus-visible:ring-accent/50"
-      onPointerDown={(e) => {
-        e.currentTarget.setPointerCapture(e.pointerId);
-        setDragging(true);
-        setFromClientX(e.clientX);
-      }}
-      onPointerMove={(e) => {
-        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-        setFromClientX(e.clientX);
-      }}
-      onPointerUp={() => setDragging(false)}
-      onPointerCancel={() => setDragging(false)}
-      onKeyDown={(e) => {
-        if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
-          e.preventDefault();
-          commit(Math.round(clamped) - 1);
-        } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
-          e.preventDefault();
-          commit(Math.round(clamped) + 1);
-        } else if (e.key === "Home") {
-          e.preventDefault();
-          commit(0);
-        } else if (e.key === "End") {
-          e.preventDefault();
-          commit(100);
-        }
-      }}
-    >
-      <div className="pointer-events-none absolute inset-[7px_10px] min-w-0 overflow-hidden">
-        {ticks.devW > 0 && (
-          <svg
-            aria-hidden="true"
-            viewBox={`0 0 ${ticks.devW} ${svgH}`}
-            preserveAspectRatio="none"
-            className="block h-full w-full"
-            style={{ minWidth: 0, overflow: "hidden" }}
-            shapeRendering="crispEdges"
-          >
-            <defs>
-              <mask id={maskId} maskUnits="userSpaceOnUse">
-                {ticks.xs.map((x) => (
-                  <rect
-                    key={x}
-                    x={x}
-                    y={0}
-                    width={ticks.tick}
-                    height={svgH}
-                    /* Mask channel, not a colour: white = opaque. Must not
-                       be themed or the tick mask stops masking. */
-                    fill="#fff"
-                  />
-                ))}
-              </mask>
-              <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
-                <rect x="0" y="0" width={fillW} height={svgH} />
-              </clipPath>
-            </defs>
-            <rect
-              x="0"
-              y="0"
-              width={ticks.devW}
-              height={svgH}
-              fill="rgb(var(--t-veil-rgb)/0.16)"
-              mask={`url(#${maskId})`}
-            />
-            <rect
-              x="0"
-              y="0"
-              width={ticks.devW}
-              height={svgH}
-              fill="var(--t-accent)"
-              mask={`url(#${maskId})`}
-              clipPath={`url(#${clipId})`}
-            />
-          </svg>
-        )}
-      </div>
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 h-[18px] w-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.4),0_1px_6px_rgba(0,0,0,0.45)]"
-        style={{
-          left: `calc(${padX}px + (100% - ${padX * 2}px) * ${clamped / 100})`,
-          transition: dragging ? undefined : "left 180ms cubic-bezier(0.22, 1, 0.36, 1)",
-        }}
-      />
-    </div>
   );
 }
 
@@ -1194,24 +1025,6 @@ function FdvScenarioPanel({
   );
 }
 
-function FieldLabel({
-  label,
-  info,
-  accent,
-}: {
-  label: string;
-  info?: string;
-  accent?: boolean;
-}) {
-  return (
-    <span className="flex min-w-0 items-center gap-1">
-      <span className={cn("font-label leading-none", accent ? "text-accent" : "text-text-muted")}>
-        {label}
-      </span>
-      {info ? <InfoTooltip text={info} floating panelClassName="w-64" /> : null}
-    </span>
-  );
-}
 
 /** Million / Billion switch — equal cells, label dead-centered in each. */
 function UnitToggle({

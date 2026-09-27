@@ -5,9 +5,12 @@ import { cn } from "@/lib/utils";
 import { usdBoard } from "@/components/overview/spark-format";
 import { useInViewOnce } from "@/components/overview/use-in-view-once";
 
-type NumberFormat = "usd-board" | "plain";
+/** A named format, or any formatter — the Stats strip counts prices to the
+ *  market's own decimals, bp and percentages through the same effect. */
+type NumberFormat = "usd-board" | "plain" | ((n: number) => string);
 
 function formatValue(n: number, format: NumberFormat): string {
+  if (typeof format === "function") return format(n);
   return format === "usd-board" ? usdBoard(n) : Math.round(n).toLocaleString("en-US");
 }
 

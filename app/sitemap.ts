@@ -5,6 +5,7 @@ const SITE_URL = "https://www.aurabulk.xyz";
 const ROUTES: { path: string; priority: number }[] = [
   { path: "", priority: 1 },
   { path: "/aura", priority: 0.8 },
+  { path: "/stats", priority: 0.7 },
   { path: "/leaderboards", priority: 0.8 },
   { path: "/tools", priority: 0.6 },
   { path: "/trade", priority: 0.4 },

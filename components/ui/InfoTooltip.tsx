@@ -118,9 +118,26 @@ export function InfoTooltip({ text, panelClassName }: InfoTooltipProps) {
           if (event.detail !== 0) return;
           setOpen((wasOpen) => !wasOpen);
         }}
-        className="help-dot flex h-[17px] w-[17px] cursor-default items-center justify-center rounded-full border text-[10.5px] font-semibold leading-none transition-colors focus:outline-none"
+        className="help-dot flex h-[17px] w-[17px] cursor-default items-center justify-center rounded-full border transition-colors focus:outline-none"
       >
-        ?
+        {/* Drawn, not typed: the font's "?" sits low and off to one side of
+            its own box, so no line-height or padding centres it everywhere.
+            This mark is built around the middle of its viewBox. */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="h-[11px] w-[11px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {/* Measured: with its stroke the mark spans the viewBox centre
+              exactly on both axes (12, 12). */}
+          <path d="M8.6 7.77a3.5 3.5 0 0 1 6.8 1.1c0 2.3-3.4 3-3.4 5" />
+          <path d="M12 18.57h.01" />
+        </svg>
       </button>
 
       {mounted &&

@@ -38,6 +38,13 @@
   --t-red: #ef4a3c;
   --t-red-rgb: 239 74 60;
 
+  /* Order-book secondaries: the far end of the bids and asks gradients.
+     Each side runs from its status colour at the touch to this one out in
+     the book, so depth reads as distance from the price. Same in both
+     themes, like the status pair they extend. */
+  --t-green-deep: #134a55;
+  --t-red-deep: #6e1742;
+
   /* Supporting data tones + the ramp interpolated between them,
      ordered most prominent -> least against this theme's background. */
   --t-chart-b-rgb: 198 182 186;
@@ -48,6 +55,12 @@
   --t-ramp-4: #7a6e71;
   --t-ramp-5: #675c5e;
   --t-ramp-6: #544a4c;
+
+  /* Cost breakdown (spread · slippage · fee = accent): three hues that stay
+     apart for every kind of colour vision — validated as a set on this
+     surface, worst pair ΔE 20 CVD / 22 normal. */
+  --t-cost-spread: #3987e5;
+  --t-cost-slippage: #d95926;
 
   /* Hairlines — structural lines stay soft; panels prefer elevation. */
   --t-line: rgba(255, 255, 255, 0.06);
@@ -90,6 +103,10 @@
   --t-ramp-4: #aa9da0;
   --t-ramp-5: #b8a9ad;
   --t-ramp-6: #c6b6ba;
+
+  /* Same roles stepped for the cream surface: worst pair ΔE 25 / 28. */
+  --t-cost-spread: #2a78d6;
+  --t-cost-slippage: #eb6834;
 
   --t-line: rgba(27, 26, 20, 0.1);
   --t-line-soft: rgba(27, 26, 20, 0.06);
