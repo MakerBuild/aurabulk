@@ -103,6 +103,13 @@ function settled(el: HTMLElement): Promise<void> {
   });
 }
 
+/** Safari on any device, and every iOS browser, which all run on WebKit. */
+function isWebKit(): boolean {
+  const ua = navigator.userAgent;
+  const iOS = /iP(hone|ad|od)/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return iOS || (/Safari\//.test(ua) && !/Chrome|Chromium|CriOS|Edg|Android/.test(ua));
+}
+
 function cssVar(name: string, fallback: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 }
@@ -278,8 +285,22 @@ export async function buildSnapshotPng(elements: HTMLElement[]): Promise<Blob> {
   const bg = cssVar("--t-base", "#0b0b0c");
   // The page's own faces, embedded once and shared by every card, so the
   // image is set in Familjen and Overpass rather than a system fallback.
-  const fontEmbedCSS = await getFontEmbedCSS(elements[0]).catch(() => undefined);
+  // Collected from the whole page, not the first card, so a face only a
+  // later card uses is embedded too.
+  const fontRoot = document.querySelector<HTMLElement>("main") ?? elements[0];
+  const fontEmbedCSS = await getFontEmbedCSS(fontRoot).catch(() => undefined);
   const options = { pixelRatio: RATIO, cacheBust: true, fontEmbedCSS, skipFonts: fontEmbedCSS == null };
+
+  // WebKit (Safari, and every browser on an iPhone) loads the fonts embedded
+  // in a capture only as it draws it, so the first capture came out in the
+  // system face: heavier figures, labels wrapping. Throwaway draws first,
+  // small and quick, get the faces loaded before any card that counts; one
+  // is not always enough there, so two.
+  if (isWebKit()) {
+    for (let i = 0; i < 2; i++) {
+      await toCanvas(elements[0], { ...options, pixelRatio: 1 }).catch(() => undefined);
+    }
+  }
 
   const { rows, width } = planLayout(
     elements.map((el) => {
