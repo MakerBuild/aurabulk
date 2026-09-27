@@ -32,9 +32,27 @@ const EMPTY_BOOK: Book = { bids: [], asks: [] };
  *  label left, value right, on a hairline — so five figures read as one
  *  list rather than wrapping into a ragged 3 + 2. From sm up it is the
  *  label-over-value pair in a single line with the rest. */
-function StripStat({ label, value, tone }: { label: string; value: ReactNode; tone?: string }) {
+function StripStat({
+  label,
+  value,
+  tone,
+  width,
+}: {
+  label: string;
+  value: ReactNode;
+  tone?: string;
+  /** A fixed width from sm up, sized to the widest value any market shows
+   *  here, so switching market (or a count running through it) never
+   *  shifts the figures beside it. */
+  width: string;
+}) {
   return (
-    <div className="flex h-9 min-w-0 items-center justify-between gap-3 border-t border-[var(--color-line-soft)] sm:h-auto sm:flex-col sm:items-start sm:justify-start sm:gap-1.5 sm:border-0">
+    <div
+      className={cn(
+        "flex h-9 min-w-0 items-center justify-between gap-3 border-t border-[var(--color-line-soft)] sm:h-auto sm:flex-col sm:items-start sm:justify-start sm:gap-1.5 sm:border-0",
+        width,
+      )}
+    >
       <span className="font-label leading-none text-text-muted">{label}</span>
       <span className={cn("font-data truncate-safe leading-none text-text-primary", tone)}>
         {value}
@@ -128,10 +146,15 @@ export function StatsDashboard() {
           lands on what is being traded before the detail around it. */}
       <PanelCard glossy glossDelay={-4} className="py-3 sm:py-3.5">
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-          <div className="order-1 flex min-w-0 items-center gap-5 sm:order-none">
-            <div className="flex flex-col gap-1.5">
+          {/* On a phone the pair is centred on the rule between them: the
+              market reads right-aligned into it and the price left-aligned out
+              of it, so the rule holds still whatever the symbol or price. */}
+          <div className="order-1 flex w-full min-w-0 items-center sm:order-none sm:w-auto sm:gap-5">
+            <div className="flex flex-1 flex-col items-end gap-1.5 pr-5 sm:flex-none sm:items-start sm:pr-0">
               <span className="flex items-baseline gap-2">
-                <span className="font-figure text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
+                {/* Wide enough for the widest symbol (PUMP), in ems so it
+                    holds at every size this figure is set in. */}
+                <span className="font-figure text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:min-w-[2.75em] sm:text-[28px] xl:text-[30px]">
                   <SwapValue>{base}</SwapValue>
                 </span>
                 <span className="font-label text-accent">Perp</span>
@@ -144,8 +167,10 @@ export function StatsDashboard() {
                 <SwapValue>{updated ? `${updated} UTC` : "Connecting…"}</SwapValue>
               </span>
             </div>
-            <div className="flex flex-col gap-1.5 border-l border-[var(--color-line)] pl-5">
-              <span className="font-figure text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
+            <div className="flex flex-1 flex-col gap-1.5 border-l border-[var(--color-line)] pl-5 sm:flex-none">
+              {/* Holds the widest price (0.00412345) so the count running
+                  from one market's price to the next moves nothing beside it. */}
+              <span className="font-figure text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:min-w-[5.3em] sm:text-[28px] xl:text-[30px]">
                 <Counted value={top.mid} format={(n) => fmtPrice(n, decimals)} />
               </span>
               <span className="font-label leading-none text-text-muted">Mid price</span>
@@ -154,17 +179,27 @@ export function StatsDashboard() {
 
           {/* After the market switcher on a phone, beside the price from sm. */}
           <div className="order-3 flex w-full flex-col sm:order-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-3">
-            <StripStat label="Spread" value={<Counted value={top.spreadBp} format={(n) => fmtBp(n)} />} />
+            {/* Widths measured in the strip's own type: prices run to ten
+                characters (0.00412345, 10,672.043), bp and funding to about
+                eight, and "Mark vs oracle" is set by its label. */}
+            <StripStat
+              label="Spread"
+              width="sm:w-[64px]"
+              value={<Counted value={top.spreadBp} format={(n) => fmtBp(n)} />}
+            />
             <StripStat
               label="Mark"
+              width="sm:w-[80px]"
               value={<Counted value={live?.markPrice} format={(n) => fmtPrice(n, decimals)} />}
             />
             <StripStat
               label="Oracle"
+              width="sm:w-[80px]"
               value={<Counted value={live?.oraclePrice} format={(n) => fmtPrice(n, decimals)} />}
             />
             <StripStat
               label="Mark vs oracle"
+              width="sm:w-[100px]"
               value={<Counted value={markVsOracle} format={(n) => fmtSignedBp(n)} />}
               tone={
                 markVsOracle == null || Math.abs(markVsOracle) < 0.005
@@ -176,6 +211,7 @@ export function StatsDashboard() {
             />
             <StripStat
               label="Funding / h"
+              width="sm:w-[76px]"
               value={<Counted value={live?.fundingRate} format={(n) => `${(n * 100).toFixed(4)}%`} />}
             />
           </div>
