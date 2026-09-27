@@ -174,18 +174,22 @@ export function SnapshotButton() {
         onClick={() => (active ? close() : setActive(true))}
         aria-pressed={active}
         title="Snapshot: copy cards from this page as an image"
+        aria-label="Snapshot"
         className={cn(
           // Not on the narrowest phones: there the wordmark needs the room,
           // and Snapshot lives in the Menu instead.
-          "hidden h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-lg border transition-colors sm:inline-flex lg:h-auto lg:w-auto lg:border-0 lg:px-0",
-          "font-sans text-[12px] font-semibold uppercase tracking-[0.14em]",
-          active
-            ? "border-accent bg-[rgb(var(--t-accent-rgb)/0.14)] text-accent lg:bg-transparent"
-            : "border-[rgb(var(--t-accent-rgb)/0.4)] text-accent lg:text-text-muted lg:hover:text-text-primary",
+          //
+          // Just the camera, in the accent, like the sun and moon beside it:
+          // the glow on hover is the same one the theme switch's body gets.
+          "group hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg text-accent transition-colors sm:inline-flex",
+          "focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-accent",
+          active ? "bg-[rgb(var(--t-accent-rgb)/0.14)]" : "hover:bg-[rgb(var(--t-accent-rgb)/0.08)]",
         )}
       >
-        <Camera className="h-[15px] w-[15px]" strokeWidth={2.2} />
-        <span className="hidden lg:inline">Snapshot</span>
+        <Camera
+          className="h-[17px] w-[17px] transition-[filter] duration-200 group-hover:drop-shadow-[0_0_6px_rgb(var(--t-accent-rgb)/0.6)]"
+          strokeWidth={2.2}
+        />
       </button>
 
       {mounted &&
@@ -201,7 +205,21 @@ export function SnapshotButton() {
               >
                 {/* Frames over each card. Under the sticky header (z-50) so
                     they slide beneath it on scroll like the cards do. */}
-                {blocks.map((b) => {
+                {/* While the image is drawn, cards may be redrawn at the width
+                    the picture needs; a veil keeps that reshuffle off screen. */}
+                <AnimatePresence>
+                  {status === "working" && (
+                    <motion.div
+                      key="snapshot-veil"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="fixed inset-0 z-40 bg-[rgb(var(--t-base-rgb)/0.72)] backdrop-blur-md"
+                    />
+                  )}
+                </AnimatePresence>
+                {status !== "working" && blocks.map((b) => {
                   const r = b.el.getBoundingClientRect();
                   const on = selected.has(b.el);
                   return (
@@ -238,7 +256,7 @@ export function SnapshotButton() {
                   transition={{ duration: 0.36, ease: EASE }}
                   className="fixed inset-x-0 bottom-4 z-[80] flex justify-center px-4"
                 >
-                  <div className="flex max-w-full items-center gap-2 rounded-full border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] p-1.5 pl-4 shadow-[0_18px_44px_rgba(0,0,0,0.45)]">
+                  <div className="flex max-w-full items-center gap-2 rounded-full border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] p-1.5 pl-4 shadow-[var(--t-shadow-pop)]">
                     <span className="font-label whitespace-nowrap text-text-muted">
                       {picked.length ? `${picked.length} selected` : "Pick cards"}
                     </span>
