@@ -8,10 +8,12 @@ import { Camera, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { HeaderCampaignStatus } from "@/components/layout/HeaderCampaignStatus";
 import { cn } from "@/lib/utils";
-import { dropdownMotion } from "@/components/ui/dropdown-motion";
+import { dropdownMotion, dropdownRow } from "@/components/ui/dropdown-motion";
 import { SNAPSHOT_OPEN_EVENT } from "@/components/snapshot/SnapshotButton";
 
 const menuMotion = dropdownMotion();
+const menuRow = dropdownRow();
+const MotionLink = motion.create(Link);
 
 interface NavItem {
   href: string;
@@ -168,26 +170,28 @@ export function SiteNav() {
             </button>
             {/* inert while closed: it is only faded out, and its links must
                 not stay reachable by Tab or screen reader. */}
-            {/* Unrolls like every dropdown on the site (dropdownMotion). It
-                stays mounted — only faded and clipped away — so it is inert
-                while closed. */}
+            {/* Opens like every dropdown on the site (dropdownMotion), its
+                links stepping down one after another. It stays mounted, only
+                faded away, so it is inert while closed. */}
             <motion.nav
               id="site-nav-menu"
               aria-label="Sections"
               inert={!menuOpen}
               initial={false}
               animate={menuOpen ? "open" : "closed"}
-              variants={{ open: menuMotion.animate, closed: menuMotion.exit }}
+              variants={menuMotion.variants}
               className={cn(
-                "absolute right-0 top-full z-[60] mt-2 min-w-[220px] rounded-[10px] border border-[rgb(var(--t-accent-rgb)/0.22)] bg-[var(--color-bulk-base)] p-1.5 shadow-[0_20px_48px_rgba(0,0,0,0.72)]",
+                "absolute right-0 top-full z-[60] mt-2 min-w-[220px] rounded-[10px] border border-[rgb(var(--t-accent-rgb)/0.22)] bg-[var(--color-bulk-base)] p-1.5 shadow-[var(--t-shadow-pop)]",
                 menuOpen ? "pointer-events-auto" : "pointer-events-none"
               )}
             >
-              {NAV.map((link) => {
+              {NAV.map((link, i) => {
                 const active = isActive(pathname, link);
                 return (
-                  <Link
+                  <MotionLink
                     key={link.href}
+                    custom={i}
+                    variants={menuRow}
                     href={link.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
@@ -204,13 +208,20 @@ export function SiteNav() {
                       />
                     )}
                     {link.label}
-                  </Link>
+                  </MotionLink>
                 );
               })}
               {/* The header has no room for the Snapshot button on a phone,
                   so it is here instead, under the pages. */}
-              <div className="my-1 h-px bg-[var(--color-line)] sm:hidden" aria-hidden />
-              <button
+              <motion.div
+                custom={NAV.length}
+                variants={menuRow}
+                className="my-1 h-px bg-[var(--color-line)] sm:hidden"
+                aria-hidden
+              />
+              <motion.button
+                custom={NAV.length}
+                variants={menuRow}
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
@@ -220,7 +231,7 @@ export function SiteNav() {
               >
                 <Camera className="h-3.5 w-3.5 text-accent" strokeWidth={2.2} />
                 Snapshot
-              </button>
+              </motion.button>
             </motion.nav>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RowHighlight } from "@/components/ui/RowHighlight";
-import { dropdownMotion } from "@/components/ui/dropdown-motion";
+import { dropdownMotion, dropdownRow } from "@/components/ui/dropdown-motion";
 
 export interface SelectOption {
   value: string;
@@ -44,6 +44,8 @@ export function Select({ value, onChange, options, className, compact }: SelectP
   const listId = useId();
   const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState<MenuCoords | null>(null);
+  const opensUpward = coords?.bottom != null;
+  const rowVariants = dropdownRow(opensUpward);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -214,10 +216,9 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                 tabIndex={-1}
                 aria-activedescendant={`${listId}-${activeIndex}`}
                 onKeyDown={onListKeyDown}
-                // Unrolls from the edge it hangs off — the site's dropdown
-                // motion. No scale: the highlight measures option positions
-                // on screen, and a scaled list would throw its box off.
-                {...dropdownMotion(coords?.bottom != null)}
+                // The site's dropdown motion: the panel drifts in from the
+                // edge it hangs off and the options step down after it.
+                {...dropdownMotion(opensUpward)}
                 style={{
                   position: "fixed",
                   top: coords?.top,
@@ -228,7 +229,7 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                   visibility: coords ? "visible" : "hidden",
                 }}
                 className={cn(
-                  "isolate z-50 overflow-x-hidden overflow-y-auto rounded-[10px] outline-none border border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] p-1 font-sans shadow-[0_12px_30px_rgba(0,0,0,0.45)]",
+                  "isolate z-50 overflow-x-hidden overflow-y-auto rounded-[10px] outline-none border border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] p-1 font-sans shadow-[var(--t-shadow-pop)]",
                   compact ? "text-[13px]" : "text-sm"
                 )}
               >
@@ -263,8 +264,18 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                             : "text-text-secondary"
                       )}
                     >
-                      {o.label}
-                      {selectedOption && <Check className="h-3.5 w-3.5" />}
+                      {/* The step is on the content, not the option: the
+                          highlight measures the option, and has to find it
+                          where it will be, not mid-step. */}
+                      <motion.span
+                        // Nearest the trigger first, whichever way it opens.
+                        custom={opensUpward ? options.length - 1 - i : i}
+                        variants={rowVariants}
+                        className="flex w-full items-center justify-between"
+                      >
+                        {o.label}
+                        {selectedOption && <Check className="h-3.5 w-3.5" />}
+                      </motion.span>
                     </li>
                   );
                 })}

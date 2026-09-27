@@ -408,7 +408,7 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                     const row = payload[0]?.payload as CategoryChartRow | undefined;
                     if (!row) return null;
                     return (
-                      <div className="rounded-[4px] border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3 py-2.5 shadow-[0_14px_36px_rgba(0,0,0,.55)]">
+                      <div className="rounded-[4px] border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3 py-2.5 shadow-[var(--t-shadow-pop)]">
                         <p className="m-0 mb-1.5 font-sans text-[13px] font-medium leading-none text-[var(--t-text-primary)]">
                           {String(label)}
                         </p>

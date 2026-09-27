@@ -75,6 +75,13 @@
   /* Wash used for hover/idle veils. Light flips it so the same rules tint
      downward on cream instead of disappearing into it. */
   --t-veil-rgb: 255 255 255;
+
+  /* Anything that floats over the page (dropdowns, the menu): a tight
+     contact shade under a wide, faint falloff, each layer pulled in by a
+     negative spread so the edge fades out instead of drawing a dark rim. */
+  --t-shadow-pop:
+    0 1px 2px rgb(0 0 0 / 0.2), 0 8px 20px -6px rgb(0 0 0 / 0.35),
+    0 28px 56px -16px rgb(0 0 0 / 0.5);
 }
 
 :root[data-theme="light"] {
@@ -114,6 +121,10 @@
 
   --t-spark-line: #1b1a14;
   --t-veil-rgb: 27 26 20;
+
+  --t-shadow-pop:
+    0 1px 2px rgb(27 26 20 / 0.05), 0 6px 16px -4px rgb(27 26 20 / 0.08),
+    0 20px 44px -12px rgb(27 26 20 / 0.14);
 }
 
 @theme inline {

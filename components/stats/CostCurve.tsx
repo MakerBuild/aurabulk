@@ -319,7 +319,7 @@ export function CostCurve({
 
         {hover && model && (
           <div
-            className="pointer-events-none absolute top-2 z-10 min-w-[190px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[0_14px_36px_rgba(0,0,0,.55)]"
+            className="pointer-events-none absolute top-2 z-10 min-w-[190px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[var(--t-shadow-pop)]"
             style={
               model.x(hover.size) > width / 2
                 ? { right: width - model.x(hover.size) + 10 }

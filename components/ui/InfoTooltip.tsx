@@ -159,7 +159,7 @@ export function InfoTooltip({ text, panelClassName }: InfoTooltipProps) {
                   visibility: coords ? "visible" : "hidden",
                 }}
                 className={cn(
-                  "z-50 w-60 rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] p-3 text-left text-xs font-normal leading-relaxed text-text-secondary shadow-[0_12px_30px_rgba(0,0,0,0.45)]",
+                  "z-50 w-60 rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] p-3 text-left text-xs font-normal leading-relaxed text-text-secondary shadow-[var(--t-shadow-pop)]",
                   panelClassName
                 )}
               >

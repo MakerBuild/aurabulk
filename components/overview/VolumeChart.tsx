@@ -246,7 +246,7 @@ export function VolumeChart() {
                   const row = tip[0]?.payload as VolumeBucket | undefined;
                   if (!row) return null;
                   return (
-                    <div className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[0_14px_36px_rgba(0,0,0,.55)]">
+                    <div className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[var(--t-shadow-pop)]">
                       <p className="font-data m-0 mb-1.5 text-text-muted">
                         {formatAxisTick(Number(label), range)}
                       </p>

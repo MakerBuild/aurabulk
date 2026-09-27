@@ -795,7 +795,7 @@ function TierTooltip({
     >
       <div
         ref={cardRef}
-        className="-translate-x-1/2 rounded-[4px] border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3 py-2.5 shadow-[0_14px_36px_rgba(0,0,0,.55)]"
+        className="-translate-x-1/2 rounded-[4px] border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3 py-2.5 shadow-[var(--t-shadow-pop)]"
       >
         <div className="mb-2 whitespace-nowrap text-center font-sans text-[13px] font-medium leading-none text-[var(--t-text-primary)]">
           {row.name}
