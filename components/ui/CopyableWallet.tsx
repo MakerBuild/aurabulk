@@ -45,6 +45,9 @@ export function CopyableWallet({
         title={copied ? "Copied!" : "Copy wallet address"}
         className={cn(
           "shrink-0 rounded p-0.5 text-text-secondary opacity-0 transition-opacity hover:text-accent focus-visible:opacity-100 group-hover:opacity-100",
+          // A touch screen has no hover to reveal it, so there it simply
+          // shows, with a larger target for a finger.
+          "[@media(hover:none)]:p-1.5 [@media(hover:none)]:opacity-70",
           copied && "!opacity-100 !text-bid-green"
         )}
       >

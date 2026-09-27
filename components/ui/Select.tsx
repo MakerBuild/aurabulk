@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RowHighlight } from "@/components/ui/RowHighlight";
+import { dropdownMotion } from "@/components/ui/dropdown-motion";
 
 export interface SelectOption {
   value: string;
@@ -213,13 +214,10 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                 tabIndex={-1}
                 aria-activedescendant={`${listId}-${activeIndex}`}
                 onKeyDown={onListKeyDown}
-                // Slide and fade only, no scale: the highlight measures option
-                // positions on screen, and a scaled list would throw its box
-                // off by a few pixels per row.
-                initial={{ opacity: 0, y: coords?.bottom != null ? 8 : -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: coords?.bottom != null ? 8 : -8 }}
-                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                // Unrolls from the edge it hangs off — the site's dropdown
+                // motion. No scale: the highlight measures option positions
+                // on screen, and a scaled list would throw its box off.
+                {...dropdownMotion(coords?.bottom != null)}
                 style={{
                   position: "fixed",
                   top: coords?.top,

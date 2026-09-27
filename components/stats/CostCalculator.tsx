@@ -78,7 +78,7 @@ function FooterCell({
         {swatch && <span className="h-2 w-2 shrink-0 rounded-[1px]" style={{ background: swatch }} />}
         {label}
       </p>
-      <p className={cn("font-data m-0 mt-1.5 truncate leading-none text-text-primary", tone)}>
+      <p className={cn("font-data m-0 mt-1.5 truncate-safe leading-none text-text-primary", tone)}>
         <SwapValue>{value}</SwapValue>
       </p>
     </div>

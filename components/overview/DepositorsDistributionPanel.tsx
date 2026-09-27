@@ -646,7 +646,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                     pulse={lit}
                     dimmed={dimmed}
                   />
-                  <span className="truncate">{row.name}</span>
+                  <span className="truncate-safe">{row.name}</span>
                 </span>
                 {narrow && metric === "value" ? (
                   <>

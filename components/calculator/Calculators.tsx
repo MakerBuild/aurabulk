@@ -554,7 +554,7 @@ function EstimatorWorkbench({
                       )}
                     >
                       <span className="font-label leading-none text-text-muted">{item.label}</span>
-                      <span className="truncate font-figure text-[15px] leading-none tracking-[-0.03em] text-text-primary">
+                      <span className="truncate-safe font-figure text-[15px] leading-none tracking-[-0.03em] text-text-primary">
                         {item.value}
                       </span>
                     </span>
@@ -739,14 +739,17 @@ function FdvValueChart({
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
           <PanelLabel>Your Airdrop Value</PanelLabel>
-          <p className="m-0 mt-2 truncate font-figure text-[clamp(24px,3vw,34px)] leading-none text-accent">
+          <p className="m-0 mt-2 truncate-safe font-figure text-[clamp(24px,3vw,34px)] leading-none text-accent">
             {formatUsdExact(shownValue)}
           </p>
         </div>
         {/* Read-only: the market cap is edited in the inputs card, and one
-            edit point per number keeps it clear which is the real one. */}
-        <div className="flex shrink-0 items-start gap-4 border-l border-[var(--color-line)] pl-4 sm:gap-6 sm:pl-6">
-          <div className="text-right">
+            edit point per number keeps it clear which is the real one.
+            On a phone the pair drops under the figure; there it takes the
+            whole row, one figure at each edge, instead of bunching on the
+            left behind a divider that no longer divides anything. */}
+        <div className="grid w-full grid-cols-2 gap-4 border-t border-[var(--color-line)] pt-3 sm:flex sm:w-auto sm:shrink-0 sm:items-start sm:gap-6 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+          <div className="text-left sm:text-right">
             <PanelLabel>Price per Aura</PanelLabel>
             <p className="font-data m-0 mt-1.5 text-[12px] font-semibold text-accent">
               ${shownAuraValue.toFixed(4)}

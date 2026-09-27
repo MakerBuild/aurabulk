@@ -209,7 +209,7 @@ export function MetricTableRow({
           pulse={!!pulseDot}
           dimmed={dimmed}
         />
-        <span className="truncate">{name}</span>
+        <span className="truncate-safe">{name}</span>
       </span>
 
       {/* Flush right, along with every column except the names. Digits line up

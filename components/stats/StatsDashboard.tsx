@@ -36,7 +36,7 @@ function StripStat({ label, value, tone }: { label: string; value: ReactNode; to
   return (
     <div className="flex h-9 min-w-0 items-center justify-between gap-3 border-t border-[var(--color-line-soft)] sm:h-auto sm:flex-col sm:items-start sm:justify-start sm:gap-1.5 sm:border-0">
       <span className="font-label leading-none text-text-muted">{label}</span>
-      <span className={cn("font-data truncate leading-none text-text-primary", tone)}>
+      <span className={cn("font-data truncate-safe leading-none text-text-primary", tone)}>
         {value}
       </span>
     </div>
@@ -180,8 +180,12 @@ export function StatsDashboard() {
             />
           </div>
 
-          <div className="order-2 -mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none] sm:order-none xl:ml-auto [&::-webkit-scrollbar]:hidden">
+          {/* On a phone the switcher is a 4 × 2 grid, every market in view: a
+              single scrolling row cut the last ticker off at the card edge.
+              `grid!` because .term-seg sets display outside the utilities. */}
+          <div className="order-2 w-full sm:order-none sm:-mx-1 sm:w-auto sm:max-w-full sm:overflow-x-auto sm:px-1 sm:[scrollbar-width:none] xl:ml-auto sm:[&::-webkit-scrollbar]:hidden">
             <SegmentedToggle
+              className="max-sm:grid! max-sm:grid-cols-4"
               options={markets.map((m) => ({ value: m, label: m.replace(/-USD$/i, "") }))}
               value={symbol}
               onChange={pickMarket}

@@ -70,7 +70,7 @@ export function StatSparkCard({
         {stats.map((stat) => (
           <div key={stat.label} className="min-w-0">
             <p className="font-label m-0 text-text-dim">{stat.label}</p>
-            <p className="font-data m-0 mt-1 truncate text-[11px] leading-none text-text-secondary tabular-nums">
+            <p className="font-data m-0 mt-1 truncate-safe text-[11px] leading-none text-text-secondary tabular-nums">
               {stat.value}
             </p>
           </div>

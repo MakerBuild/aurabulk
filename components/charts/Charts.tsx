@@ -72,6 +72,20 @@ function CategoryBar({
   );
 }
 
+let labelCanvas: CanvasRenderingContext2D | null = null;
+
+/** Width of a category name as the Y axis draws it (CATEGORY_NAME_SVG). The
+ *  font variable resolves to the loaded face; before that, and on the
+ *  server, a per-character estimate stands in. */
+function measureCategoryName(text: string): number {
+  if (typeof document === "undefined") return text.length * 7.6;
+  labelCanvas ??= document.createElement("canvas").getContext("2d");
+  const family = getComputedStyle(document.body).getPropertyValue("--font-familjen").trim();
+  if (!labelCanvas || !family) return text.length * 7.6;
+  labelCanvas.font = `${CATEGORY_NAME_SVG.fontWeight} ${CATEGORY_NAME_SVG.fontSize}px ${family}`;
+  return labelCanvas.measureText(text).width;
+}
+
 function CategoryYTick({
   x,
   y,
@@ -197,6 +211,14 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
       })),
     [chartData]
   );
+
+  // The label axis is as wide as its longest name, measured in the label
+  // font. A fixed 92px on a phone cut "Mainnet Trading" off at the front.
+  const labelAxisW = useMemo(() => {
+    const widest = Math.max(0, ...colored.map((r) => measureCategoryName(r.category)));
+    const floor = narrow ? 0 : isDrillDown ? 128 : 110;
+    return Math.min(170, Math.max(floor, Math.ceil(widest) + 14));
+  }, [colored, narrow, isDrillDown]);
 
   const segments = useMemo<OverviewDonutSegment[]>(
     () =>
@@ -364,7 +386,7 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                 <YAxis
                   type="category"
                   dataKey="category"
-                  width={narrow ? 92 : isDrillDown ? 128 : 110}
+                  width={labelAxisW}
                   interval={0}
                   padding={{ top: 0, bottom: 0 }}
                   tick={(props) => {
