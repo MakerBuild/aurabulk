@@ -28,10 +28,13 @@ import { cn } from "@/lib/utils";
 const POLL = { intervalMs: 2_000, minGapMs: 1_500 };
 const EMPTY_BOOK: Book = { bids: [], asks: [] };
 
-/** Supporting figure in the market strip: label over a mono value. */
+/** Supporting figure in the market strip. On a phone it is a table row —
+ *  label left, value right, on a hairline — so five figures read as one
+ *  list rather than wrapping into a ragged 3 + 2. From sm up it is the
+ *  label-over-value pair in a single line with the rest. */
 function StripStat({ label, value, tone }: { label: string; value: ReactNode; tone?: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
+    <div className="flex h-9 min-w-0 items-center justify-between gap-3 border-t border-[var(--color-line-soft)] sm:h-auto sm:flex-col sm:items-start sm:justify-start sm:gap-1.5 sm:border-0">
       <span className="font-label leading-none text-text-muted">{label}</span>
       <span className={cn("font-data truncate leading-none text-text-primary", tone)}>
         {value}
@@ -125,7 +128,7 @@ export function StatsDashboard() {
           lands on what is being traded before the detail around it. */}
       <PanelCard glossy glossDelay={-4} className="py-3 sm:py-3.5">
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-          <div className="flex min-w-0 items-center gap-5">
+          <div className="order-1 flex min-w-0 items-center gap-5 sm:order-none">
             <div className="flex flex-col gap-1.5">
               <span className="flex items-baseline gap-2">
                 <span className="font-figure text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
@@ -149,7 +152,8 @@ export function StatsDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
+          {/* After the market switcher on a phone, beside the price from sm. */}
+          <div className="order-3 flex w-full flex-col sm:order-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-3">
             <StripStat label="Spread" value={<Counted value={top.spreadBp} format={(n) => fmtBp(n)} />} />
             <StripStat
               label="Mark"
@@ -176,7 +180,7 @@ export function StatsDashboard() {
             />
           </div>
 
-          <div className="-mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none] xl:ml-auto [&::-webkit-scrollbar]:hidden">
+          <div className="order-2 -mx-1 max-w-full overflow-x-auto px-1 [scrollbar-width:none] sm:order-none xl:ml-auto [&::-webkit-scrollbar]:hidden">
             <SegmentedToggle
               options={markets.map((m) => ({ value: m, label: m.replace(/-USD$/i, "") }))}
               value={symbol}

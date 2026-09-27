@@ -27,45 +27,45 @@ export function PageHeading({
           overflow. Built by hand this block ended up with a gloss layer
           whose edges showed as seams the other cards do not have.
 
-          The watermark is clipped by the card too, which is the trade: it no
-          longer bleeds under the nav, and in exchange the block's edges are
-          as clean as its neighbours'. */}
-      <PanelCard glossy glossDelay={-16} className="w-full py-8 sm:py-8 text-center">
-        <span
-          aria-hidden="true"
-          // -inset matches the card's padding so the word is centred in the
-          // full panel, not the inner content box. Overflow stays on the
-          // card: a clip on this overlay sat inside the padding and cut
-          // TOOLS / AURA through the middle of the letters.
-          className="pointer-events-none absolute -inset-x-3 -inset-y-8 flex items-center justify-center sm:-inset-x-5"
-        >
+          The watermark is clipped by the card (overflow-hidden), so the
+          big word never bleeds under the nav or past the block's edges. */}
+      <PanelCard glossy glossDelay={-16} className="w-full overflow-hidden py-8 text-center sm:py-8">
+        {/* The watermark is centred on the title itself, not on the card: a
+            card with tabs under its title is taller, and centring on the card
+            dropped TOOLS below the heading it belongs to. */}
+        <div className="relative">
           <span
+            aria-hidden="true"
             className={cn(
+              "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
               "whitespace-nowrap font-semibold uppercase tracking-[0.02em]",
-              // Same clamp as production: half again the previous mark,
-              // faint enough that the bigger shape stays texture, not a
-              // second headline.
-              "text-[clamp(108px,22.5vw,285px)] text-[rgb(var(--t-accent-rgb)/0.05)]"
+              // Faint enough that the big shape stays texture, not a second
+              // headline. Trimmed to its capitals so it is the letters, not
+              // the line box around them, that sit on the title's centre.
+              // On a phone the word is limited by width, not height: sized to
+              // fit, its capitals are no taller than a two-line title and the
+              // title hides it. So it goes bigger than the card there and
+              // bleeds off both edges, clipped, to stand clear above and
+              // below the title.
+              "text-[150px] sm:text-[clamp(108px,22.5vw,285px)] text-[rgb(var(--t-accent-rgb)/0.05)] [text-box:trim-both_cap_alphabetic]"
             )}
             // Inline, not utilities: tailwind-merge drops `leading-none`
-            // next to an arbitrary text-[…] size, and the 1.5 body leading
-            // would throw vertical centring out by half a line.
-            // Negative margin cancels the trailing letter-spacing so the
-            // glyph box, not the empty space after the last letter, is
-            // what gets centered.
+            // next to an arbitrary text-[…] size. The negative margin cancels
+            // the trailing letter-spacing so the glyphs, not the space after
+            // the last letter, are what gets centred.
             style={{ lineHeight: 1, marginRight: "-0.02em" }}
           >
             {eyebrow}
           </span>
-        </span>
-        {/* Fluid rather than a flat 44: at the top of the range this is the
-            largest solid type on the site, and a fixed size that reads as a
-            page title at 1600 overruns a 1024 one. Uppercase, so the
-            tracking goes positive — the negative fit that suits mixed case
-            jams capitals together. */}
-        <h1 className="relative m-0 text-center text-[clamp(32px,3.2vw,44px)] font-semibold uppercase leading-tight tracking-[0.01em] text-text-primary">
-          {title}
-        </h1>
+          {/* Fluid from sm up: at the top of the range this is the largest
+              solid type on the site. On a phone it steps down so a two-line
+              title covers less of the watermark than the watermark's own
+              height — it shows above and below, as it does on a desktop.
+              Uppercase, so the tracking goes positive. */}
+          <h1 className="relative m-0 text-center text-[24px] font-semibold uppercase leading-tight tracking-[0.01em] text-text-primary sm:text-[clamp(32px,3.2vw,44px)]">
+            {title}
+          </h1>
+        </div>
         {/* Tab strip only when the page actually has switches (Tools /
             Leaderboards). An empty reserve left Aura / Trade with a dead
             band under the title and made those headers look inflated. */}

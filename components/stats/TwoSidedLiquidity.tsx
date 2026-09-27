@@ -98,9 +98,14 @@ export function TwoSidedLiquidity({
           <InfoTooltip floating panelClassName="w-64" text="Bid and ask depth within each distance from mid. An even book looks symmetric. Click a band to focus it." />
         </div>
 
+        {/* From sm: one 36px line per band — value, bar, band, bar, value,
+            split. On a phone that is six columns in 330px and the bars shrink
+            to stubs, so each side stacks its bar over its value instead, the
+            bars take the full half width, and the split moves under the band
+            in the centre. */}
         <div
           ref={tableRef}
-          className="relative isolate grid grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)_56px] items-center gap-x-2"
+          className="relative isolate grid grid-cols-[minmax(0,1fr)_64px_minmax(0,1fr)] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)_56px]"
         >
           {/* Two gliding boxes, the dropdown's and every table's: the chosen
               band in the accent, and the hover in the neutral veil. Each rides
@@ -117,18 +122,18 @@ export function TwoSidedLiquidity({
           <span className="font-label pb-1.5 text-right text-text-muted">Bids</span>
           <span className="font-label pb-1.5 text-center text-text-muted">From mid</span>
           <span className="font-label pb-1.5 text-text-muted">Asks</span>
-          <span className="font-label pb-1.5 text-right text-text-muted">Bid/Ask</span>
+          <span className="font-label hidden pb-1.5 text-right text-text-muted sm:block">Bid/Ask</span>
           {/* One hairline under the whole heading — a border per cell broke
               at every column gap. */}
-          <span className="col-span-4 h-px bg-[var(--color-line)]" aria-hidden />
+          <span className="col-span-full h-px bg-[var(--color-line)]" aria-hidden />
 
           {rows.length === 0
-            ? BANDS.map((bp) => (
-                <div key={bp} className="col-span-4 h-9" />
-              ))
+            ? BANDS.map((bp) => <div key={bp} className="col-span-full h-12 sm:h-9" />)
             : rows.map((r) => {
                 const on = r.bp === focus;
                 const v = verdict(r.bidShare);
+                const split = `${Math.round(r.bidShare * 100)}/${100 - Math.round(r.bidShare * 100)}`;
+                const splitTone = v === "balanced" ? "text-text-secondary" : VERDICT_META[v].className;
                 return (
                   <button
                     key={r.bp}
@@ -142,42 +147,47 @@ export function TwoSidedLiquidity({
                     onMouseEnter={() => setHovered(r.bp)}
                     onMouseLeave={() => setHovered(null)}
                     aria-pressed={on}
-                    className="col-span-4 grid h-9 grid-cols-subgrid items-center"
+                    className="col-span-full grid h-12 grid-cols-subgrid items-center sm:h-9"
                   >
-                    <span className="flex min-w-0 items-center justify-end gap-2">
-                      <span className="font-data shrink-0 text-[12px] text-text-secondary sm:text-[13px]">
+                    {/* Value then bar in the DOM: a row from sm, reversed into
+                        bar-over-value on a phone. */}
+                    <span className="flex min-w-0 flex-col-reverse items-end gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
+                      <span className="font-data shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
                         <SwapValue>{fmtUsdShort(r.bid)}</SwapValue>
                       </span>
-                      <span className="flex h-4 min-w-0 flex-1 justify-end">
+                      <span className="flex h-2.5 w-full min-w-0 justify-end sm:h-4 sm:w-auto sm:flex-1">
                         <span
                           className="h-full rounded-l-[4px] transition-[width] duration-500"
                           style={{ ...barStyle("bid", r.bid / scale), opacity: on ? 1 : 0.7 }}
                         />
                       </span>
                     </span>
-                    <span className={cn("font-data text-center text-[12px] sm:text-[13px]", on ? "text-accent" : "text-text-muted")}>
-                      ±{r.bp} bp
+                    <span className="flex flex-col items-center gap-1">
+                      <span
+                        className={cn(
+                          "font-data text-center text-[12px] leading-none sm:text-[13px] sm:leading-normal",
+                          on ? "text-accent" : "text-text-muted",
+                        )}
+                      >
+                        ±{r.bp} bp
+                      </span>
+                      <span className={cn("font-data text-[11px] font-medium leading-none sm:hidden", splitTone)}>
+                        <SwapValue>{split}</SwapValue>
+                      </span>
                     </span>
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span className="flex h-4 min-w-0 flex-1">
+                    <span className="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
+                      <span className="flex h-2.5 w-full min-w-0 sm:h-4 sm:w-auto sm:flex-1">
                         <span
                           className="h-full rounded-r-[4px] transition-[width] duration-500"
                           style={{ ...barStyle("ask", r.ask / scale), opacity: on ? 1 : 0.7 }}
                         />
                       </span>
-                      <span className="font-data shrink-0 text-[12px] text-text-secondary sm:text-[13px]">
+                      <span className="font-data shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
                         <SwapValue>{fmtUsdShort(r.ask)}</SwapValue>
                       </span>
                     </span>
-                    <span
-                      className={cn(
-                        "font-data text-right text-[12px] font-medium sm:text-[13px]",
-                        v === "balanced" ? "text-text-secondary" : VERDICT_META[v].className,
-                      )}
-                    >
-                      <SwapValue>
-                        {Math.round(r.bidShare * 100)}/{100 - Math.round(r.bidShare * 100)}
-                      </SwapValue>
+                    <span className={cn("font-data hidden text-right text-[13px] font-medium sm:block", splitTone)}>
+                      <SwapValue>{split}</SwapValue>
                     </span>
                   </button>
                 );
