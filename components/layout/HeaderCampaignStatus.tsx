@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLiveFinancials } from "@/components/live/LiveFinancialProvider";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { SnapshotButton } from "@/components/snapshot/SnapshotButton";
 import { cn } from "@/lib/utils";
 
 const WEEK_DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const;
@@ -78,6 +79,7 @@ export function HeaderCampaignStatus() {
           the week clock is desktop-only: below the inline nav's breakpoint
           this corner also carries the Menu button, and every pixel it spends
           is one the wordmark loses. */}
+      <SnapshotButton />
       <ThemeToggle />
       <span className="hidden h-[18px] w-px bg-[var(--color-line-strong)] lg:block" aria-hidden />
       <span
