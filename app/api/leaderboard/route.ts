@@ -16,6 +16,12 @@ export const revalidate = 300;
 const VALID_TABS: LeaderboardTab[] = ["aura", "volume", "pnl"];
 
 const TOP_CACHE_MS = 30_000;
+
+/** Reading the query string makes this route dynamic, so without a header
+ *  every request ran it: ranking and sorting the whole board for each visitor.
+ *  The board changes over minutes, so the CDN answers for two, and serves the
+ *  last copy while it refreshes. */
+const CACHE_HEADERS = { "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600" };
 const topCache = new Map<string, { at: number; items: LeaderboardEntry[] }>();
 
 export async function GET(request: NextRequest) {
@@ -49,7 +55,7 @@ export async function GET(request: NextRequest) {
       sort: sortKey,
       dir: sortDir,
       limit,
-    });
+    }, { headers: CACHE_HEADERS });
   }
 
   // Disk/memory only (waitMs 0): the table must not block on a full upstream pull.
@@ -64,5 +70,5 @@ export async function GET(request: NextRequest) {
     sort: sortKey,
     dir: sortDir,
     limit,
-  });
+  }, { headers: CACHE_HEADERS });
 }

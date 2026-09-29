@@ -80,7 +80,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid wallet address format" }, { status: 400 });
   }
 
-  const entries = await getLeaderboardForApp({ waitMs: 5000 });
+  // Only for the percentile, which the recorded board (or one already held in
+  // memory) answers as well as a fresh one: Aura moves weekly. Waiting on a
+  // live pull here meant every cold or stale instance fetched the whole board
+  // (~26 upstream pages, ~52k rows) before answering one wallet, which took
+  // seconds and most of the lookup's CPU.
+  const entries = await getLeaderboardForApp({ waitMs: 0 });
   const allAura = entries.map((e) => e.aura);
   const local = getWalletData(address);
 
