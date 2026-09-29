@@ -7,6 +7,13 @@ import {
 import type { Level } from "@/lib/order-book-math";
 
 export const MARKET_QUALITY_TTL_MS = 2_000;
+/** How long the CDN holds the every-market answer. It only keeps the other
+ *  tickers warm for a switch; the one on screen is polled on its own. */
+export const ALL_MARKETS_TTL_MS = 10_000;
+/** Markets fetched at once for the every-market answer. The exchange turns
+ *  away bursts (16 requests at once mostly come back 429) though it takes
+ *  8 a second spread out, so two markets, four requests, at a time. */
+const ALL_MARKETS_CONCURRENCY = 2;
 
 export const DEFAULT_MARKET = "BTC-USD";
 
@@ -86,4 +93,34 @@ export async function buildMarketQualityPayload(
   };
   cache.set(symbol, { at: now, data });
   return data;
+}
+
+export interface AllMarketsPayload {
+  markets: string[];
+  /** One payload per market that answered; a market whose book failed this
+   *  time is left out, and the page keeps its last reading. */
+  payloads: MarketQualityPayload[];
+}
+
+/**
+ * Every trading market, so the Stats page holds them all and a ticker switch
+ * shows data already there. The exchange has no batch endpoint, so each
+ * market's book and ticker are fetched, a couple of markets at a time.
+ */
+export async function buildAllMarketsPayload(): Promise<AllMarketsPayload> {
+  const markets = await tradingMarkets();
+  const symbols = markets.length ? markets.map((m) => m.symbol) : [DEFAULT_MARKET];
+  const payloads: MarketQualityPayload[] = [];
+  const queue = [...symbols];
+  const worker = async () => {
+    for (let s = queue.shift(); s; s = queue.shift()) {
+      const p = await buildMarketQualityPayload(s).catch(() => null);
+      if (p) payloads.push(p);
+    }
+  };
+  await Promise.all(Array.from({ length: ALL_MARKETS_CONCURRENCY }, worker));
+  // Back in the markets' own order, whatever order they finished in.
+  payloads.sort((a, b) => symbols.indexOf(a.symbol) - symbols.indexOf(b.symbol));
+  if (!payloads.length) throw new Error("market quality: no market answered");
+  return { markets: symbols, payloads };
 }

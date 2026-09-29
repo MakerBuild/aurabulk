@@ -13,7 +13,7 @@ import { FeeTierTable } from "@/components/stats/FeeTierTable";
 import { DEFAULT_BAND, LEVELS, TwoSidedLiquidity } from "@/components/stats/TwoSidedLiquidity";
 import { fmtBp, fmtPrice, fmtSignedBp } from "@/components/stats/format";
 import { FEE_TIERS, MAKER_REBATES } from "@/lib/fee-tiers";
-import type { MarketQualityPayload } from "@/lib/market-quality";
+import type { AllMarketsPayload, MarketQualityPayload } from "@/lib/market-quality";
 import {
   bookTop,
   executionCost,
@@ -26,6 +26,9 @@ import { cn } from "@/lib/utils";
 /** Every 2s: the depth chart eases into each book, so a faster beat reads as
  *  a live book rather than a flicker. Matches the server cache below it. */
 const POLL = { intervalMs: 2_000, minGapMs: 1_500 };
+/** The other markets, kept warm for a ticker switch: slow, since the one on
+ *  screen replaces its reading with a fresh one within a poll anyway. */
+const ALL_POLL = { intervalMs: 15_000, minGapMs: 10_000 };
 const EMPTY_BOOK: Book = { bids: [], asks: [] };
 /** Where the viewer's choice of liquidity levels is kept between visits. */
 const LEVELS_KEY = "stats:liquidity-levels";
@@ -92,7 +95,9 @@ function Counted({ value, format }: { value: number | null | undefined; format: 
 
 export function StatsDashboard() {
   const [symbol, setSymbol] = useState("BTC-USD");
-  const [data, setData] = useState<MarketQualityPayload | null>(null);
+  // The latest reading of every market, so switching ticker shows one that
+  // is already here instead of waiting on a request.
+  const [byMarket, setByMarket] = useState<Record<string, MarketQualityPayload>>({});
   const [markets, setMarkets] = useState<string[]>(["BTC-USD"]);
 
   const [side, setSide] = useState<Side>("buy");
@@ -128,21 +133,35 @@ export function StatsDashboard() {
     setSymbol(next);
   }
 
-  usePolledJson<MarketQualityPayload>(
-    `/api/market-quality?symbol=${encodeURIComponent(symbol)}`,
-    POLL,
-    (next) => {
-      setData(next);
-      if (next.markets.length) {
-        setMarkets((prev) => (prev.join() === next.markets.join() ? prev : next.markets));
-      }
-    },
+  // Two polls into one store. The market on screen, every 2s; and every
+  // market, every 15s, so a ticker switch shows a reading already here and
+  // does not wait on the network. Each lands over the last readings, and a
+  // market that failed a round keeps its previous one.
+  function store(payloads: MarketQualityPayload[], list: string[]) {
+    setByMarket((prev) => {
+      const merged = { ...prev };
+      // Never let an older reading replace a newer one.
+      for (const p of payloads) if (!merged[p.symbol] || merged[p.symbol].updatedAt <= p.updatedAt) merged[p.symbol] = p;
+      return merged;
+    });
+    if (list.length) setMarkets((prev) => (prev.join() === list.join() ? prev : list));
+  }
+  usePolledJson<MarketQualityPayload>(`/api/market-quality?symbol=${encodeURIComponent(symbol)}`, POLL, (next) =>
+    store([next], next.markets),
+  );
+  usePolledJson<AllMarketsPayload>("/api/market-quality?symbol=all", ALL_POLL, (next) =>
+    store(next.payloads, next.markets),
   );
 
-  // The last payload stays on screen — under its own market's name — until
-  // the next market's lands, and then the two swap with a slide. Blanking to
-  // dashes in between is what made a switch read as wipe-and-repaint.
-  const live = data;
+  // Normally the picked market is already held. If it is not yet (it failed
+  // to load), the last one shown stays on screen, dimmed, under its own
+  // name, until it lands; blanking to dashes read as wipe-and-repaint.
+  const current = byMarket[symbol];
+  const [lastShown, setLastShown] = useState<string | null>(null);
+  useEffect(() => {
+    if (current) setLastShown(symbol);
+  }, [current, symbol]);
+  const live = current ?? (lastShown ? byMarket[lastShown] : undefined) ?? null;
   const shownSymbol = live?.symbol ?? symbol;
   const pending = live != null && live.symbol !== symbol;
   const book = useMemo<Book>(() => (live ? { bids: live.bids, asks: live.asks } : EMPTY_BOOK), [live]);
