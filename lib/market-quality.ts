@@ -20,6 +20,8 @@ export interface MarketQualityPayload {
   symbol: string;
   /** Decimals the exchange quotes this market's price in. */
   pricePrecision: number;
+  /** Smallest price step, in quote units; null when exchangeInfo is down. */
+  tickSize: number | null;
   markets: string[];
   bids: Level[];
   asks: Level[];
@@ -73,6 +75,7 @@ export async function buildMarketQualityPayload(
   const data: MarketQualityPayload = {
     symbol,
     pricePrecision: info?.pricePrecision ?? 2,
+    tickSize: info?.tickSize != null && Number.isFinite(Number(info.tickSize)) ? Number(info.tickSize) : null,
     markets: markets.map((m) => m.symbol),
     bids: book.bids.map((l) => [l.px, l.sz]),
     asks: book.asks.map((l) => [l.px, l.sz]),

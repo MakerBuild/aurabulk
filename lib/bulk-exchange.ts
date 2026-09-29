@@ -140,6 +140,8 @@ export interface ExchangeMarketInfo {
   symbol: string;
   status: string;
   pricePrecision: number;
+  /** Smallest price step the exchange accepts. */
+  tickSize: number;
 }
 
 /** Markets currently open for trading — the rest are listed as SUSPENDED. */

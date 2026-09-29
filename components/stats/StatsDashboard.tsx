@@ -232,7 +232,14 @@ export function StatsDashboard() {
       </PanelCard>
 
       <PanelCard glossy glossDelay={-11}>
-        <TwoSidedLiquidity book={book} mid={top.mid} focus={band} onFocus={setBand} />
+        <TwoSidedLiquidity
+          book={book}
+          mid={top.mid}
+          focus={band}
+          onFocus={setBand}
+          decimals={decimals}
+          tickSize={live?.tickSize ?? null}
+        />
       </PanelCard>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">

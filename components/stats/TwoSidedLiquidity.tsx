@@ -6,15 +6,21 @@ import { PanelLabel } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { SwapValue } from "@/components/ui/SwapValue";
-import { depthWithinBp, sideCosts, type Book } from "@/lib/order-book-math";
-import { fmtBp, fmtUsdShort } from "@/components/stats/format";
+import { bookTop, depthWithinBp, sideCosts, type Book } from "@/lib/order-book-math";
+import { fmtBp, fmtPrice, fmtUsdShort } from "@/components/stats/format";
 import { barGradient, barStyle } from "@/components/stats/book-colors";
 import { cn } from "@/lib/utils";
 
-/** Distances from mid, in bp, each band cumulative from the touch outward. */
-const BANDS = [2, 5, 10, 25, 50, 100];
+/** Distances from mid, in bp, each band cumulative from the touch outward.
+ *  The ones under 2 bp show the touch itself, where a book that looks even a
+ *  few bp out is often heavily one-sided. */
+const BANDS = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100];
+/** The row under every band: just the best bid and best ask, the floor any
+ *  band is built on whatever the market's price step. Keyed 0 alongside the
+ *  bands' distances. */
+export const TOP = 0;
 export const DEFAULT_BAND = 10;
-const COST_SIZES = [100_000, 1_000_000];
+const COST_SIZES = [10_000, 100_000, 1_000_000];
 
 type Verdict = "balanced" | "skewed" | "one-sided";
 
@@ -57,9 +63,17 @@ export function TwoSidedLiquidity({
   mid,
   focus,
   onFocus,
+  decimals,
+  tickSize,
 }: {
   book: Book;
   mid: number | null;
+  /** The market's price decimals, for the best bid and ask. */
+  decimals: number;
+  /** The market's price step. A band narrower than two steps either side
+   *  of mid cannot hold a price of its own, so it is shown as unavailable
+   *  there rather than repeating the touch. */
+  tickSize: number | null;
   /** The band picked in the table. Held by the page, so switching market —
    *  which remounts this panel for its slide — keeps the choice. */
   focus: number;
@@ -71,23 +85,29 @@ export function TwoSidedLiquidity({
   // its row on the render the rows first appear, not one data refresh later.
   const [rowEls, setRowEls] = useState<Record<number, HTMLButtonElement>>({});
 
+  const top = bookTop(book);
   const rows = useMemo(
     () =>
       mid == null
         ? []
-        : BANDS.map((bp) => {
-            const bid = depthWithinBp(book.bids, mid, bp);
-            const ask = depthWithinBp(book.asks, mid, bp);
+        : [TOP, ...BANDS].map((bp) => {
+            const touch = ([px, sz]: [number, number] | undefined = [0, 0]) => px * sz;
+            const bid = bp === TOP ? touch(book.bids[0]) : depthWithinBp(book.bids, mid, bp);
+            const ask = bp === TOP ? touch(book.asks[0]) : depthWithinBp(book.asks, mid, bp);
             const total = bid + ask;
-            return { bp, bid, ask, bidShare: total > 0 ? bid / total : 0.5 };
+            const available = bp === TOP || bp >= 1 || tickSize == null || (2 * tickSize * 1e4) / mid <= bp;
+            // Empty where the price step is wider than the band (a market
+            // ticking in 1 bp steps has nothing inside ±0.5 bp): no split to
+            // show there, rather than an even 50/50 made of nothing.
+            return { bp, bid, ask, bidShare: total > 0 ? bid / total : 0.5, empty: !available || total === 0, available };
           }),
-    [book, mid],
+    [book, mid, tickSize],
   );
   const costs = useMemo(() => COST_SIZES.map((usd) => ({ usd, ...sideCosts(book, usd) })), [book]);
 
   const scale = Math.max(1, ...rows.flatMap((r) => [r.bid, r.ask]));
   const focused = rows.find((r) => r.bp === focus) ?? null;
-  const focusVerdict = focused ? verdict(focused.bidShare) : null;
+  const focusVerdict = focused && !focused.empty ? verdict(focused.bidShare) : null;
   const meta = focusVerdict ? VERDICT_META[focusVerdict] : null;
 
   return (
@@ -95,7 +115,7 @@ export function TwoSidedLiquidity({
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex h-4 items-center gap-1">
           <PanelLabel>Two-sided liquidity</PanelLabel>
-          <InfoTooltip floating panelClassName="w-64" text="Bid and ask depth within each distance from mid. An even book looks symmetric. Click a band to focus it." />
+          <InfoTooltip floating panelClassName="w-64" text="Bid and ask depth within each distance from mid. Top is what sits on the best bid and ask, with the spread between them. Click a band to focus it." />
         </div>
 
         {/* From sm: one 36px line per band — value, bar, band, bar, value,
@@ -105,7 +125,7 @@ export function TwoSidedLiquidity({
             in the centre. */}
         <div
           ref={tableRef}
-          className="relative isolate grid grid-cols-[minmax(0,1fr)_64px_minmax(0,1fr)] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)_56px]"
+          className="relative isolate grid grid-cols-[minmax(0,1fr)_100px_minmax(0,1fr)] items-center gap-x-2 sm:grid-cols-[minmax(0,1fr)_108px_minmax(0,1fr)_56px]"
         >
           {/* Two gliding boxes, the dropdown's and every table's: the chosen
               band in the accent, and the hover in the neutral veil. Each rides
@@ -128,12 +148,13 @@ export function TwoSidedLiquidity({
           <span className="col-span-full h-px bg-[var(--color-line)]" aria-hidden />
 
           {rows.length === 0
-            ? BANDS.map((bp) => <div key={bp} className="col-span-full h-12 sm:h-9" />)
+            ? [TOP, ...BANDS].map((bp) => <div key={bp} className="col-span-full h-12 sm:h-9" />)
             : rows.map((r) => {
                 const on = r.bp === focus;
                 const v = verdict(r.bidShare);
-                const split = `${Math.round(r.bidShare * 100)}/${100 - Math.round(r.bidShare * 100)}`;
-                const splitTone = v === "balanced" ? "text-text-secondary" : VERDICT_META[v].className;
+                const split = r.empty ? "—" : `${Math.round(r.bidShare * 100)}/${100 - Math.round(r.bidShare * 100)}`;
+                const splitTone =
+                  r.empty ? "text-text-muted" : v === "balanced" ? "text-text-secondary" : VERDICT_META[v].className;
                 return (
                   <button
                     key={r.bp}
@@ -143,33 +164,40 @@ export function TwoSidedLiquidity({
                       if (el) setRowEls((m) => (m[r.bp] === el ? m : { ...m, [r.bp]: el }));
                     }}
                     type="button"
+                    disabled={!r.available}
                     onClick={() => onFocus(r.bp)}
                     onMouseEnter={() => setHovered(r.bp)}
                     onMouseLeave={() => setHovered(null)}
                     aria-pressed={on}
-                    className="col-span-full grid h-12 grid-cols-subgrid items-center sm:h-9"
+                    className="col-span-full grid h-12 grid-cols-subgrid items-center disabled:cursor-default sm:h-9"
                   >
                     {/* Value then bar in the DOM: a row from sm, reversed into
                         bar-over-value on a phone. */}
                     <span className="flex min-w-0 flex-col-reverse items-end gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
                       <span className="font-data shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
-                        <SwapValue>{fmtUsdShort(r.bid)}</SwapValue>
+                        <SwapValue>{r.available ? fmtUsdShort(r.bid) : "—"}</SwapValue>
                       </span>
                       <span className="flex h-2.5 w-full min-w-0 justify-end sm:h-4 sm:w-auto sm:flex-1">
                         <span
                           className="h-full rounded-l-[4px] transition-[width] duration-500"
-                          style={{ ...barStyle("bid", r.bid / scale), opacity: on ? 1 : 0.7 }}
+                          style={{ ...barStyle("bid", r.available ? r.bid / scale : 0), opacity: on ? 1 : 0.7 }}
                         />
                       </span>
                     </span>
                     <span className="flex flex-col items-center gap-1">
                       <span
                         className={cn(
-                          "font-data text-center text-[12px] leading-none sm:text-[13px] sm:leading-normal",
-                          on ? "text-accent" : "text-text-muted",
+                          "font-data whitespace-nowrap text-center text-[12px] leading-none sm:text-[13px] sm:leading-normal",
+                          on ? "text-accent" : r.available ? "text-text-muted" : "text-text-dim",
                         )}
                       >
-                        ±{r.bp} bp
+                        {r.bp === TOP ? (
+                          // The top of book's own figure: the spread between
+                          // the best bid and ask, in bp of mid.
+                          <SwapValue>{`Top (${fmtBp(top.spreadBp)})`}</SwapValue>
+                        ) : (
+                          `±${r.bp} bp`
+                        )}
                       </span>
                       <span className={cn("font-data text-[11px] font-medium leading-none sm:hidden", splitTone)}>
                         <SwapValue>{split}</SwapValue>
@@ -179,11 +207,11 @@ export function TwoSidedLiquidity({
                       <span className="flex h-2.5 w-full min-w-0 sm:h-4 sm:w-auto sm:flex-1">
                         <span
                           className="h-full rounded-r-[4px] transition-[width] duration-500"
-                          style={{ ...barStyle("ask", r.ask / scale), opacity: on ? 1 : 0.7 }}
+                          style={{ ...barStyle("ask", r.available ? r.ask / scale : 0), opacity: on ? 1 : 0.7 }}
                         />
                       </span>
                       <span className="font-data shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
-                        <SwapValue>{fmtUsdShort(r.ask)}</SwapValue>
+                        <SwapValue>{r.available ? fmtUsdShort(r.ask) : "—"}</SwapValue>
                       </span>
                     </span>
                     <span className={cn("font-data hidden text-right text-[13px] font-medium sm:block", splitTone)}>
@@ -198,7 +226,7 @@ export function TwoSidedLiquidity({
       {/* Summary for the focused band, mirrored like the table beside it:
           bids down the left column, asks down the right, what belongs to
           both on the centre axis. It is built from the same parts as that
-          table — a label heading on a hairline, then six 36px rows — so
+          table — a label heading on a hairline, then eleven 36px rows — so
           every level lines up across the two halves by construction. */}
       <div className="flex min-w-0 flex-col gap-3 lg:border-l lg:border-[var(--color-line)] lg:pl-5">
         <div className="flex h-4 items-center gap-1">
@@ -212,22 +240,25 @@ export function TwoSidedLiquidity({
 
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2">
           <span className="font-label pb-1.5 text-text-muted">Bids</span>
-          <span className="font-label pb-1.5 text-center text-accent">±{focus} bp</span>
+          <span className="font-label pb-1.5 text-center text-accent">
+            {focus === TOP ? "Top of book" : `±${focus} bp`}
+          </span>
           <span className="font-label pb-1.5 text-right text-text-muted">Asks</span>
           <span className="col-span-3 h-px bg-[var(--color-line)]" aria-hidden />
 
-          {/* Rows 1–2: the figure both sides stand behind. */}
-          <div className="col-span-3 flex h-[72px] flex-col items-center justify-center gap-1.5">
+          {/* Rows 1–5: the figure both sides stand behind. Five rows only
+              beside the table; stacked under it on narrower screens, three. */}
+          <div className="col-span-3 flex h-[108px] flex-col lg:h-[180px] items-center justify-center gap-1.5">
             <span className="font-figure whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
-              <SwapValue>{focused ? fmtUsdShort(Math.min(focused.bid, focused.ask)) : "—"}</SwapValue>
+              <SwapValue>{focused?.available ? fmtUsdShort(Math.min(focused.bid, focused.ask)) : "—"}</SwapValue>
             </span>
             <span className="font-label leading-none text-text-muted">Both sides</span>
           </div>
 
-          {/* Row 3: each side's depth, the verdict between them. */}
+          {/* Row 6: each side's depth, the verdict between them. */}
           <div className="col-span-3 grid h-9 grid-cols-subgrid items-center">
             <span className="font-data truncate text-bid-green">
-              <SwapValue>{focused ? fmtUsdShort(focused.bid) : "—"}</SwapValue>
+              <SwapValue>{focused?.available ? fmtUsdShort(focused.bid) : "—"}</SwapValue>
             </span>
             {focused && meta ? (
               <span className={cn("font-data whitespace-nowrap", meta.className)}>
@@ -240,13 +271,13 @@ export function TwoSidedLiquidity({
               <span />
             )}
             <span className="font-data truncate text-right text-ask-red">
-              <SwapValue>{focused ? fmtUsdShort(focused.ask) : "—"}</SwapValue>
+              <SwapValue>{focused?.available ? fmtUsdShort(focused.ask) : "—"}</SwapValue>
             </span>
           </div>
 
-          {/* Row 4: the split, bright where the sides meet. */}
+          {/* Row 7: the split, bright where the sides meet. */}
           <div className="col-span-3 flex h-9 items-center">
-            {focused && (
+            {focused && !focused.empty && (
               <div className="flex h-2 w-full gap-[2px] overflow-hidden rounded-full">
                 <span
                   className="h-full rounded-l-full transition-[width] duration-500"
@@ -257,8 +288,25 @@ export function TwoSidedLiquidity({
             )}
           </div>
 
-          {/* Rows 5–6: a market order's cost on each side, size on the axis. */}
-          {costs.map((c, i) => {
+          {/* Row 8: the touch itself, best bid and best ask with the spread
+              between them. */}
+          <div className="col-span-3 grid h-9 grid-cols-subgrid items-center border-t border-[var(--color-line)]">
+            <span className="font-data truncate text-bid-green">
+              <SwapValue>{fmtPrice(top.bestBid, decimals)}</SwapValue>
+            </span>
+            <span className="flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="font-data text-text-primary">
+                <SwapValue>{fmtBp(top.spreadBp)}</SwapValue>
+              </span>
+              <span className="font-label text-text-muted">Spread</span>
+            </span>
+            <span className="font-data truncate text-right text-ask-red">
+              <SwapValue>{fmtPrice(top.bestAsk, decimals)}</SwapValue>
+            </span>
+          </div>
+
+          {/* Rows 9–11: a market order's cost on each side, size on the axis. */}
+          {costs.map((c) => {
             const worse = c.buyBp == null || c.sellBp == null ? null : c.buyBp >= c.sellBp ? "buy" : "sell";
             const cell = (side: "buy" | "sell", align: string) => {
               const bp = side === "buy" ? c.buyBp : c.sellBp;
@@ -277,10 +325,7 @@ export function TwoSidedLiquidity({
             return (
               <div
                 key={c.usd}
-                className={cn(
-                  "col-span-3 grid h-9 grid-cols-subgrid items-center border-t",
-                  i === 0 ? "border-[var(--color-line)]" : "border-[var(--color-line-soft)]",
-                )}
+                className="col-span-3 grid h-9 grid-cols-subgrid items-center border-t border-[var(--color-line-soft)]"
               >
                 {cell("sell", "text-left")}
                 <span className="font-label whitespace-nowrap text-center text-text-muted">
