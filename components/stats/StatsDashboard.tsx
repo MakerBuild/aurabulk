@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
 import { usePolledJson } from "@/components/live/use-polled-json";
@@ -10,7 +10,7 @@ import { CostCalculator } from "@/components/stats/CostCalculator";
 import { CostCurve } from "@/components/stats/CostCurve";
 import { DepthChart } from "@/components/stats/DepthChart";
 import { FeeTierTable } from "@/components/stats/FeeTierTable";
-import { DEFAULT_BAND, TwoSidedLiquidity } from "@/components/stats/TwoSidedLiquidity";
+import { DEFAULT_BAND, LEVELS, TwoSidedLiquidity } from "@/components/stats/TwoSidedLiquidity";
 import { fmtBp, fmtPrice, fmtSignedBp } from "@/components/stats/format";
 import { FEE_TIERS, MAKER_REBATES } from "@/lib/fee-tiers";
 import type { MarketQualityPayload } from "@/lib/market-quality";
@@ -27,6 +27,27 @@ import { cn } from "@/lib/utils";
  *  a live book rather than a flicker. Matches the server cache below it. */
 const POLL = { intervalMs: 2_000, minGapMs: 1_500 };
 const EMPTY_BOOK: Book = { bids: [], asks: [] };
+/** Where the viewer's choice of liquidity levels is kept between visits. */
+const LEVELS_KEY = "stats:liquidity-levels";
+
+function loadLevels(): number[] | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LEVELS_KEY) ?? "null") as unknown;
+    if (!Array.isArray(saved)) return null;
+    const levels = LEVELS.filter((l) => saved.includes(l));
+    return levels.length ? levels : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLevels(levels: number[]) {
+  try {
+    localStorage.setItem(LEVELS_KEY, JSON.stringify(levels));
+  } catch {
+    // Private windows and blocked storage: the choice just lasts the visit.
+  }
+}
 
 /** Supporting figure in the market strip. On a phone it is a table row —
  *  label left, value right, on a hairline — so five figures read as one
@@ -81,6 +102,21 @@ export function StatsDashboard() {
   const [rebateId, setRebateId] = useState(0);
   const [walletTier, setWalletTier] = useState<number | null>(null);
   const [band, setBand] = useState(DEFAULT_BAND);
+  const [levels, setLevels] = useState<number[]>(LEVELS);
+
+  // The saved choice is read after mount: the server renders every level,
+  // and reading storage during render would not match it.
+  useEffect(() => {
+    const saved = loadLevels();
+    if (!saved) return;
+    setLevels(saved);
+    setBand((b) => (saved.includes(b) ? b : [...saved].sort((x, y) => Math.abs(x - b) - Math.abs(y - b))[0]));
+  }, []);
+
+  function changeLevels(next: number[]) {
+    setLevels(next);
+    saveLevels(next);
+  }
   // Where the next market's data slides in from: a ticker to the left of the
   // current one brings it in from the right (travelling right to left), one
   // to the right brings it in from the left.
@@ -237,6 +273,8 @@ export function StatsDashboard() {
           mid={top.mid}
           focus={band}
           onFocus={setBand}
+          shown={levels}
+          onShownChange={changeLevels}
           decimals={decimals}
           tickSize={live?.tickSize ?? null}
         />

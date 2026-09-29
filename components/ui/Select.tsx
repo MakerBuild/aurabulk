@@ -13,13 +13,30 @@ export interface SelectOption {
   label: string;
 }
 
-interface SelectProps {
-  value: string;
-  onChange: (value: string) => void;
+interface CommonProps {
   options: SelectOption[];
   className?: string;
   compact?: boolean;
 }
+
+/** One value: picking an option closes the list. */
+interface SingleProps extends CommonProps {
+  multiple?: false;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+/** Any number of values: picking an option ticks or unticks it and the list
+ *  stays open. The trigger shows `summary`, since no one label names the
+ *  choice. */
+interface MultipleProps extends CommonProps {
+  multiple: true;
+  values: string[];
+  onChange: (values: string[]) => void;
+  summary: string;
+}
+
+type SelectProps = SingleProps | MultipleProps;
 
 interface MenuCoords {
   left: number;
@@ -37,7 +54,9 @@ interface MenuCoords {
  * pattern: the list holds focus and `aria-activedescendant` names the option
  * the arrows are on.
  */
-export function Select({ value, onChange, options, className, compact }: SelectProps) {
+export function Select(props: SelectProps) {
+  const { options, className, compact } = props;
+  const isPicked = (o: SelectOption) => (props.multiple ? props.values.includes(o.value) : o.value === props.value);
   const [open, setOpen] = useState(false);
   // The option the keyboard (or pointer) is on while the list is open.
   const [activeIndex, setActiveIndex] = useState(0);
@@ -97,8 +116,8 @@ export function Select({ value, onChange, options, className, compact }: SelectP
     };
   }, [open, options.length]);
 
-  const selectedIndex = options.findIndex((o) => o.value === value);
-  const selected = options[selectedIndex];
+  const selectedIndex = props.multiple ? 0 : options.findIndex((o) => o.value === props.value);
+  const selected = props.multiple ? undefined : options[selectedIndex];
 
   const openList = (index = selectedIndex) => {
     setActiveIndex(Math.max(0, index));
@@ -114,7 +133,14 @@ export function Select({ value, onChange, options, className, compact }: SelectP
 
   const choose = (index: number) => {
     const option = options[index];
-    if (option) onChange(option.value);
+    if (props.multiple) {
+      if (!option) return;
+      const on = props.values.includes(option.value);
+      // Kept in the options' order, whatever order they were ticked in.
+      props.onChange(options.filter((o) => (o === option ? !on : props.values.includes(o.value))).map((o) => o.value));
+      return;
+    }
+    if (option) props.onChange(option.value);
     closeList();
   };
 
@@ -196,7 +222,9 @@ export function Select({ value, onChange, options, className, compact }: SelectP
               : undefined
         )}
       >
-        <span className="min-w-0 truncate text-text-primary">{selected?.label ?? "Select..."}</span>
+        <span className="min-w-0 truncate text-text-primary">
+          {props.multiple ? props.summary : (selected?.label ?? "Select...")}
+        </span>
         <ChevronDown
           className={cn(
             "h-4 w-4 shrink-0 text-text-muted transition-transform duration-200",
@@ -213,6 +241,7 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                 ref={listRef}
                 id={listId}
                 role="listbox"
+                aria-multiselectable={props.multiple || undefined}
                 tabIndex={-1}
                 aria-activedescendant={`${listId}-${activeIndex}`}
                 onKeyDown={onListKeyDown}
@@ -241,7 +270,7 @@ export function Select({ value, onChange, options, className, compact }: SelectP
                   target={optionEls.current[activeIndex] ?? null}
                 />
                 {options.map((o, i) => {
-                  const selectedOption = o.value === value;
+                  const selectedOption = isPicked(o);
                   const current = i === activeIndex;
                   return (
                     <li

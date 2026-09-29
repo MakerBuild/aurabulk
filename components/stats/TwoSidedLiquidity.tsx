@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { AlertTriangle, CheckCircle2, Scale } from "lucide-react";
 import { PanelLabel } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { Select } from "@/components/ui/Select";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { SwapValue } from "@/components/ui/SwapValue";
 import { bookTop, depthWithinBp, sideCosts, type Book } from "@/lib/order-book-math";
@@ -20,6 +21,10 @@ const BANDS = [0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100];
  *  bands' distances. */
 export const TOP = 0;
 export const DEFAULT_BAND = 10;
+/** Every row the table can show, in order: the top of book, then the bands.
+ *  All shown until the viewer turns some off. */
+export const LEVELS = [TOP, ...BANDS];
+const LEVEL_OPTIONS = LEVELS.map((bp) => ({ value: String(bp), label: bp === TOP ? "Top of book" : `±${bp} bp` }));
 const COST_SIZES = [10_000, 100_000, 1_000_000];
 
 type Verdict = "balanced" | "skewed" | "one-sided";
@@ -65,6 +70,8 @@ export function TwoSidedLiquidity({
   onFocus,
   decimals,
   tickSize,
+  shown,
+  onShownChange,
 }: {
   book: Book;
   mid: number | null;
@@ -78,6 +85,10 @@ export function TwoSidedLiquidity({
    *  which remounts this panel for its slide — keeps the choice. */
   focus: number;
   onFocus: (bp: number) => void;
+  /** The levels the viewer keeps in the table, held by the page for the same
+   *  reason as `focus`. */
+  shown: number[];
+  onShownChange: (levels: number[]) => void;
 }) {
   const [hovered, setHovered] = useState<number | null>(null);
   const tableRef = useRef<HTMLDivElement | null>(null);
@@ -90,7 +101,7 @@ export function TwoSidedLiquidity({
     () =>
       mid == null
         ? []
-        : [TOP, ...BANDS].map((bp) => {
+        : LEVELS.filter((bp) => shown.includes(bp)).map((bp) => {
             const touch = ([px, sz]: [number, number] | undefined = [0, 0]) => px * sz;
             const bid = bp === TOP ? touch(book.bids[0]) : depthWithinBp(book.bids, mid, bp);
             const ask = bp === TOP ? touch(book.asks[0]) : depthWithinBp(book.asks, mid, bp);
@@ -101,7 +112,7 @@ export function TwoSidedLiquidity({
             // show there, rather than an even 50/50 made of nothing.
             return { bp, bid, ask, bidShare: total > 0 ? bid / total : 0.5, empty: !available || total === 0, available };
           }),
-    [book, mid, tickSize],
+    [book, mid, tickSize, shown],
   );
   const costs = useMemo(() => COST_SIZES.map((usd) => ({ usd, ...sideCosts(book, usd) })), [book]);
 
@@ -109,13 +120,45 @@ export function TwoSidedLiquidity({
   const focused = rows.find((r) => r.bp === focus) ?? null;
   const focusVerdict = focused && !focused.empty ? verdict(focused.bidShare) : null;
   const meta = focusVerdict ? VERDICT_META[focusVerdict] : null;
+  // Beside the table the figure takes whatever rows the table has beyond the
+  // six below it, so the rows still line up. Down to a single row, where the
+  // figure and its label sit side by side instead of stacked.
+  const figureRows = Math.max(1, shown.length - 6);
+
+  function changeLevels(values: string[]) {
+    const next = values.map(Number);
+    // The last level stays: an empty table has nothing to focus.
+    if (!next.length) return;
+    onShownChange(next);
+    // Turning off the focused band hands the focus to the nearest one left.
+    if (!next.includes(focus)) {
+      onFocus([...next].sort((a, b) => Math.abs(a - focus) - Math.abs(b - focus))[0]);
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)]">
       <div className="flex min-w-0 flex-col gap-3">
-        <div className="flex h-4 items-center gap-1">
-          <PanelLabel>Two-sided liquidity</PanelLabel>
-          <InfoTooltip floating panelClassName="w-64" text="Bid and ask depth within each distance from mid. Top is what sits on the best bid and ask, with the spread between them. Click a band to focus it." />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex h-4 items-center gap-1">
+            <PanelLabel>Two-sided liquidity</PanelLabel>
+            <InfoTooltip floating panelClassName="w-64" text="Bid and ask depth within each distance from mid. Top is what sits on the best bid and ask, with the spread between them. Click a band to focus it." />
+          </div>
+          {/* Which levels the table shows. Centred on the heading's own
+              16px line and spilling past it, so the table below still
+              starts level with the depth panel beside it. A setting, not
+              data, so Snapshot leaves it out. */}
+          <div className="flex h-4 items-center" data-snapshot-skip>
+            <Select
+              multiple
+              compact
+              className="w-[132px]"
+              options={LEVEL_OPTIONS}
+              values={shown.map(String)}
+              onChange={changeLevels}
+              summary={shown.length === LEVELS.length ? "All levels" : `${shown.length} levels`}
+            />
+          </div>
         </div>
 
         {/* From sm: one 36px line per band — value, bar, band, bar, value,
@@ -148,7 +191,7 @@ export function TwoSidedLiquidity({
           <span className="col-span-full h-px bg-[var(--color-line)]" aria-hidden />
 
           {rows.length === 0
-            ? [TOP, ...BANDS].map((bp) => <div key={bp} className="col-span-full h-12 sm:h-9" />)
+            ? shown.map((bp) => <div key={bp} className="col-span-full h-12 sm:h-9" />)
             : rows.map((r) => {
                 const on = r.bp === focus;
                 const v = verdict(r.bidShare);
@@ -226,7 +269,7 @@ export function TwoSidedLiquidity({
       {/* Summary for the focused band, mirrored like the table beside it:
           bids down the left column, asks down the right, what belongs to
           both on the centre axis. It is built from the same parts as that
-          table — a label heading on a hairline, then eleven 36px rows — so
+          table — a label heading on a hairline, then 36px rows — so
           every level lines up across the two halves by construction. */}
       <div className="flex min-w-0 flex-col gap-3 lg:border-l lg:border-[var(--color-line)] lg:pl-5">
         <div className="flex h-4 items-center gap-1">
@@ -246,9 +289,16 @@ export function TwoSidedLiquidity({
           <span className="font-label pb-1.5 text-right text-text-muted">Asks</span>
           <span className="col-span-3 h-px bg-[var(--color-line)]" aria-hidden />
 
-          {/* Rows 1–5: the figure both sides stand behind. Five rows only
-              beside the table; stacked under it on narrower screens, three. */}
-          <div className="col-span-3 flex h-[108px] flex-col lg:h-[180px] items-center justify-center gap-1.5">
+          {/* The figure both sides stand behind. Beside the table it spans
+              as many rows as the table has left over (figureRows); stacked
+              under it on narrower screens, three. */}
+          <div
+            className={cn(
+              "col-span-3 flex h-[108px] flex-col items-center justify-center gap-1.5 lg:h-[var(--figure-h)]",
+              figureRows === 1 && "lg:flex-row lg:gap-2.5",
+            )}
+            style={{ "--figure-h": `${figureRows * 36}px` } as CSSProperties}
+          >
             <span className="font-figure whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
               <SwapValue>{focused?.available ? fmtUsdShort(Math.min(focused.bid, focused.ask)) : "—"}</SwapValue>
             </span>

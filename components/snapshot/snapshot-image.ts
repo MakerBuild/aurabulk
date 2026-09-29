@@ -289,7 +289,15 @@ export async function buildSnapshotPng(elements: HTMLElement[]): Promise<Blob> {
   // later card uses is embedded too.
   const fontRoot = document.querySelector<HTMLElement>("main") ?? elements[0];
   const fontEmbedCSS = await getFontEmbedCSS(fontRoot).catch(() => undefined);
-  const options = { pixelRatio: RATIO, cacheBust: true, fontEmbedCSS, skipFonts: fontEmbedCSS == null };
+  const options = {
+    pixelRatio: RATIO,
+    cacheBust: true,
+    fontEmbedCSS,
+    skipFonts: fontEmbedCSS == null,
+    // Controls that only matter on the page (a card's settings dropdown)
+    // carry data-snapshot-skip and are left out of the picture.
+    filter: (node: Node) => !(node instanceof HTMLElement && node.dataset.snapshotSkip != null),
+  };
 
   // WebKit (Safari, and every browser on an iPhone) loads the fonts embedded
   // in a capture only as it draws it, so the first capture came out in the
