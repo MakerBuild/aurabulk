@@ -12,6 +12,7 @@
     "build:metrics": "tsx scripts/build-dashboard-metrics.ts",
     "check:snapshot": "tsx scripts/check-aura-snapshot.ts",
     "record:levels": "tsx scripts/record-exchange-levels.ts",
+    "backfill:oi": "tsx scripts/backfill-oi-history.ts",
     "record:volume": "tsx scripts/record-volume-leaderboard.ts",
     "generate:favicons": "node scripts/generate-favicons.mjs",
     "generate:fud": "node scripts/make-fud-transparent.mjs",

@@ -1,6 +1,8 @@
 /**
- * Snapshot live open interest + active traders into data/exchange-levels.json.
- * Hourly cron builds the 24h KPI sparks — Bulk has no OI/traders history API.
+ * Snapshot live open interest + active traders into data/exchange-levels.json,
+ * and append the OI to the long-running data/oi-history.json.
+ * Hourly cron builds the 24h KPI sparks and the Total Volume OI line — Bulk
+ * has no OI/traders history API.
  *
  *   npm run record:levels
  */
@@ -10,6 +12,7 @@ import {
   readExchangeLevelsFile,
   writeExchangeLevelsFile,
 } from "../lib/exchange-level-store";
+import { readOiHistoryFile, writeOiHistoryFile } from "../lib/oi-history-store";
 
 async function main() {
   const [stats, metrics] = await Promise.all([fetchExchangeStats(), fetchExchangeMetrics(true)]);
@@ -32,8 +35,10 @@ async function main() {
     traders: mergeLevelPoints(prev.traders, [{ t: now, value: activeTraders }]),
   });
 
+  const oiHistory = writeOiHistoryFile([...readOiHistoryFile().oi, { t: now, value: openInterestUsd }]);
+
   console.log(
-    `[levels] oi=${next.oi.length} traders=${next.traders.length} ` +
+    `[levels] oi=${next.oi.length} traders=${next.traders.length} oiHistory=${oiHistory.oi.length} ` +
       `lastOi=${openInterestUsd.toFixed(0)} lastTraders=${activeTraders}`,
   );
 }

@@ -61,6 +61,8 @@
      surface, worst pair ΔE 20 CVD / 22 normal. */
   --t-cost-spread: #3987e5;
   --t-cost-slippage: #d95926;
+  /* Open interest line on the Total Volume chart, violet as on DefiLlama. */
+  --t-oi-line: #b57bff;
 
   /* Hairlines — structural lines stay soft; panels prefer elevation. */
   --t-line: rgba(255, 255, 255, 0.06);
@@ -114,6 +116,7 @@
   /* Same roles stepped for the cream surface: worst pair ΔE 25 / 28. */
   --t-cost-spread: #2a78d6;
   --t-cost-slippage: #eb6834;
+  --t-oi-line: #6b3fd4;
 
   --t-line: rgba(27, 26, 20, 0.1);
   --t-line-soft: rgba(27, 26, 20, 0.06);

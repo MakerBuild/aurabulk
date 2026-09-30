@@ -37,6 +37,8 @@ const COIN_META: Record<VolumeCoin, { label: string; color: string }> = {
   others: { label: "Others", color: chartPrimaryRamp(3, 4) },
 };
 
+const OI_COLOR = "var(--t-oi-line)";
+
 const AXIS_TICK = {
   fill: "var(--t-text-muted)",
   fontSize: 11,
@@ -66,6 +68,7 @@ export function VolumeChart() {
     others: false,
   });
   const [showCumulative, setShowCumulative] = useState(true);
+  const [showOi, setShowOi] = useState(true);
   const [payload, setPayload] = useState<VolumeHistoryPayload | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -115,6 +118,12 @@ export function VolumeChart() {
   const cumStep = niceStep(cumMax / 4);
   const barHi = Math.max(barStep, Math.ceil(barMax / barStep) * barStep);
   const cumHi = Math.max(cumStep, Math.ceil(cumMax / cumStep) * cumStep);
+  const oiMax = Math.max(0, ...rows.map((r) => r.oi ?? 0));
+  const oiStep = niceStep(oiMax / 4);
+  const oiHi = Math.max(oiStep, Math.ceil(oiMax / oiStep) * oiStep);
+  // One right-hand scale fits: cumulative keeps it when both are on, and OI
+  // is then read from the tooltip.
+  const oiAxisVisible = showOi && !showCumulative;
   const lastEnabled = [...VOLUME_COINS].reverse().find((coin) => enabled[coin]) ?? null;
 
   function toggleCoin(coin: VolumeCoin) {
@@ -168,6 +177,18 @@ export function VolumeChart() {
         >
           <span className="h-[2px] w-4 bg-accent" />
           Cumulative
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowOi((v) => !v)}
+          aria-pressed={showOi}
+          className={cn(
+            "inline-flex items-center gap-[7px] transition-opacity",
+            showOi ? "text-text-secondary" : "opacity-40",
+          )}
+        >
+          <span className="h-[2px] w-4" style={{ background: OI_COLOR }} />
+          Open Interest
         </button>
       </div>
 
@@ -232,7 +253,19 @@ export function VolumeChart() {
               <YAxis
                 yAxisId="cum"
                 orientation="right"
+                hide={!showCumulative}
                 domain={[0, cumHi]}
+                tickFormatter={(v) => formatUsd(Number(v))}
+                tick={AXIS_TICK}
+                axisLine={false}
+                tickLine={false}
+                width={52}
+              />
+              <YAxis
+                yAxisId="oi"
+                orientation="right"
+                hide={!oiAxisVisible}
+                domain={[0, oiHi]}
                 tickFormatter={(v) => formatUsd(Number(v))}
                 tick={AXIS_TICK}
                 axisLine={false}
@@ -264,6 +297,12 @@ export function VolumeChart() {
                         <p className="m-0 flex justify-between gap-6 text-accent">
                           <span>Cumulative</span>
                           <span className="font-data">{formatUsd(row.cumulative)}</span>
+                        </p>
+                      )}
+                      {showOi && row.oi != null && (
+                        <p className="m-0 flex justify-between gap-6" style={{ color: OI_COLOR }}>
+                          <span>Open Interest</span>
+                          <span className="font-data">{formatUsd(row.oi)}</span>
                         </p>
                       )}
                     </div>
@@ -321,6 +360,18 @@ export function VolumeChart() {
                   strokeWidth={2.2}
                   dot={false}
                   activeDot={{ r: 3, fill: CHART_GOLD }}
+                />
+              )}
+              {showOi && (
+                <Line
+                  yAxisId="oi"
+                  type="monotone"
+                  dataKey="oi"
+                  stroke={OI_COLOR}
+                  strokeWidth={2}
+                  dot={false}
+                  connectNulls
+                  activeDot={{ r: 3, fill: OI_COLOR }}
                 />
               )}
             </ComposedChart>

@@ -2,7 +2,8 @@ name: Hourly Exchange Levels
 
 on:
   schedule:
-    # One OI / active-traders vertex per UTC hour for the Overview sparks.
+    # One OI / active-traders vertex per UTC hour for the Overview sparks
+    # and the Total Volume OI line.
     - cron: "7 * * * *"
   workflow_dispatch:
 
@@ -10,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  # Its own group: it only writes exchange-levels.json.
+  # Its own group: it only writes exchange-levels.json and oi-history.json.
   group: exchange-levels
   cancel-in-progress: false
 
@@ -40,14 +41,14 @@ jobs:
       - name: Commit updated levels
         shell: bash
         run: |
-          if git diff --quiet -- data/exchange-levels.json; then
+          if git diff --quiet -- data/exchange-levels.json data/oi-history.json; then
             echo "No data changes to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/exchange-levels.json
+          git add data/exchange-levels.json data/oi-history.json
           git commit -m "chore: record hourly open interest and active traders"
 
           for attempt in 1 2 3 4 5; do
@@ -58,7 +59,7 @@ jobs:
             echo "Push rejected on attempt $attempt — syncing with latest main..."
             git fetch origin main
             git reset --soft origin/main
-            git add data/exchange-levels.json
+            git add data/exchange-levels.json data/oi-history.json
             if git diff --cached --quiet; then
               echo "Remote already up to date with our data."
               exit 0

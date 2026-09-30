@@ -14,6 +14,9 @@ export interface VolumeBucket {
   others: number;
   total: number;
   cumulative: number;
+  /** Open interest at the bucket, null where no snapshot landed. Added by
+   *  /api/volume-history for range charts; the hourly all-time spark has none. */
+  oi?: number | null;
 }
 
 export interface VolumeHistoryPayload {
