@@ -116,7 +116,10 @@
   /* Same roles stepped for the cream surface: worst pair ΔE 25 / 28. */
   --t-cost-spread: #2a78d6;
   --t-cost-slippage: #eb6834;
-  --t-oi-line: #6b3fd4;
+  /* Copper on cream: violet sat apart from the plum bars and ink line, a
+     warm copper belongs with them, echoes the dark theme's gold, and still
+     clears the ETH grey and the ink (worst pair ΔE 16 normal, 12 CVD). */
+  --t-oi-line: #c27c2c;
 
   --t-line: rgba(27, 26, 20, 0.1);
   --t-line-soft: rgba(27, 26, 20, 0.06);
