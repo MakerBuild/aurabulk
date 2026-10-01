@@ -27,7 +27,7 @@ if [[ $EUID -eq 0 ]]; then
     fi
   fi
   install -o "$APP_USER" -g "$APP_USER" -m 755 "$0" "/home/$APP_USER/setup.sh"
-  echo "Continuing as $APP_USER (log in as ssh $APP_USER@<ip> from now on)."
+  echo "Continuing as $APP_USER. Keep logging in as root; run jobs as: sudo -iu $APP_USER"
   exec sudo -iu "$APP_USER" bash "/home/$APP_USER/setup.sh"
 fi
 
@@ -122,6 +122,11 @@ step "Scheduled jobs"
 crontab "$REPO/deploy/crontab"
 
 echo
+# The service was restarted moments ago and takes a second or two to listen.
+for _ in $(seq 1 30); do
+  curl -fsS -o /dev/null http://127.0.0.1:3000/ 2>/dev/null && break
+  sleep 1
+done
 curl -fsS -o /dev/null -w "Local check: HTTP %{http_code}\n" http://127.0.0.1:3000/ || echo "Local check failed: journalctl -u aurabulk -n 50"
 echo "Point DNS for aurabulk.xyz and www at $(curl -fsS4 https://ifconfig.me || echo 'this server')."
 echo "Caddy issues HTTPS for both names on its own once DNS resolves here."
