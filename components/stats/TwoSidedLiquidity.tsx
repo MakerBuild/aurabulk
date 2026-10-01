@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type CSSProperties } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Scale } from "lucide-react";
 import { PanelLabel } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
@@ -25,7 +25,13 @@ export const DEFAULT_BAND = 10;
  *  All shown until the viewer turns some off. */
 export const LEVELS = [TOP, ...BANDS];
 const LEVEL_OPTIONS = LEVELS.map((bp) => ({ value: String(bp), label: bp === TOP ? "Top of book" : `±${bp} bp` }));
-const COST_SIZES = [10_000, 100_000, 1_000_000];
+/** Order sizes priced in the depth panel, in the order they are added. The
+ *  panel keeps one row per table row, and the figure and the rows above the
+ *  costs take five, so the costs take the rest: three beside the default
+ *  eight levels, more as levels are added, never under one. Shown smallest
+ *  first, whichever were taken. */
+const COST_PRIORITY = [100_000, 1_000_000, 10_000, 500_000, 50_000, 250_000, 5_000_000, 25_000, 2_500_000];
+const ROWS_ABOVE_COSTS = 5;
 
 type Verdict = "balanced" | "skewed" | "one-sided";
 
@@ -114,16 +120,19 @@ export function TwoSidedLiquidity({
           }),
     [book, mid, tickSize, shown],
   );
-  const costs = useMemo(() => COST_SIZES.map((usd) => ({ usd, ...sideCosts(book, usd) })), [book]);
+  const costCount = Math.min(COST_PRIORITY.length, Math.max(1, shown.length - ROWS_ABOVE_COSTS));
+  const costs = useMemo(
+    () =>
+      COST_PRIORITY.slice(0, costCount)
+        .sort((a, b) => a - b)
+        .map((usd) => ({ usd, ...sideCosts(book, usd) })),
+    [book, costCount],
+  );
 
   const scale = Math.max(1, ...rows.flatMap((r) => [r.bid, r.ask]));
   const focused = rows.find((r) => r.bp === focus) ?? null;
   const focusVerdict = focused && !focused.empty ? verdict(focused.bidShare) : null;
   const meta = focusVerdict ? VERDICT_META[focusVerdict] : null;
-  // Beside the table the figure takes whatever rows the table has beyond the
-  // six below it, so the rows still line up. Down to a single row, where the
-  // figure and its label sit side by side instead of stacked.
-  const figureRows = Math.max(1, shown.length - 6);
 
   function changeLevels(values: string[]) {
     const next = values.map(Number);
@@ -289,23 +298,17 @@ export function TwoSidedLiquidity({
           <span className="font-label pb-1.5 text-right text-text-muted">Asks</span>
           <span className="col-span-3 h-px bg-[var(--color-line)]" aria-hidden />
 
-          {/* The figure both sides stand behind. Beside the table it spans
-              as many rows as the table has left over (figureRows); stacked
-              under it on narrower screens, three. */}
-          <div
-            className={cn(
-              "col-span-3 flex h-[108px] flex-col items-center justify-center gap-1.5 lg:h-[var(--figure-h)]",
-              figureRows === 1 && "lg:flex-row lg:gap-2.5",
-            )}
-            style={{ "--figure-h": `${figureRows * 36}px` } as CSSProperties}
-          >
+          {/* Rows 1–2: the figure both sides stand behind, always the same
+              two rows; the order costs below take up any rows the table has
+              beyond that. */}
+          <div className="col-span-3 flex h-[72px] flex-col items-center justify-center gap-1.5">
             <span className="font-figure whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
               <SwapValue>{focused?.available ? fmtUsdShort(Math.min(focused.bid, focused.ask)) : "—"}</SwapValue>
             </span>
             <span className="font-label leading-none text-text-muted">Both sides</span>
           </div>
 
-          {/* Row 6: each side's depth, the verdict between them. */}
+          {/* Row 3: each side's depth, the verdict between them. */}
           <div className="col-span-3 grid h-9 grid-cols-subgrid items-center">
             <span className="font-data truncate text-bid-green">
               <SwapValue>{focused?.available ? fmtUsdShort(focused.bid) : "—"}</SwapValue>
@@ -325,7 +328,7 @@ export function TwoSidedLiquidity({
             </span>
           </div>
 
-          {/* Row 7: the split, bright where the sides meet. */}
+          {/* Row 4: the split, bright where the sides meet. */}
           <div className="col-span-3 flex h-9 items-center">
             {focused && !focused.empty && (
               <div className="flex h-2 w-full gap-[2px] overflow-hidden rounded-full">
@@ -338,7 +341,7 @@ export function TwoSidedLiquidity({
             )}
           </div>
 
-          {/* Row 8: the touch itself, best bid and best ask with the spread
+          {/* Row 5: the touch itself, best bid and best ask with the spread
               between them. */}
           <div className="col-span-3 grid h-9 grid-cols-subgrid items-center border-t border-[var(--color-line)]">
             <span className="font-data truncate text-bid-green">
@@ -355,7 +358,7 @@ export function TwoSidedLiquidity({
             </span>
           </div>
 
-          {/* Rows 9–11: a market order's cost on each side, size on the axis. */}
+          {/* Rows 6 on: a market order's cost on each side, size on the axis, one row per table row left. */}
           {costs.map((c) => {
             const worse = c.buyBp == null || c.sellBp == null ? null : c.buyBp >= c.sellBp ? "buy" : "sell";
             const cell = (side: "buy" | "sell", align: string) => {
