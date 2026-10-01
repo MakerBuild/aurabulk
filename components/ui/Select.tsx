@@ -17,6 +17,11 @@ interface CommonProps {
   options: SelectOption[];
   className?: string;
   compact?: boolean;
+  /** Just the label and its chevron, no box, set in the site's label type:
+   *  for a setting sat in a heading among other labels.
+   *  The list then opens at least LIST_MIN_WIDTH wide, aligned to the
+   *  trigger's right edge. */
+  bare?: boolean;
 }
 
 /** One value: picking an option closes the list. */
@@ -38,6 +43,10 @@ interface MultipleProps extends CommonProps {
 
 type SelectProps = SingleProps | MultipleProps;
 
+/** The narrowest a bare trigger's list opens, so its options are not cut to
+ *  the width of a short label. */
+const LIST_MIN_WIDTH = 168;
+
 interface MenuCoords {
   left: number;
   width: number;
@@ -55,7 +64,7 @@ interface MenuCoords {
  * the arrows are on.
  */
 export function Select(props: SelectProps) {
-  const { options, className, compact } = props;
+  const { options, className, compact, bare } = props;
   const isPicked = (o: SelectOption) => (props.multiple ? props.values.includes(o.value) : o.value === props.value);
   const [open, setOpen] = useState(false);
   // The option the keyboard (or pointer) is on while the list is open.
@@ -94,8 +103,8 @@ export function Select(props: SelectProps) {
       const gap = 8;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const width = t.width;
-      const left = Math.max(margin, Math.min(t.left, vw - width - margin));
+      const width = bare ? Math.max(t.width, LIST_MIN_WIDTH) : t.width;
+      const left = Math.max(margin, Math.min(bare ? t.right - width : t.left, vw - width - margin));
       const spaceBelow = vh - t.bottom - gap - margin;
       const spaceAbove = t.top - gap - margin;
       const openDown = spaceBelow >= 200 || spaceBelow >= spaceAbove;
@@ -114,7 +123,7 @@ export function Select(props: SelectProps) {
       window.removeEventListener("scroll", place, true);
       window.removeEventListener("resize", place);
     };
-  }, [open, options.length]);
+  }, [open, options.length, bare]);
 
   const selectedIndex = props.multiple ? 0 : options.findIndex((o) => o.value === props.value);
   const selected = props.multiple ? undefined : options[selectedIndex];
@@ -212,22 +221,34 @@ export function Select(props: SelectProps) {
         aria-controls={open ? listId : undefined}
         className={cn(
           "flex w-full items-center justify-between gap-2 text-left font-sans transition-colors outline-none",
-          compact
-            ? "rounded-[10px] border bg-[var(--color-bulk-base)] px-2.5 py-1.5 text-[13px]"
-            : "input-field",
-          open
-            ? "border-accent"
+          bare
+            ? "group gap-1 py-1 focus-visible:text-accent"
             : compact
-              ? "border-[var(--color-line-strong)] hover:border-[rgb(var(--t-accent-rgb)/0.4)]"
-              : undefined
+              ? "rounded-[10px] border bg-[var(--color-bulk-base)] px-2.5 py-1.5 text-[13px]"
+              : "input-field",
+          !bare &&
+            (open
+              ? "border-accent"
+              : compact
+                ? "border-[var(--color-line-strong)] hover:border-[rgb(var(--t-accent-rgb)/0.4)]"
+                : undefined)
         )}
       >
-        <span className="min-w-0 truncate text-text-primary">
+        <span
+          className={cn(
+            "min-w-0 truncate transition-colors",
+            bare
+              ? cn("font-label leading-none", open ? "text-accent" : "text-text-muted group-hover:text-text-primary")
+              : "text-text-primary"
+          )}
+        >
           {props.multiple ? props.summary : (selected?.label ?? "Select...")}
         </span>
         <ChevronDown
           className={cn(
-            "h-4 w-4 shrink-0 text-text-muted transition-transform duration-200",
+            "shrink-0 transition-transform duration-200",
+            bare ? "h-3 w-3" : "h-4 w-4",
+            bare && open ? "text-accent" : "text-text-muted",
             open && "rotate-180"
           )}
         />

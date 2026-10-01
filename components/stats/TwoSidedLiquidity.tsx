@@ -161,7 +161,7 @@ export function TwoSidedLiquidity({
             <Select
               multiple
               compact
-              className="w-[132px]"
+              bare
               options={LEVEL_OPTIONS}
               values={shown.map(String)}
               onChange={changeLevels}
