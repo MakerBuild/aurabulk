@@ -74,16 +74,16 @@ export function HeaderCampaignStatus() {
   const left = remainingMs != null ? formatLeftCompact(remainingMs) : "—";
 
   return (
-    <div className="flex items-center gap-2 sm:gap-2.5 lg:gap-[18px]">
+    <div className="flex items-center gap-2 sm:gap-2.5 xl:gap-[18px]">
       {/* Where the TPS readout used to sit. The rule between the switch and
           the week clock is desktop-only: below the inline nav's breakpoint
           this corner also carries the Menu button, and every pixel it spends
           is one the wordmark loses. */}
       <SnapshotButton />
       <ThemeToggle />
-      <span className="hidden h-[18px] w-px bg-[var(--color-line-strong)] lg:block" aria-hidden />
+      <span className="hidden h-[18px] w-px bg-[var(--color-line-strong)] xl:block" aria-hidden />
       <span
-        className="flex shrink-0 items-center gap-1.5 lg:gap-[9px]"
+        className="flex shrink-0 items-center gap-1.5 xl:gap-[9px]"
         title={`Week ${week} · ${left}`}
       >
         <span className="font-label text-text-muted">W{week}</span>
@@ -94,7 +94,7 @@ export function HeaderCampaignStatus() {
             It is the least load-bearing of the three — the week number and
             its ticks already say where the week stands, and the exact hours
             are still in the group's title. */}
-        <span className="font-data hidden whitespace-nowrap text-[11px] text-text-muted lg:inline">
+        <span className="font-data hidden whitespace-nowrap text-[11px] text-text-muted xl:inline">
           {left}
         </span>
       </span>

@@ -112,9 +112,9 @@ export function SiteNav() {
             </span>
           </Link>
 
-          <span className="hidden h-[22px] w-px shrink-0 bg-[var(--color-line-strong)] lg:block" aria-hidden />
+          <span className="hidden h-[22px] w-px shrink-0 bg-[var(--color-line-strong)] xl:block" aria-hidden />
 
-          <nav className="hidden min-w-0 flex-wrap items-center gap-[26px] lg:flex">
+          <nav className="hidden min-w-0 flex-wrap items-center gap-[26px] xl:flex">
             {NAV.map((item) => {
               const active = isActive(pathname, item);
               return (
@@ -145,7 +145,7 @@ export function SiteNav() {
           <HeaderCampaignStatus />
 
           {/* Flattened nav for narrow screens, where the inline bar is hidden. */}
-          <div ref={menuRef} className="relative lg:hidden">
+          <div ref={menuRef} className="relative xl:hidden">
             <button
               ref={menuButtonRef}
               type="button"
