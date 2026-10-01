@@ -362,7 +362,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
               ))}
 
               <div className="absolute inset-x-0 top-0 flex items-end" style={{ bottom: BARS_LIFT }}>
-                {rows.map((row) => {
+                {rows.map((row, i) => {
                   const muted = isMuted(row.id);
                   const isHovered = hovered === row.id;
                   const color = rankColor(row.id);
@@ -393,6 +393,9 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                         lit={isHovered}
                         color={color}
                         figure={figure}
+                        // Each bar catches the light a beat after the one to
+                        // its left, so the sheen travels across the chart.
+                        sheenDelay={i * SHEEN_STEP_S}
                       />
                     </div>
                   );
@@ -732,6 +735,7 @@ function TierBar({
   lit,
   color,
   figure,
+  sheenDelay,
 }: {
   width: number;
   /** Percent of the plot's height. */
@@ -741,6 +745,8 @@ function TierBar({
   color: string;
   /** The bar's value, printed above it. */
   figure: string;
+  /** When in the shared cycle this bar's sheen passes, in seconds. */
+  sheenDelay: number;
 }) {
   return (
     <div
@@ -756,7 +762,7 @@ function TierBar({
         {figure}
       </span>
       <motion.div
-        className="absolute inset-0 rounded-t-[4px]"
+        className="absolute inset-0 overflow-hidden rounded-t-[4px]"
         {...pulseMotion(lit)}
         style={{
           backgroundColor: color,
@@ -767,10 +773,15 @@ function TierBar({
             : `drop-shadow(0 0 8px color-mix(in srgb, ${color} 0%, transparent))`,
           transition: `filter ${MARK_EASE}`,
         }}
-      />
+      >
+        <span className="bar-sheen" aria-hidden style={{ animationDelay: `${sheenDelay}s` }} />
+      </motion.div>
     </div>
   );
 }
+
+/** Gap between neighbouring bars catching the sheen. */
+const SHEEN_STEP_S = 0.12;
 
 /** Full colour down the top half of a bar, easing to under half toward the
  *  baseline. */

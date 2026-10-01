@@ -1114,3 +1114,39 @@ input[type="number"] {
     --theme-wave: 122%;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Rank distribution bars: a soft band of light sweeps up each bar every few
+   seconds, a beat later on each bar to the right, like light running over
+   polished metal. Plain CSS, so a snapshot carries it as it stands. Not gated
+   on reduced motion: the owner's Windows has animation effects off, and
+   gating hid every animation on the site. */
+.bar-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      to top,
+      transparent 0%,
+      transparent 42%,
+      rgb(255 255 255 / 0.32) 50%,
+      transparent 58%,
+      transparent 100%
+    )
+    no-repeat;
+  background-size: 100% 300%;
+  background-position: 0 0%;
+  pointer-events: none;
+  animation: bar-sheen 5.5s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+/* The band starts below the bar (position 0%) and leaves above it (100%)
+   within the first third of the cycle, then the bar rests. */
+@keyframes bar-sheen {
+  0% {
+    background-position: 0 0%;
+  }
+  32%,
+  100% {
+    background-position: 0 100%;
+  }
+}
