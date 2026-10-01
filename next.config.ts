@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The server build (deploy/update.sh) sets this to get a self-contained
+  // release folder it can swap in while the old one keeps serving.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   images: {
     unoptimized: true,
   },

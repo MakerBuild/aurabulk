@@ -1,0 +1,10 @@
+# Caddy fetches and renews the HTTPS certificates on its own once DNS for
+# both names points at this server.
+aurabulk.xyz {
+	redir https://www.aurabulk.xyz{uri} permanent
+}
+
+www.aurabulk.xyz {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3000
+}

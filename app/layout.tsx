@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { LiveFinancialProvider } from "@/components/live/LiveFinancialProvider";
@@ -101,7 +100,6 @@ export default async function RootLayout({
             </LiveExchangeProvider>
           </LiveFinancialProvider>
         </ThemeProvider>
-        <Analytics />
       </body>
     </html>
   );

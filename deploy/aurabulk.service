@@ -1,0 +1,18 @@
+[Unit]
+Description=aurabulk.xyz (Next.js standalone server)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=__USER__
+WorkingDirectory=/opt/aurabulk/current
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+Environment=BULK_API_BASE=https://indexer.bulk.trade
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

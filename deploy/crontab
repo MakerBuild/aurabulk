@@ -1,0 +1,22 @@
+# Installed by deploy/setup.sh. Times are UTC (setup sets the server clock to UTC).
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+LOGS=/opt/aurabulk/logs
+D=/opt/aurabulk/repo/deploy
+
+# Deploy: pull main every two minutes, rebuild only when code changed.
+*/2 * * * *        $D/update.sh        >> $LOGS/deploy.log 2>&1
+
+# One OI / active-traders vertex per hour, and the 14d volume walk.
+7 * * * *          $D/jobs.sh levels   >> $LOGS/levels.log 2>&1
+37 * * * *         $D/jobs.sh volume   >> $LOGS/volume.log 2>&1
+
+# Leaderboard financials and TVL totals, daily.
+0 0 * * *          $D/jobs.sh tvl      >> $LOGS/tvl.log 2>&1
+
+# Weekly Aura snapshot lands Saturdays 12:00. The watch picks it up within ten
+# minutes through the drop window and hourly otherwise; the 12:13 run is the
+# backstop if it never sees the change.
+3 * * * *          $D/jobs.sh watch    >> $LOGS/watch.log 2>&1
+5-55/10 12-15 * * 6 $D/jobs.sh watch   >> $LOGS/watch.log 2>&1
+13 12 * * 6        $D/jobs.sh aura     >> $LOGS/aura.log 2>&1
