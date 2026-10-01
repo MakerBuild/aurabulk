@@ -176,6 +176,10 @@ export function CostCalculator({
   const positiveTotal = cost ? Math.max(0, cost.spreadUsd) + Math.max(0, cost.slippageUsd) + Math.max(0, cost.feeUsd) : 0;
   const earns = cost != null && cost.totalUsd < 0;
   const makerPrice = side === "buy" ? top.bestBid : top.bestAsk;
+  // What the size buys: walked through the book for a market order, at the
+  // price it rests at for a limit one, which walks nothing.
+  const qty = fill ? fill.qty : makerPrice ? sizeUsd / makerPrice : null;
+  const fmtQty = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 4 });
   const feeFactor = cost ? cost.feeBp / 1e4 : 0;
   const effective = fill
     ? side === "buy"
@@ -220,7 +224,7 @@ export function CostCalculator({
             />
             <span className="font-data shrink-0 text-[12px] text-text-muted">
               <SwapValue>
-                {fill ? `≈ ${fill.qty.toLocaleString("en-US", { maximumFractionDigits: 4 })} ${base}` : base}
+                {qty != null ? `≈ ${fmtQty(qty)} ${base}` : base}
               </SwapValue>
             </span>
           </div>
@@ -406,7 +410,7 @@ export function CostCalculator({
                 <FooterCell label={side === "buy" ? "Rests at bid" : "Rests at ask"} value={fmtPrice(makerPrice, decimals)} />
                 <FooterCell
                   label="Quantity"
-                  value={makerPrice ? `${(sizeUsd / makerPrice).toLocaleString("en-US", { maximumFractionDigits: 4 })}` : "—"}
+                  value={qty != null ? fmtQty(qty) : "—"}
                 />
                 <FooterCell label="At market" value={marketCost ? fmtUsd(marketCost.totalUsd) : "—"} />
               </>
