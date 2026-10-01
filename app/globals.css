@@ -64,6 +64,18 @@
   /* Open interest line on the Total Volume chart, violet as on DefiLlama. */
   --t-oi-line: #b57bff;
 
+  /* The Challenger Series ranks in their official badge colours, nudged
+     only where two neighbours ran together: Platinum a little bluer and
+     Diamond a little greener than their badges, gold a little richer than
+     silver. Validated in rank order on this surface. */
+  --t-rank-unranked: #8a857c;
+  --t-rank-bronze: #e5732a;
+  --t-rank-silver: #cfccc4;
+  --t-rank-gold: #f2ad14;
+  --t-rank-platinum: #6aa6ec;
+  --t-rank-diamond: #2fc486;
+  --t-rank-challenger: #9a72ff;
+
   /* Hairlines — structural lines stay soft; panels prefer elevation. */
   --t-line: rgba(255, 255, 255, 0.06);
   --t-line-soft: rgba(255, 255, 255, 0.04);
@@ -120,6 +132,16 @@
      warm copper belongs with them, echoes the dark theme's gold, and still
      clears the ETH grey and the ink (worst pair ΔE 16 normal, 12 CVD). */
   --t-oi-line: #c27c2c;
+
+  /* The ranks a step deeper for cream; silver stays light enough to read as
+     silver, its figure and badge carrying it where contrast is thin. */
+  --t-rank-unranked: #6f6a61;
+  --t-rank-bronze: #c4651f;
+  --t-rank-silver: #9e9c97;
+  --t-rank-gold: #a06e00;
+  --t-rank-platinum: #3a7fc8;
+  --t-rank-diamond: #14995f;
+  --t-rank-challenger: #7a4ee0;
 
   --t-line: rgba(27, 26, 20, 0.1);
   --t-line-soft: rgba(27, 26, 20, 0.06);

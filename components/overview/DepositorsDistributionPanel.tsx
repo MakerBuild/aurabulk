@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
 } from "react";
 import {
@@ -18,27 +19,19 @@ import {
   type MotionValue,
 } from "framer-motion";
 import type { DepositTier } from "@/lib/overview-metrics";
-import { CHART_GOLD, chartSlateRamp } from "@/lib/overview-metrics";
-import { MARK_EASE, heldFill, pulseBed, pulseMotion } from "@/lib/chart-gold-pulse";
+import { MARK_EASE, pulseMotion } from "@/lib/chart-gold-pulse";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
-import { CATEGORY_NAME, LegendDot } from "@/components/overview/MetricTable";
+import { CATEGORY_NAME } from "@/components/overview/MetricTable";
 import { cn, formatNumber } from "@/lib/utils";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
-import {
-  OVERVIEW_BAR_GAP,
-  OVERVIEW_BAR_GAP_NARROW,
-  OVERVIEW_BAR_W,
-  OVERVIEW_BAR_W_NARROW,
-} from "@/lib/overview-bars";
+import { OVERVIEW_BAR_W, OVERVIEW_BAR_W_NARROW } from "@/lib/overview-bars";
 
-/** Which series the toggle has picked out. Both bars are always drawn — the
- * two have opposite shapes (Bulker is 55% of the depositors and 2.7% of the
- * money), so showing only one at a time hid exactly the comparison this
- * chart exists to make. The toggle instead decides which of the pair reads
- * at full strength and which steps back to a dim outline, and which side of
- * the axis its own numbers describe. */
+/** Which series the bars show. One bar per rank, the toggle swapping its
+ * height between the two: a pair per rank, one solid and one a faint
+ * outline, read as washed out, and flipping the toggle now shows the shift
+ * between the two shapes as the bars move. */
 type Metric = "count" | "value";
 
 const METRIC_OPTIONS = [
@@ -136,28 +129,14 @@ const ROW_H = 34;
  * happened to add up to. */
 const HEAD_H = 30;
 
-/** Both bars sit in every tier's slot at once, side by side with a hairline
- * between them, so the pair reads as one object — the two readings of a
- * single tier — rather than two unrelated bars that happen to be adjacent. */
-const BAR_W = OVERVIEW_BAR_W;
-const BAR_GAP = OVERVIEW_BAR_GAP;
+/** One bar per rank, twice the Overview's shared bar width: the Volume chart
+ * packs two dozen bars, this one seven, and a single 20px bar sat lost in its
+ * slot. A multiple of the shared width keeps the two plots one system. */
+const BAR_W = OVERVIEW_BAR_W * 2;
+const BAR_W_NARROW = OVERVIEW_BAR_W_NARROW * 2;
 /** Only for a tier that really is empty — anything with wallets in it gets a
  * height off the scale below, which never rounds to nothing. */
 const MIN_BAR_PCT = 1.2;
-
-/** Width of the axis gutter on the chart's left — one line of digits
- * ("7,591", "$13.13M") right-aligned with 8px clear of the first bar. Static
- * rather than measured: the labels are short, fixed-format numbers, not
- * arbitrary text, so a number sized to the widest plausible one of them
- * covers every real value without needing to watch the DOM for it.
- *
- * 54, not the 44 this was: Value's top label runs to a full "$13.13M", 45px
- * of text that needs 53 with its 8px of clearance. At 44 it simply overran
- * the gutter to the left — invisible while the chart carried a wide left
- * margin, which had room to spare for it to bleed into, but the moment the
- * chart went flush with the card's padding that overrun poked out past the
- * card's own left edge. */
-const Y_AXIS_W = 54;
 
 /** Nudge that drops the X-axis ranges onto the tier rows' own baseline.
  *
@@ -169,27 +148,38 @@ const Y_AXIS_W = 54;
  * Applied as a transform so the row keeps its exact ROW_H in the layout. */
 const X_LABEL_BASELINE_NUDGE = 1.75;
 
+/** Past this spread between a series' largest and smallest non-zero value a
+ *  square root still flattens the small end to the floor, and the series is
+ *  drawn on a log scale instead. */
+const LOG_SPREAD = 300;
+
+type Scale = (value: number) => number;
+
 /**
- * Bar height as a fraction of the tallest bar, on a square-root scale.
+ * Bar heights for one series, as percents of its largest value, compressed
+ * only as far as its own spread needs.
  *
- * The shares here span 55.4% down to 0.2% — a factor of 277. Drawn straight,
- * the two tiers that hold most of the money were 2.5px and 1.5px tall and
- * simply could not be seen. Square root pulls that range into a factor of 17,
- * which puts them at 22px and 11px: visible, and still four times apart, which
- * is what they actually are.
- *
- * A minimum height was the other option and is worse. It makes every small
- * tier the same size, so Auramaxer and Megalodon would draw identically
- * despite one being 4x the other — the exact fault that got the tier donut
- * replaced by a table in the first place.
- *
- * What it costs: heights are no longer proportional, so a bar twice as tall is
- * four times the share, not twice. Both figures are in the table and the
- * tooltip.
+ * Wallet counts run from 54,980 Unranked down to a single Challenger. Even on
+ * a square root every ranked tier sat on the floor under one tower, so a
+ * spread like that goes on a log scale, where the ranks step down one after
+ * another. Aura totals span about 30x, where a log scale squeezes 34K and
+ * 1.1M to three quarters and full height; a square root keeps them apart.
+ * Either way a bar with more in it is never shorter, and the exact figure is
+ * printed on every bar, so nothing has to be read off the heights.
  */
-function barHeight(share: number, peak: number): number {
-  if (!(share > 0) || !(peak > 0)) return MIN_BAR_PCT;
-  return Math.max(MIN_BAR_PCT, (Math.sqrt(share) / Math.sqrt(peak)) * 100);
+function seriesScale(values: number[]): Scale {
+  const positive = values.filter((v) => v > 0);
+  if (!positive.length) return () => MIN_BAR_PCT;
+  const max = Math.max(...positive);
+  const min = Math.min(...positive);
+  const log = max / min > LOG_SPREAD;
+  return (value) => {
+    if (!(value > 0)) return MIN_BAR_PCT;
+    const share = log ? Math.log1p(value) / Math.log1p(max) : Math.sqrt(value / max);
+    // Rounded: the server and the browser print a long float differently,
+    // which hydration reads as a mismatch.
+    return Math.round(Math.max(MIN_BAR_PCT, share * 100) * 100) / 100;
+  };
 }
 
 export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] }) {
@@ -197,9 +187,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const narrow = useNarrowViewport();
-  const barW = narrow ? OVERVIEW_BAR_W_NARROW : BAR_W;
-  const barGap = narrow ? OVERVIEW_BAR_GAP_NARROW : BAR_GAP;
-  const yAxisW = narrow ? 36 : Y_AXIS_W;
+  const barW = narrow ? BAR_W_NARROW : BAR_W;
   const tableCols = narrow ? TABLE_COLS_NARROW : TABLE_COLS;
 
   // The chart and the table are separate cards now, each sized by the page
@@ -228,15 +216,9 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
     return () => observer?.disconnect();
   }, []);
 
-  const { rows, peak } = useMemo(() => {
-    // Both series are scaled against the single largest share in either of
-    // them, not each against its own maximum. Two independent scales would
-    // draw Bulker's 55% of people and Megalodon's 38% of the money at the
-    // same height, which is the one comparison this chart exists to make.
-    // Exposed alongside the rows themselves — the axis below has to invert
-    // this same sqrt scale to label it correctly, and needs the number this
-    // was computed from to do it.
-    const peak = tiers.reduce((max, t) => Math.max(max, t.pct, t.auraPct), 0) || 1;
+  const rows = useMemo(() => {
+    const countScale = seriesScale(tiers.map((t) => t.count));
+    const auraScale = seriesScale(tiers.map((t) => t.aura));
 
     const rows = tiers.map((t) => {
       const { name } = splitLabel(t.label);
@@ -244,54 +226,19 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
         ...t,
         name,
         range: t.auraRange,
-        countHeight: barHeight(t.pct, peak),
-        valueHeight: barHeight(t.auraPct, peak),
+        countHeight: countScale(t.count),
+        valueHeight: auraScale(t.aura),
       };
     });
 
-    return { rows, peak };
+    return rows;
   }, [tiers]);
-
-  // The six shared gridlines, top to bottom, as the real count or dollar
-  // value each one falls at — inverting the sqrt scale the bars themselves
-  // are drawn on (see barHeight) rather than dividing the axis evenly in
-  // value, which would put it out of step with where the bars actually are.
-  //
-  // Because that inverse is quadratic, the labels are NOT evenly spaced in
-  // value the way a typical axis is — they bunch up low and spread out high,
-  // the same compression the bars themselves are drawn under. That is the
-  // honest reading of a sqrt-scaled chart: a gridline a fifth of the way up
-  // is not a fifth of the peak value, the same way a bar half as tall is not
-  // half the share. Labelling it as if it were evenly spaced would be the
-  // wrong number at every line but the top and bottom.
-  const axisLabels = useMemo(() => {
-    const total = tiers.reduce(
-      (sum, t) => ({ count: sum.count + t.count, aura: sum.aura + t.aura }),
-      { count: 0, aura: 0 }
-    );
-    const totalForMetric = metric === "count" ? total.count : total.aura;
-    return [100, 80, 60, 40, 20, 0].map((fraction) => {
-      const value = (peak / 100) * (fraction / 100) ** 2 * totalForMetric;
-      return metric === "count"
-        ? value >= 1000
-          ? `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`
-          : Math.round(value).toLocaleString("en-US")
-        : auraCompact(value);
-    });
-  }, [tiers, peak, metric]);
 
   const hoveredIndex = rows.findIndex((r) => r.id === hovered);
   const hoveredRow = hoveredIndex >= 0 ? rows[hoveredIndex] : null;
-  const litIndex = hoveredIndex >= 0 ? hoveredIndex : null;
-  // Gold rests on the first tier in both modes. Count gives the rest their
-  // own ramp colours; Aura flips them to the reversed slate ramp. One source
-  // for the bars, their pulse beds and the table's dots.
-  const restColorAt = (i: number) =>
-    i === 0
-      ? CHART_GOLD
-      : metric === "count"
-        ? rows[i].color
-        : chartSlateRamp(rows.length - 1 - i, rows.length);
+  // Every rank in its own official colour, in both modes and whether lit or
+  // not: the colour names the rank, the way its badge does.
+  const rankColor = (id: string) => `var(--t-rank-${id})`;
 
   // Pointer hover follows the cursor. Hover from the table (or keyboard
   // focus) parks the tooltip over that tier's bar instead — the pointer is
@@ -320,12 +267,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
   const barAnchor = (() => {
     if (!anchored || !hoveredRow || plotSize.w <= 0) return null;
     const slotW = plotSize.w / rows.length;
-    const pairW = barW * 2 + barGap;
-    const pairLeft = hoveredIndex * slotW + (slotW - pairW) / 2;
-    const x =
-      metric === "count"
-        ? pairLeft + barW / 2
-        : pairLeft + barW + barGap + barW / 2;
+    const x = hoveredIndex * slotW + slotW / 2;
     const heightPct = metric === "count" ? hoveredRow.countHeight : hoveredRow.valueHeight;
     return { x, y: plotSize.h * (1 - heightPct / 100) };
   })();
@@ -383,40 +325,13 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
               and never higher, which is what keeps the chart from
               overrunning the "Tier" level above it. */}
           <div className="relative" style={{ height: ROW_H * 5 }}>
-            {/* The axis gutter. Six labels, each pinned to the exact y its
-                gridline sits at (i * height / 5, the same arithmetic the
-                gridlines below are laid out with) rather than left to a
-                second `justify-between` guessing at it independently — text
-                has real line-height where the gridlines are borders on a
-                zero-height div, so two separately-distributed flex columns
-                would not necessarily land on the same y at all. */}
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0"
-              style={{ width: yAxisW }}
-            >
-              {axisLabels.map((label, i) => (
-                <span
-                  key={i}
-                  // 11px / text-secondary: what globals.css's `.recharts-text`
-                  // override renders on Recharts axes, matched by hand since
-                  // this panel isn't Recharts.
-                  className="font-data absolute right-2 -translate-y-1/2 whitespace-nowrap text-[11px] leading-none text-text-secondary"
-                  style={{ top: i * ROW_H }}
-                >
-                  {label}
-                </span>
-              ))}
-            </div>
-
-            {/* Everything else — gridlines, bars, the tooltip — inset by the
-                gutter's width, in its own containing block so the bars'
-                flex-1 slots and the tooltip's clamping divide the plot's
-                width, not the axis labels' too. */}
+            {/* No value axis: each bar carries its own figure on top, which
+                reads at a glance where a square-root axis (55k, 35k, 20k,
+                8.8k...) had to be decoded. */}
 
             <div
               ref={plotRef}
-              className="absolute inset-y-0"
-              style={{ left: yAxisW, right: 0 }}
+              className="absolute inset-0"
               onMouseMove={(e) => {
                 const r = e.currentTarget.getBoundingClientRect();
                 pointerX.set(e.clientX - r.left);
@@ -435,36 +350,14 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 ))}
               </div>
 
-              {/* Both series, every tier, always — the toggle changes which
-                  one is highlighted, not which one is drawn. Highlighting is
-                  a solid-vs-outline SWAP, not a shared opacity dip: giving
-                  the inactive bar a flat opacity multiplier still left it
-                  reading as "the same bar, dimmer" — because it never
-                  stopped being a solid fill, it just got fainter along with
-                  its neighbour, so the pair changed brightness together
-                  instead of trading places. Toggling now swaps which one of
-                  the two is drawn solid (bright fill, no border) and which is
-                  drawn as an outline (a faint tint, coloured border) — the
-                  same two treatments as before, just no longer nailed to
-                  "count is always solid." Both bars keep a border at all
-                  times (transparent on the solid one) so swapping doesn't
-                  shift either by the width of the border toggling on and
-                  off. */}
               <div className="absolute inset-0 flex items-end">
-                {rows.map((row, i) => {
+                {rows.map((row) => {
                   const muted = isMuted(row.id);
-                  const countActive = metric === "count";
                   const isHovered = hovered === row.id;
-                  const color = heldFill(i, litIndex, restColorAt);
-                  const bed = pulseBed(restColorAt(i));
+                  const color = rankColor(row.id);
                   const dimOthers = hovered != null && !isHovered;
-                  // Only the series the toggle is showing solid takes the
-                  // highlight. Lighting both bars of the pair made the hover
-                  // read as "this tier", when what it marks is the one figure
-                  // the toggle has picked out — the outline landed on the
-                  // faint companion bar just as brightly as on the answer.
-                  const countLit = isHovered && countActive;
-                  const valueLit = isHovered && !countActive;
+                  const figure =
+                    metric === "count" ? row.count.toLocaleString("en-US") : auraCompact(row.aura);
                   return (
                     <div
                       key={row.id}
@@ -481,28 +374,14 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                       onClick={() => toggleSelected(row.id)}
                       onKeyDown={(e) => onPressKey(e, () => toggleSelected(row.id))}
                       className="flex h-full flex-1 cursor-pointer items-end justify-center transition-opacity duration-250"
-                      style={{
-                        gap: barGap,
-                        opacity: muted ? 0.22 : dimOthers ? 0.4 : 1,
-                      }}
+                      style={{ opacity: muted ? 0.22 : dimOthers ? 0.4 : 1 }}
                     >
-                      {/* Depositors, then Aura — each drawn solid while the
-                          toggle shows it and as an outline otherwise. */}
                       <TierBar
                         width={barW}
-                        height={row.countHeight}
-                        solid={countActive}
-                        lit={countLit}
+                        height={metric === "count" ? row.countHeight : row.valueHeight}
+                        lit={isHovered}
                         color={color}
-                        bed={bed}
-                      />
-                      <TierBar
-                        width={barW}
-                        height={row.valueHeight}
-                        solid={!countActive}
-                        lit={valueLit}
-                        color={color}
-                        bed={bed}
+                        figure={figure}
                       />
                     </div>
                   );
@@ -529,27 +408,26 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
             </div>
           </div>
 
-          {/* Exclusive Aura bands — two lines so `10000-100000 AURA` fits
-              the column. paddingLeft matches the axis gutter above. */}
+          {/* Each rank's badge and name under its bar. */}
           <div
             className="flex shrink-0 items-center"
             style={{
               height: ROW_H,
-              paddingLeft: yAxisW,
               transform: `translateY(${X_LABEL_BASELINE_NUDGE}px)`,
             }}
           >
             {rows.map((row) => {
-              const band = row.range.replace(/\s+AURA$/i, "");
               return (
               <div
                 key={row.id}
                 className="min-w-0 flex-1 text-center transition-opacity"
                 style={{ opacity: isMuted(row.id) ? 0.22 : 1 }}
               >
-                <div className="px-0.5 text-center text-[10px] leading-[1.15] tabular-nums text-text-secondary sm:text-[11px]">
-                  <span className="block">{band}</span>
-                  <span className="block">AURA</span>
+                {/* The rank's badge over its name; the Aura band each rank
+                    covers is in the table and the tooltip. */}
+                <div className="flex flex-col items-center gap-1 px-0.5 text-center font-sans text-[9.5px] font-medium leading-none text-text-secondary sm:text-[11px]">
+                  <RankBadge id={row.id} size={16} />
+                  <span className="block whitespace-nowrap">{row.name}</span>
                 </div>
               </div>
               );
@@ -587,7 +465,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
             )}
             style={{ height: HEAD_H }}
           >
-            <span className="pl-[17px] text-left">Rank</span>
+            <span className="pl-[24px] text-left">Rank</span>
             {narrow && metric === "value" ? (
               <>
                 <span className="text-right">Total Aura</span>
@@ -639,12 +517,11 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 style={{ height: ROW_H }}
               >
                 <span className={cn("flex min-w-0 items-center gap-2", CATEGORY_NAME)} style={{ color }}>
-                  <LegendDot
-                    color={lit ? CHART_GOLD : heldFill(i, litIndex, restColorAt)}
-                    restColor={restColorAt(i)}
-                    active={lit}
-                    pulse={lit}
-                    dimmed={dimmed}
+                  <RankBadge
+                    id={row.id}
+                    size={16}
+                    className="transition-[transform,opacity] duration-300 ease-out"
+                    style={{ transform: lit ? "scale(1.15)" : "scale(1)", opacity: dimmed ? 0.4 : 1 }}
                   />
                   <span className="truncate-safe">{row.name}</span>
                 </span>
@@ -797,7 +674,8 @@ function TierTooltip({
         ref={cardRef}
         className="-translate-x-1/2 rounded-[4px] border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3 py-2.5 shadow-[var(--t-shadow-pop)]"
       >
-        <div className="mb-2 whitespace-nowrap text-center font-sans text-[13px] font-medium leading-none text-[var(--t-text-primary)]">
+        <div className="mb-2 flex items-center justify-center gap-1.5 whitespace-nowrap font-sans text-[13px] font-medium leading-none text-[var(--t-text-primary)]">
+          <RankBadge id={row.id} size={16} />
           {row.name}
         </div>
         {/* Separate grid columns so the values stack under each other. */}
@@ -815,66 +693,83 @@ function TierTooltip({
 }
 
 /**
- * One bar of a tier's pair, drawn the same way whatever state it's in, so
- * the colour, outline and glow ease across with CSS transitions as the gold
- * hands over. Lit, the fill turns gold and breathes over `bed`. Both bars
- * keep a border at all times (transparent on the solid one) so switching
- * treatments never shifts either by the border's width.
+ * One rank's bar in the rank's own colour. The height eases when the toggle
+ * swaps series; lit, it breathes and glows in its colour. The fill fades
+ * toward the baseline for some depth, and the bar's figure rides on top.
  */
 function TierBar({
   width,
   height,
-  solid,
   lit,
   color,
-  bed,
+  figure,
 }: {
   width: number;
   /** Percent of the plot's height. */
   height: number;
-  /** The series the toggle is showing: solid fill, no border. Otherwise an
-   * outline — a faint tint with a coloured border. */
-  solid: boolean;
   lit: boolean;
-  /** Colour while not lit (see `heldFill`). */
+  /** The rank's colour. */
   color: string;
-  /** What the pulse breathes over (see `pulseBed`). */
-  bed: string;
+  /** The bar's value, printed above it. */
+  figure: string;
 }) {
-  const fill = lit
-    ? CHART_GOLD
-    : solid
-      ? color
-      : `color-mix(in srgb, ${color} 55%, transparent)`;
-  const border =
-    lit || solid ? "transparent" : `color-mix(in srgb, ${color} 85%, transparent)`;
   return (
     <div
       className="relative"
       style={{ width, height: `${height}%`, transition: `height ${MARK_EASE}` }}
     >
-      <div
-        className="absolute inset-0 rounded-t-[2px]"
-        style={{
-          background: bed,
-          opacity: lit ? 1 : 0,
-          transition: `opacity ${MARK_EASE}`,
-        }}
-      />
+      <span
+        className={cn(
+          "font-data absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap text-[11px] leading-none transition-colors duration-300",
+          lit ? "text-text-primary" : "text-text-secondary"
+        )}
+      >
+        {figure}
+      </span>
       <motion.div
-        className="absolute inset-0 rounded-t-[2px] border-[0.5px]"
+        className="absolute inset-0 rounded-t-[4px]"
         {...pulseMotion(lit)}
         style={{
-          backgroundColor: fill,
-          borderColor: border,
-          outline: `1px solid ${lit ? "var(--t-text-primary)" : "transparent"}`,
+          backgroundColor: color,
+          maskImage: BAR_FADE,
+          WebkitMaskImage: BAR_FADE,
           filter: lit
-            ? "drop-shadow(0 0 4px rgb(var(--t-accent-rgb) / 0.28))"
-            : "drop-shadow(0 0 4px rgb(var(--t-accent-rgb) / 0))",
-          transition: `background-color ${MARK_EASE}, border-color ${MARK_EASE}, outline-color ${MARK_EASE}, filter ${MARK_EASE}`,
-
+            ? `drop-shadow(0 0 8px color-mix(in srgb, ${color} 55%, transparent))`
+            : `drop-shadow(0 0 8px color-mix(in srgb, ${color} 0%, transparent))`,
+          transition: `filter ${MARK_EASE}`,
         }}
       />
     </div>
+  );
+}
+
+/** Full colour down the top half of a bar, easing to under half toward the
+ *  baseline. */
+const BAR_FADE = "linear-gradient(to bottom, #000 0%, #000 45%, rgb(0 0 0 / 0.45) 100%)";
+
+/** A rank's official badge. Decorative: the rank's name is always beside it
+ *  or in the row it sits in. */
+function RankBadge({
+  id,
+  size,
+  className,
+  style,
+}: {
+  id: string;
+  size: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/ranks/${id}.webp`}
+      alt=""
+      width={size}
+      height={size}
+      draggable={false}
+      className={cn("shrink-0 object-contain", className)}
+      style={{ width: size, height: size, ...style }}
+    />
   );
 }
