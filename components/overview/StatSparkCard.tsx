@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelCard, PanelLabel } from "@/components/overview/PanelCard";
+import { PanelCard } from "@/components/overview/PanelCard";
 import { MiniSpark, type SparkRow } from "@/components/overview/MiniSpark";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +42,14 @@ export function StatSparkCard({
     <PanelCard className="h-full px-4 py-3 sm:px-4 sm:py-3">
       <div className="mb-2.5 flex h-4 items-center justify-between gap-3 leading-none">
         <div className="min-w-0">
-          {typeof label === "string" ? <PanelLabel>{label}</PanelLabel> : label}
+          {/* A plain title reads as the active one, like the selected range
+              on the Volume card beside it; dimmed grey made Open Interest
+              and Active Traders look switched off. */}
+          {typeof label === "string" ? (
+            <p className="font-label volume-mode-on m-0 truncate">{label}</p>
+          ) : (
+            label
+          )}
         </div>
         <span className="font-label shrink-0 text-[var(--t-accent)]">{badge}</span>
       </div>
