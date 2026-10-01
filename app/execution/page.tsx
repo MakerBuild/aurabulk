@@ -6,15 +6,15 @@ export const dynamic = "force-static";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Stats | AURA Intelligence",
+  title: "Execution | AURA Intelligence",
   description:
-    "Live execution and trading data for every BULK market: order book depth, execution cost by size and fee tiers.",
+    "Live order book and execution costs for every BULK market: two-sided liquidity, cost by order size and fee tiers.",
 };
 
-export default function StatsPage() {
+export default function ExecutionPage() {
   return (
     <div className="shell flex flex-col gap-4 pb-11 pt-5">
-      <PageHeading eyebrow="Stats" title="Execution & trading" />
+      <PageHeading eyebrow="Execution" title="Order book & costs" />
       {/* The dashboard polls /api/market-quality itself, so the page stays static. */}
       <StatsDashboard />
     </div>

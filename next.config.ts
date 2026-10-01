@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/aura/sources", destination: "/aura", permanent: true },
       { source: "/aura/distribution", destination: "/aura", permanent: true },
+      // The page was launched as Stats; links shared under that name still land.
+      { source: "/stats", destination: "/execution", permanent: true },
     ];
   },
   // Keep the last page around so Overview ↔ Aura ↔ Tools feel instant.
