@@ -122,6 +122,16 @@ const TABLE_COLS_NARROW =
  * ROW_H, which is exactly where a table row boundary also falls. */
 const ROW_H = 34;
 
+/** Each rank's badge sits under its bar and over its name, and the name
+ * rides the table's last row, level with Challenger beside it. The badge
+ * hangs BADGE_OVERHANG into that row, over the name, and the bars stop
+ * BADGE_GAP above it: so the bars' floor is lifted BARS_LIFT off the plot's
+ * own floor, which the tallest bar pays for at its top. */
+const BADGE = 16;
+const BADGE_GAP = 6;
+const BADGE_OVERHANG = 7;
+const BARS_LIFT = BADGE + BADGE_GAP - BADGE_OVERHANG;
+
 /** The table's header — TIER / SIZE / DEPOSITORS … — and the chart's own
  * blank space above its bars share this exact height too, for the same
  * reason: it puts the first shared gridline (the header's bottom rule) at
@@ -234,6 +244,9 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
     return rows;
   }, [tiers]);
 
+  // The plot takes every table row but the last, which holds the names.
+  const plotRows = Math.max(3, rows.length - 1);
+
   const hoveredIndex = rows.findIndex((r) => r.id === hovered);
   const hoveredRow = hoveredIndex >= 0 ? rows[hoveredIndex] : null;
   // Every rank in its own official colour, in both modes and whether lit or
@@ -269,7 +282,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
     const slotW = plotSize.w / rows.length;
     const x = hoveredIndex * slotW + slotW / 2;
     const heightPct = metric === "count" ? hoveredRow.countHeight : hoveredRow.valueHeight;
-    return { x, y: plotSize.h * (1 - heightPct / 100) };
+    return { x, y: (plotSize.h - BARS_LIFT) * (1 - heightPct / 100) };
   })();
 
   /** Dimmed by a selection elsewhere, not by the cursor: hovering brightens
@@ -319,12 +332,11 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
               header's bottom rule. */}
           <div style={{ height: HEAD_H }} aria-hidden="true" />
 
-          {/* Five rows tall, not six — the sixth is handed to the range
-              labels below instead of tacked on past the table's own bottom.
-              A bar this tall (100%) tops out exactly at the header's rule
-              and never higher, which is what keeps the chart from
-              overrunning the "Tier" level above it. */}
-          <div className="relative" style={{ height: ROW_H * 5 }}>
+          {/* One table row shorter than the table: its last row is handed
+              to the rank names below, so they sit level with the table's
+              last rank rather than a row above it. A bar this tall (100%)
+              tops out exactly at the header's rule and never higher. */}
+          <div className="relative" style={{ height: ROW_H * plotRows }}>
             {/* No value axis: each bar carries its own figure on top, which
                 reads at a glance where a square-root axis (55k, 35k, 20k,
                 8.8k...) had to be decoded. */}
@@ -338,19 +350,18 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 pointerY.set(e.clientY - r.top);
               }}
             >
-              {/* The shared grid itself: six lines, ROW_H apart, from the
-                  header's rule down to the bottom of the fifth row. The band
-                  below belongs to the range labels, not a bar. */}
-              <div
-                className="pointer-events-none absolute inset-x-0 top-0 flex flex-col justify-between"
-                style={{ height: ROW_H * 5 }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="border-t border-dashed border-[var(--color-line-soft)]" />
-                ))}
-              </div>
+              {/* The shared grid itself: a line at every table row boundary,
+                  ROW_H apart, from the header's rule down. No line at the
+                  plot's floor: the badges sit across it. */}
+              {Array.from({ length: plotRows }).map((_, i) => (
+                <div
+                  key={i}
+                  className="pointer-events-none absolute inset-x-0 border-t border-dashed border-[var(--color-line-soft)]"
+                  style={{ top: i * ROW_H }}
+                />
+              ))}
 
-              <div className="absolute inset-0 flex items-end">
+              <div className="absolute inset-x-0 top-0 flex items-end" style={{ bottom: BARS_LIFT }}>
                 {rows.map((row) => {
                   const muted = isMuted(row.id);
                   const isHovered = hovered === row.id;
@@ -388,6 +399,24 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 })}
               </div>
 
+              {/* Each rank's badge, under its bar. */}
+              <div
+                className="pointer-events-none absolute inset-x-0 flex"
+                style={{ bottom: -BADGE_OVERHANG, height: BADGE }}
+              >
+                {rows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="flex flex-1 justify-center transition-opacity duration-250"
+                    style={{
+                      opacity: isMuted(row.id) ? 0.22 : hovered != null && hovered !== row.id ? 0.4 : 1,
+                    }}
+                  >
+                    <RankBadge id={row.id} size={BADGE} />
+                  </div>
+                ))}
+              </div>
+
             {/* AnimatePresence keeps the card's last props through its
                 fade-out, so it goes on showing the tier it was on. */}
             <AnimatePresence>
@@ -408,7 +437,8 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
             </div>
           </div>
 
-          {/* Each rank's badge and name under its bar. */}
+          {/* Each rank's name, level with the table's last row; its badge
+              hangs just above it, from the plot. */}
           <div
             className="flex shrink-0 items-center"
             style={{
@@ -423,12 +453,11 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 className="min-w-0 flex-1 text-center transition-opacity"
                 style={{ opacity: isMuted(row.id) ? 0.22 : 1 }}
               >
-                {/* The rank's badge over its name; the Aura band each rank
-                    covers is in the table and the tooltip. */}
-                <div className="flex flex-col items-center gap-1 px-0.5 text-center font-sans text-[9.5px] font-medium leading-none text-text-secondary sm:text-[11px]">
-                  <RankBadge id={row.id} size={16} />
-                  <span className="block whitespace-nowrap">{row.name}</span>
-                </div>
+                {/* The Aura band each rank covers is in the table and the
+                    tooltip. */}
+                <span className="block whitespace-nowrap px-0.5 text-center font-sans text-[9.5px] font-medium leading-none text-text-secondary sm:text-[11px]">
+                  {row.name}
+                </span>
               </div>
               );
             })}
