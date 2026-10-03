@@ -119,6 +119,25 @@ function mergeMainnetTrading(items: CategoryBreakdownItem[]): CategoryBreakdownI
   return rows;
 }
 
+// The per-wallet endpoint sends each mainnet week's protocol reward twice: the
+// total as "mainnet_weekN_protocol" and its per-venue detail as
+// "mainnet_weekN_protocol_<venue>" (today only "_exponent", equal to the total).
+// The leaderboard and the wallet's own `aura` count the total alone.
+const MAINNET_PROTOCOL_DETAIL_RE = /^(mainnet_week\d+_protocol)_.+$/;
+
+/** Drop protocol detail keys whose week total is present, so categories sum to `aura`. */
+export function withoutProtocolDetail(
+  categories: Record<string, number> | undefined
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [key, value] of Object.entries(categories ?? {})) {
+    const match = key.match(MAINNET_PROTOCOL_DETAIL_RE);
+    if (match && categories && match[1] in categories) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
 export const OVERVIEW_GROUP = "overview";
 
 /**

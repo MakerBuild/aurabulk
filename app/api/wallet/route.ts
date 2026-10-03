@@ -5,6 +5,7 @@ import { upstreamJson } from "@/lib/upstream";
 import { getLeaderboardForApp } from "@/lib/live-leaderboard";
 import { toRankName } from "@/lib/ranks";
 import { buildWalletData } from "@/lib/wallet-data";
+import { withoutProtocolDetail } from "@/lib/aura-category-groups";
 import type { LeaderboardEntry, WalletData } from "@/types";
 
 const SOLANA_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -65,7 +66,7 @@ function withLiveFinancials(
     merged.aura = Number(remote.aura) || 0;
   }
   if (remote.categories) {
-    merged.categories = remote.categories;
+    merged.categories = withoutProtocolDetail(remote.categories);
   }
 
   return buildWalletData(merged, allAura);
@@ -110,7 +111,7 @@ export async function GET(request: NextRequest) {
         referrals_sent: remote.referrals_sent ?? 0,
         referrals_qualified: remote.referrals_qualified ?? 0,
         referrals_rewarded: remote.referrals_rewarded ?? 0,
-        categories: remote.categories ?? {},
+        categories: withoutProtocolDetail(remote.categories),
         total_held_time_seconds: remote.total_held_time_seconds ?? 0,
         total_held_time_hours: remote.total_held_time_hours ?? 0,
         updated_at: remote.updated_at,
