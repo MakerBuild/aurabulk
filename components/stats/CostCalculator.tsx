@@ -20,6 +20,7 @@ import {
   parseUsdInput,
 } from "@/components/stats/format";
 import { cn } from "@/lib/utils";
+import { PresetChips } from "@/components/ui/PresetChips";
 
 export const SIZE_PRESETS = [1_000, 10_000, 50_000, 100_000, 250_000, 500_000, 1_000_000];
 const SLIDER_MIN = 100;
@@ -228,27 +229,13 @@ export function CostCalculator({
               </SwapValue>
             </span>
           </div>
-          <div className="mt-2 grid w-full grid-cols-4 gap-1.5 sm:grid-cols-7">
-            {SIZE_PRESETS.map((p) => {
-              const on = p === sizeUsd;
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => onSize(p)}
-                  aria-pressed={on}
-                  className={cn(
-                    "h-7 min-w-0 rounded-[8px] border px-1 text-center text-[11px] font-medium tabular-nums transition-colors",
-                    on
-                      ? "border-[rgb(var(--t-veil-rgb)/0.16)] bg-[rgb(var(--t-veil-rgb)/0.08)] text-text-primary"
-                      : "border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] text-text-muted hover:border-[rgb(var(--t-veil-rgb)/0.14)] hover:text-text-secondary",
-                  )}
-                >
-                  {fmtUsdShort(p)}
-                </button>
-              );
-            })}
-          </div>
+          <PresetChips
+            values={SIZE_PRESETS}
+            value={sizeUsd}
+            onPick={onSize}
+            format={fmtUsdShort}
+            className="mt-2 max-sm:grid! max-sm:grid-cols-4"
+          />
           <div className="mt-3">
             <TickSlider
               value={toSlider(sizeUsd)}

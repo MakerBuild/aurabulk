@@ -12,6 +12,7 @@ import { PageHeading } from "@/components/layout/PageHeading";
 import { UnderlineTabs } from "@/components/ui/UnderlineTabs";
 import { TickSlider } from "@/components/ui/TickSlider";
 import { FieldLabel } from "@/components/ui/FieldLabel";
+import { PresetChips } from "@/components/ui/PresetChips";
 import {
   Area,
   AreaChart,
@@ -459,27 +460,13 @@ function EstimatorWorkbench({
                   )}
                 />
               </div>
-              <div className="mt-2 grid w-full grid-cols-3 gap-1.5 sm:grid-cols-6">
-                {AURA_PRESETS.map((preset) => {
-                  const on = userAura === preset;
-                  return (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setUserAura(preset)}
-                      aria-pressed={on}
-                      className={cn(
-                        "h-7 min-w-0 rounded-[8px] border px-1 text-center text-[11px] font-medium tabular-nums transition-colors",
-                        on
-                          ? "border-[rgb(var(--t-veil-rgb)/0.16)] bg-[rgb(var(--t-veil-rgb)/0.08)] text-text-primary"
-                          : "border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] text-text-muted hover:border-[rgb(var(--t-veil-rgb)/0.14)] hover:text-text-secondary"
-                      )}
-                    >
-                      {formatCommaNumber(preset)}
-                    </button>
-                  );
-                })}
-              </div>
+              <PresetChips
+                values={AURA_PRESETS}
+                value={userAura}
+                onPick={setUserAura}
+                format={formatCommaNumber}
+                className="mt-2 max-sm:grid! max-sm:grid-cols-3"
+              />
             </div>
 
             {/* Allocation — bar slider with live % */}
