@@ -312,8 +312,9 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
               value={selectedGroup}
               onChange={setSelectedGroup}
               options={groupOptions}
-              className="w-[9.5rem] shrink-0"
+              className="shrink-0"
               compact
+              bare
             />
           </div>
           {segments.length > 0 && (

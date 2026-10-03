@@ -106,8 +106,9 @@ export function PersonalSourcesPanel({ data }: { data: WalletData }) {
               setSelectedWeek(value === "all" ? "all" : Number(value))
             }
             options={weekOptions}
-            className="w-[9.5rem] shrink-0"
+            className="shrink-0"
             compact
+            bare
           />
         )}
       </div>
