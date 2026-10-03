@@ -1150,3 +1150,21 @@ input[type="number"] {
     background-position: 0 100%;
   }
 }
+
+/* Two-sided depth: the heavier side of the balance bar pulses a glow in its
+   own colour (--glow, set per side). Not gated on reduced motion, as above. */
+.balance-dominant {
+  animation: balance-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes balance-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--glow) 0%, transparent);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 10px 1px color-mix(in srgb, var(--glow) 60%, transparent);
+    filter: brightness(1.22);
+  }
+}

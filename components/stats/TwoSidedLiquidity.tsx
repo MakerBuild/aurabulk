@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { AlertTriangle, CheckCircle2, Scale } from "lucide-react";
 import { PanelLabel } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
@@ -9,7 +9,8 @@ import { RowHighlight } from "@/components/ui/RowHighlight";
 import { SwapValue } from "@/components/ui/SwapValue";
 import { bookTop, depthWithinBp, sideCosts, type Book } from "@/lib/order-book-math";
 import { fmtBp, fmtPrice, fmtUsdShort } from "@/components/stats/format";
-import { barGradient, barStyle } from "@/components/stats/book-colors";
+import { ASK, BID, barGradient, barStyle } from "@/components/stats/book-colors";
+import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
 import { cn } from "@/lib/utils";
 
 /** Distances from mid, in bp, each band cumulative from the touch outward.
@@ -133,6 +134,9 @@ export function TwoSidedLiquidity({
   const focused = rows.find((r) => r.bp === focus) ?? null;
   const focusVerdict = focused && !focused.empty ? verdict(focused.bidShare) : null;
   const meta = focusVerdict ? VERDICT_META[focusVerdict] : null;
+  // The side holding more, by the same whole-percent split the table shows.
+  const bidPct = focused ? Math.round(focused.bidShare * 100) : 50;
+  const dominant = bidPct > 50 ? "bid" : bidPct < 50 ? "ask" : null;
 
   function changeLevels(values: string[]) {
     const next = values.map(Number);
@@ -303,7 +307,14 @@ export function TwoSidedLiquidity({
               beyond that. */}
           <div className="col-span-3 flex h-[72px] flex-col items-center justify-center gap-1.5">
             <span className="font-figure whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] text-text-primary sm:text-[28px] xl:text-[30px]">
-              <SwapValue>{focused?.available ? fmtUsdShort(Math.min(focused.bid, focused.ask)) : "—"}</SwapValue>
+              {/* Counts across to each new reading, the Mid price's recount,
+                  rather than sliding: the band or the market changing runs
+                  the figure over. */}
+              {focused?.available ? (
+                <KpiTerminalCounter value={Math.min(focused.bid, focused.ask)} format={fmtUsdShort} />
+              ) : (
+                "—"
+              )}
             </span>
             <span className="font-label leading-none text-text-muted">Both sides</span>
           </div>
@@ -328,15 +339,29 @@ export function TwoSidedLiquidity({
             </span>
           </div>
 
-          {/* Row 4: the split, bright where the sides meet. */}
+          {/* Row 4: the split, bright where the sides meet. The heavier
+              side pulses a glow in its own colour; an even 50/50 split has
+              no heavier side and stays still. */}
           <div className="col-span-3 flex h-9 items-center">
             {focused && !focused.empty && (
-              <div className="flex h-2 w-full gap-[2px] overflow-hidden rounded-full">
+              <div className="flex h-2 w-full gap-[2px]">
                 <span
-                  className="h-full rounded-l-full transition-[width] duration-500"
-                  style={{ width: `${focused.bidShare * 100}%`, backgroundImage: barGradient("bid") }}
+                  className={cn(
+                    "h-full rounded-l-full transition-[width] duration-500",
+                    dominant === "bid" && "balance-dominant",
+                  )}
+                  style={
+                    {
+                      width: `${focused.bidShare * 100}%`,
+                      backgroundImage: barGradient("bid"),
+                      "--glow": BID,
+                    } as CSSProperties
+                  }
                 />
-                <span className="h-full flex-1 rounded-r-full" style={{ backgroundImage: barGradient("ask") }} />
+                <span
+                  className={cn("h-full flex-1 rounded-r-full", dominant === "ask" && "balance-dominant")}
+                  style={{ backgroundImage: barGradient("ask"), "--glow": ASK } as CSSProperties}
+                />
               </div>
             )}
           </div>
