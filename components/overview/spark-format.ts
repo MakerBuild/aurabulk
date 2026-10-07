@@ -4,9 +4,13 @@
 /** Headline dollars: two decimals at M/B, whole thousands below. */
 export function usdBoard(n: number): string {
   if (!(n > 0)) return "$0";
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  if (n >= 1e3) return `$${Math.round(n / 1e3).toLocaleString("en-US")}K`;
+  // Units are picked after rounding, so $999,996,000 reads $1.00B rather than
+  // $1000.00M, and $999,600 reads $1.00M rather than $1,000K.
+  const m = (n / 1e6).toFixed(2);
+  if (n >= 1e9 || m === "1000.00") return `$${(n / 1e9).toFixed(2)}B`;
+  const k = Math.round(n / 1e3);
+  if (n >= 1e6 || k >= 1000) return `$${m}M`;
+  if (Math.round(n) >= 1e3) return `$${k.toLocaleString("en-US")}K`;
   return `$${Math.round(n).toLocaleString("en-US")}`;
 }
 

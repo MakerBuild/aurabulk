@@ -6,8 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatNumber(value: number, decimals = 0): string {
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}B`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  // Thresholds sit where one decimal rounds up, so 999.96M reads 1.0B, not 1000.0M.
+  if (value >= 999_950_000) return `${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value >= 999_950) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
   return value.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
