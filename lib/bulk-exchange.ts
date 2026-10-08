@@ -51,17 +51,48 @@ export interface ExchangeCandle {
   n: number;
 }
 
+/**
+ * The exchange answers 429 once roughly ten requests from one IP are in
+ * flight. Volume history fans out one klines call per market (two series for
+ * the live totals), so an unthrottled render fired 40+ at once and a single
+ * 429 failed the whole sum. Every call here shares this one queue.
+ */
+const EXCHANGE_MAX_IN_FLIGHT = 6;
+let exchangeInFlight = 0;
+const exchangeQueue: Array<() => void> = [];
+
+async function withExchangeSlot<T>(task: () => Promise<T>): Promise<T> {
+  if (exchangeInFlight >= EXCHANGE_MAX_IN_FLIGHT) {
+    await new Promise<void>((resolve) => exchangeQueue.push(resolve));
+  } else {
+    exchangeInFlight += 1;
+  }
+  try {
+    return await task();
+  } finally {
+    // Hand the slot straight to the next waiter; only free it when none wait.
+    const next = exchangeQueue.shift();
+    if (next) next();
+    else exchangeInFlight -= 1;
+  }
+}
+
 async function exchangeFetch(
   path: string,
   options: { revalidate?: number; noStore?: boolean } = {},
 ): Promise<Response> {
   const { revalidate = 15, noStore = false } = options;
   const url = `${EXCHANGE_API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
-  return fetch(url, {
-    headers: { Accept: "application/json", "User-Agent": USER_AGENT },
-    ...(noStore ? { cache: "no-store" as const } : { next: { revalidate } }),
-    signal: AbortSignal.timeout(EXCHANGE_TIMEOUT_MS),
-  });
+  return withExchangeSlot(() =>
+    fetchWithRetry(
+      url,
+      {
+        headers: { Accept: "application/json", "User-Agent": USER_AGENT },
+        ...(noStore ? { cache: "no-store" as const } : { next: { revalidate } }),
+      },
+      { maxRetries: 3, timeoutMs: EXCHANGE_TIMEOUT_MS, baseBackoffMs: 500, maxBackoffMs: 4_000 },
+    ),
+  );
 }
 
 /** Markets + OI only. Do not use `volume` / `quoteVolume` — those fields
