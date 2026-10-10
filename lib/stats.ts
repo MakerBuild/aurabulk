@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { getLeaderboard } from "@/lib/fetcher";
 import { readDashboardMetricsFile } from "@/lib/dashboard-metrics-store";
 import { getLeaderboardForApp } from "@/lib/live-leaderboard";
@@ -109,25 +108,18 @@ export async function computeDashboardMetricsUncached(): Promise<DashboardMetric
  * process only when the file is missing or unreadable — a fresh clone before
  * the first cron run, say — so a missing artefact degrades to the old
  * behaviour rather than to a blank dashboard.
+ *
+ * Not wrapped in unstable_cache: that kept its copy on disk for an hour across
+ * rebuilds and restarts, so after the 2026-10-10 Aura refresh the source
+ * breakdown stayed on last week while the total beside it moved on. The file
+ * read is cached by mtime in readDashboardMetricsFile instead.
  */
-async function loadDashboardMetrics(): Promise<DashboardMetrics> {
+export async function computeDashboardMetrics(): Promise<DashboardMetrics> {
   const precomputed = readDashboardMetricsFile();
   if (precomputed) return precomputed.metrics;
   console.warn("[metrics] no precomputed file; computing in process");
   return computeDashboardMetricsUncached();
 }
-
-export const computeDashboardMetrics = unstable_cache(
-  loadDashboardMetrics,
-  ["dashboard-metrics-v6"],
-  // Hourly. This is the expensive one — ~450ms of CPU to parse the 34MB
-  // leaderboard and run twenty passes plus eight sorts over 56k entries.
-  // Its inputs are a weekly aura refresh and a daily totals refresh, so a
-  // 60s window rebuilt it thousands of times per change. It also floors the
-  // revalidate of every page that calls it, since a route's window is the
-  // minimum of every cache used while rendering it.
-  { revalidate: 3600 },
-);
 
 export function getWalletData(address: string): WalletData | null {
   const entries = getLeaderboard();

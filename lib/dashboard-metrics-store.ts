@@ -26,18 +26,26 @@ interface DashboardMetricsFile {
   metrics: DashboardMetrics;
 }
 
+// Re-read only when the cron rewrites the file, so a refresh shows up on the
+// next render and every render in between skips the parse.
+let cache: { mtimeMs: number; data: DashboardMetricsFile } | null = null;
+
 export function readDashboardMetricsFile(): DashboardMetricsFile | null {
   try {
+    const mtimeMs = fs.statSync(METRICS_FILE).mtimeMs;
+    if (cache && cache.mtimeMs === mtimeMs) return cache.data;
     const parsed = JSON.parse(
       fs.readFileSync(METRICS_FILE, "utf-8"),
     ) as Partial<DashboardMetricsFile>;
     if (!parsed || typeof parsed !== "object" || !parsed.metrics) return null;
-    return {
+    const data: DashboardMetricsFile = {
       generatedAt:
         typeof parsed.generatedAt === "string" ? parsed.generatedAt : new Date(0).toISOString(),
       sourceMtimeMs: Number(parsed.sourceMtimeMs) || 0,
       metrics: parsed.metrics as DashboardMetrics,
     };
+    cache = { mtimeMs, data };
+    return data;
   } catch {
     // Absent or malformed — the caller falls back to computing in process.
     return null;
