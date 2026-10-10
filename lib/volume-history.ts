@@ -54,8 +54,45 @@ const NAMED: Record<string, VolumeCoin> = {
 /** Keyed, not a single slot: the Overview asks for `ALL:1h` and a range in the
  *  same render, and one shared slot made each call evict the other — every
  *  request then refetched klines for every market from mainnet start. */
-const historyCache = new Map<string, { at: number; data: VolumeHistoryPayload }>();
+const cacheSlots = new Map<string, { at: number; data?: unknown; pending?: Promise<unknown> }>();
 const HISTORY_TTL_MS = 60_000;
+
+/**
+ * The last good value right away, rebuilt in the background once it is older
+ * than the TTL. Only the first call after a restart waits for a build, and
+ * concurrent callers share it. A rebuild fans out one klines call per market,
+ * and every expiry used to make a visitor wait for it: with the Overview's
+ * parallel requests that was 100+ calls at once, 20s+ and the odd 503.
+ */
+function staleWhileRevalidate<T>(key: string, build: () => Promise<T>): Promise<T> {
+  let slot = cacheSlots.get(key);
+  if (!slot) {
+    slot = { at: 0 };
+    cacheSlots.set(key, slot);
+  }
+  const s = slot;
+  if (s.data !== undefined && Date.now() - s.at < HISTORY_TTL_MS) {
+    return Promise.resolve(s.data as T);
+  }
+  if (!s.pending) {
+    s.pending = build()
+      .then((data) => {
+        s.data = data;
+        s.at = Date.now();
+        return data;
+      })
+      .finally(() => {
+        s.pending = undefined;
+      });
+  }
+  if (s.data !== undefined) {
+    // A failed background rebuild keeps the last good value; the next call
+    // after it tries again.
+    s.pending.catch(() => {});
+    return Promise.resolve(s.data as T);
+  }
+  return s.pending as Promise<T>;
+}
 
 function candleUsd(candle: ExchangeCandle): number {
   const close = Number(candle.c) || 0;
@@ -134,25 +171,13 @@ async function buildBuckets(
   return { range, interval, buckets };
 }
 
-export async function buildVolumeHistory(range: VolumeRange): Promise<VolumeHistoryPayload> {
-  const now = Date.now();
-  const cached = historyCache.get(range);
-  if (cached && now - cached.at < HISTORY_TTL_MS) {
-    return cached.data;
-  }
-
-  const startTime = range === "ALL" ? undefined : now - RANGE_MS[range];
-  const data = await buildBuckets(range, RANGE_INTERVAL[range], startTime, now);
-  historyCache.set(range, { at: now, data });
-  return data;
+export function buildVolumeHistory(range: VolumeRange): Promise<VolumeHistoryPayload> {
+  return staleWhileRevalidate(range, () => {
+    const now = Date.now();
+    const startTime = range === "ALL" ? undefined : now - RANGE_MS[range];
+    return buildBuckets(range, RANGE_INTERVAL[range], startTime, now);
+  });
 }
-
-const VOLUME_TTL_MS = 60_000;
-let volumeCache: {
-  at: number;
-  volume24hUsd: number;
-  volumeTotalUsd: number;
-} | null = null;
 
 function sumCandlesUsd(candles: ExchangeCandle[], from?: number): number {
   let usd = 0;
@@ -176,15 +201,18 @@ function sumCandlesUsd(candles: ExchangeCandle[], from?: number): number {
  * when `v` is 0 (orders/ticks). Unique fills come from BulkStats
  * `/api/analytics/stats` `trades.count`.
  */
-export async function sumCandleVolumes(revalidate = 60): Promise<{
+export function sumCandleVolumes(revalidate = 60): Promise<{
+  volume24hUsd: number;
+  volumeTotalUsd: number;
+}> {
+  return staleWhileRevalidate("totals", () => buildCandleVolumes(revalidate));
+}
+
+async function buildCandleVolumes(revalidate: number): Promise<{
   volume24hUsd: number;
   volumeTotalUsd: number;
 }> {
   const now = Date.now();
-  if (volumeCache && now - volumeCache.at < VOLUME_TTL_MS) {
-    return volumeCache;
-  }
-
   const start24h = now - RANGE_MS["1D"];
   // The hourly candle covering `start24h` opened before it, so counting that
   // whole candle as "older" and the 1m candles from `start24h` on as "24h"
@@ -216,20 +244,10 @@ export async function sumCandleVolumes(revalidate = 60): Promise<{
     return sum + usd;
   }, 0);
 
-  const data = { at: now, volume24hUsd, volumeTotalUsd: olderUsd + spliceGapUsd + volume24hUsd };
-  volumeCache = data;
-  return data;
+  return { volume24hUsd, volumeTotalUsd: olderUsd + spliceGapUsd + volume24hUsd };
 }
 
 /** Hourly buckets from trading mainnet start — for the Total KPI spark. */
-export async function buildAllTimeHourly(): Promise<VolumeHistoryPayload> {
-  const now = Date.now();
-  const cached = historyCache.get("ALL:1h");
-  if (cached && now - cached.at < HISTORY_TTL_MS) {
-    return cached.data;
-  }
-
-  const data = await buildBuckets("ALL", "1h", MAINNET_START_MS, now);
-  historyCache.set("ALL:1h", { at: now, data });
-  return data;
+export function buildAllTimeHourly(): Promise<VolumeHistoryPayload> {
+  return staleWhileRevalidate("ALL:1h", () => buildBuckets("ALL", "1h", MAINNET_START_MS, Date.now()));
 }
