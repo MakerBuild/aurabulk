@@ -44,6 +44,16 @@ commit_and_push() {
   flock -u 9
 }
 
+# The pages are cached for an hour; drop them so new data shows right away.
+# A failure is not an error: the hourly revalidate still catches up.
+refresh_pages() {
+  if curl -fsS -X POST -m 30 http://127.0.0.1:3000/api/revalidate >/dev/null; then
+    log "pages revalidated"
+  else
+    log "page revalidate failed"
+  fi
+}
+
 # Run the job body under its own lock so a slow run is never doubled up.
 # tvl and aura share one: both rewrite leaderboard.json.
 with_lock() {
@@ -79,6 +89,7 @@ tvl() {
   npm run -s build:metrics
   commit_and_push "chore: refresh TVL totals and wallet financials" \
     data/totals.json data/snapshots.json data/leaderboard.json data/dashboard-metrics.json
+  refresh_pages
 }
 
 aura() {
@@ -89,6 +100,7 @@ aura() {
   npm run -s build:metrics
   commit_and_push "chore: refresh weekly aura leaderboard" \
     data/leaderboard.json data/dashboard-metrics.json data/trading-leagues.json
+  refresh_pages
 }
 
 watch() {
