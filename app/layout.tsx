@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { BootSplash } from "@/components/layout/BootSplash";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { LiveFinancialProvider } from "@/components/live/LiveFinancialProvider";
 import { LiveExchangeProvider } from "@/components/live/LiveExchangeProvider";
@@ -90,6 +91,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="antialiased">
+        <BootSplash />
         <ThemeProvider>
           <LiveFinancialProvider initial={LIVE_FINANCIAL_SEED}>
             <LiveExchangeProvider initial={exchange}>
