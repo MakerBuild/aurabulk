@@ -20,8 +20,9 @@ import fs from "fs";
 import path from "path";
 import { upstreamFetch } from "../lib/upstream";
 
-// Ranked by Aura, so the sample is the wallets a new snapshot moves first.
-const ENDPOINT = "/v1/aura/leaderboard";
+// The same endpoint the refresh reads. /v1/aura/leaderboard returned 500 for
+// the whole 2026-10-10 drop, so the watcher never saw week 5 land.
+const ENDPOINT = "/v1/aura/predeposit/leaderboard";
 const SAMPLE_SIZE = 1000;
 const LEADERBOARD_FILE = path.join(process.cwd(), "data", "leaderboard.json");
 
