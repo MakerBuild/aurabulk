@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { holdBoot } from "@/lib/boot-gate";
 
 /**
  * Fetches `url` on mount and every `intervalMs` while the tab is visible,
@@ -39,7 +40,9 @@ export function usePolledJson<T>(
       }
     };
 
-    void refresh();
+    // The first reading holds the boot splash, so the page opens on live
+    // figures rather than swapping them in mid-animation.
+    void holdBoot(refresh());
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === "visible") void refresh();
     }, intervalMs);

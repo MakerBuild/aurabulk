@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { holdBoot } from "@/lib/boot-gate";
 import {
   Area,
   Bar,
@@ -76,17 +77,21 @@ export function VolumeChart() {
     let cancelled = false;
     setPayload(null);
     setFailed(false);
-    void fetch(`/api/volume-history?range=${range}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`volume-history ${res.status}`);
-        return res.json() as Promise<VolumeHistoryPayload>;
-      })
-      .then((next) => {
-        if (!cancelled) setPayload(next);
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
+    // The first range holds the boot splash, so the chart is drawn when the
+    // page opens rather than popping in after it.
+    void holdBoot(
+      fetch(`/api/volume-history?range=${range}`)
+        .then((res) => {
+          if (!res.ok) throw new Error(`volume-history ${res.status}`);
+          return res.json() as Promise<VolumeHistoryPayload>;
+        })
+        .then((next) => {
+          if (!cancelled) setPayload(next);
+        })
+        .catch(() => {
+          if (!cancelled) setFailed(true);
+        }),
+    );
     return () => {
       cancelled = true;
     };
@@ -204,178 +209,187 @@ export function VolumeChart() {
         ) : rows.length === 0 ? (
           <p className="font-data m-0 pt-10 text-center text-text-dim">No volume in this window.</p>
         ) : (
-          <ResponsiveContainer width="100%" height="100%" minHeight={90}>
-            <ComposedChart
-              data={rows}
-              margin={{ top: 6, right: 8, bottom: 4, left: 8 }}
-              barCategoryGap={OVERVIEW_BAR_GAP}
-              barGap={0}
-            >
-              <defs>
-                {/* Cumulative area: wash for body, then a dot lattice turned
-                    45 degrees for the mesh. Sparser and fainter than the KPI
-                    sparklines because the bars have to stay readable through
-                    it — see the ordering note below. */}
-                <linearGradient id="volCumWash" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_GOLD} stopOpacity={0.2} />
-                  <stop offset="100%" stopColor={CHART_GOLD} stopOpacity={0.02} />
-                </linearGradient>
-                <pattern
-                  id="volCumMesh"
-                  width="5"
-                  height="5"
-                  patternUnits="userSpaceOnUse"
-                  patternTransform="rotate(45)"
-                >
-                  <circle cx="1.25" cy="1.25" r="0.6" fill={CHART_GOLD} fillOpacity={0.34} />
-                </pattern>
-              </defs>
-              <CartesianGrid stroke="rgb(var(--t-veil-rgb)/.05)" vertical={false} />
-              <XAxis
-                dataKey="t"
-                tickFormatter={(t) => formatAxisTick(Number(t), range)}
-                tick={AXIS_TICK}
-                axisLine={false}
-                tickLine={false}
-                minTickGap={28}
-                height={26}
-              />
-              <YAxis
-                yAxisId="bar"
-                orientation="left"
-                domain={[0, barHi]}
-                tickFormatter={(v) => formatUsd(Number(v))}
-                tick={AXIS_TICK}
-                axisLine={false}
-                tickLine={false}
-                width={52}
-              />
-              <YAxis
-                yAxisId="cum"
-                orientation="right"
-                hide={!showCumulative}
-                domain={[0, cumHi]}
-                tickFormatter={(v) => formatUsd(Number(v))}
-                tick={AXIS_TICK}
-                axisLine={false}
-                tickLine={false}
-                width={52}
-              />
-              <YAxis
-                yAxisId="oi"
-                orientation="right"
-                hide={!oiAxisVisible}
-                domain={[0, oiHi]}
-                tickFormatter={(v) => formatUsd(Number(v))}
-                tick={AXIS_TICK}
-                axisLine={false}
-                tickLine={false}
-                width={52}
-              />
-              <Tooltip
-                cursor={{ fill: "rgb(var(--t-veil-rgb)/0.03)" }}
-                content={({ active, payload: tip, label }) => {
-                  if (!active || !tip?.length) return null;
-                  const row = tip[0]?.payload as VolumeBucket | undefined;
-                  if (!row) return null;
-                  return (
-                    <div className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[var(--t-shadow-pop)]">
-                      <p className="font-data m-0 mb-1.5 text-text-muted">
-                        {formatAxisTick(Number(label), range)}
-                      </p>
-                      {VOLUME_COINS.filter((c) => enabled[c] && row[c] > 0).map((c) => (
-                        <p key={c} className="m-0 flex justify-between gap-6 text-text-secondary">
-                          <span>{COIN_META[c].label}</span>
-                          <span className="font-data text-text-primary">{formatUsd(row[c])}</span>
-                        </p>
-                      ))}
-                      <p className="m-0 mt-1 flex justify-between gap-6 text-text-secondary">
-                        <span>Total</span>
-                        <span className="font-data text-text-primary">{formatUsd(row.total)}</span>
-                      </p>
-                      {showCumulative && (
-                        <p className="m-0 flex justify-between gap-6 text-accent">
-                          <span>Cumulative</span>
-                          <span className="font-data">{formatUsd(row.cumulative)}</span>
-                        </p>
-                      )}
-                      {showOi && row.oi != null && (
-                        <p className="m-0 flex justify-between gap-6" style={{ color: OI_COLOR }}>
-                          <span>Open Interest</span>
-                          <span className="font-data">{formatUsd(row.oi)}</span>
-                        </p>
-                      )}
-                    </div>
-                  );
-                }}
-              />
-              {/* Drawn ahead of the bars on purpose. Recharts paints children
-                  in order, so declaring the area here puts it behind the bars
-                  rather than burying them under the cumulative fill. */}
-              {showCumulative && (
-                <Area
-                  yAxisId="cum"
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="none"
-                  fill="url(#volCumWash)"
-                  isAnimationActive={false}
-                  activeDot={false}
+          // Recharts' own series animations stay off: they re-rendered the
+          // whole chart on every frame for 1.5s, and the stacked bars grew
+          // segment by segment, which read as broken under dropped frames.
+          // The plot draws in left to right under a CSS clip instead.
+          <div className="chart-reveal h-full w-full">
+            <ResponsiveContainer width="100%" height="100%" minHeight={90}>
+              <ComposedChart
+                data={rows}
+                margin={{ top: 6, right: 8, bottom: 4, left: 8 }}
+                barCategoryGap={OVERVIEW_BAR_GAP}
+                barGap={0}
+              >
+                <defs>
+                  {/* Cumulative area: wash for body, then a dot lattice turned
+                      45 degrees for the mesh. Sparser and fainter than the KPI
+                      sparklines because the bars have to stay readable through
+                      it — see the ordering note below. */}
+                  <linearGradient id="volCumWash" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CHART_GOLD} stopOpacity={0.2} />
+                    <stop offset="100%" stopColor={CHART_GOLD} stopOpacity={0.02} />
+                  </linearGradient>
+                  <pattern
+                    id="volCumMesh"
+                    width="5"
+                    height="5"
+                    patternUnits="userSpaceOnUse"
+                    patternTransform="rotate(45)"
+                  >
+                    <circle cx="1.25" cy="1.25" r="0.6" fill={CHART_GOLD} fillOpacity={0.34} />
+                  </pattern>
+                </defs>
+                <CartesianGrid stroke="rgb(var(--t-veil-rgb)/.05)" vertical={false} />
+                <XAxis
+                  dataKey="t"
+                  tickFormatter={(t) => formatAxisTick(Number(t), range)}
+                  tick={AXIS_TICK}
+                  axisLine={false}
+                  tickLine={false}
+                  minTickGap={28}
+                  height={26}
                 />
-              )}
-              {showCumulative && (
-                <Area
-                  yAxisId="cum"
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="none"
-                  fill="url(#volCumMesh)"
-                  isAnimationActive={false}
-                  activeDot={false}
+                <YAxis
+                  yAxisId="bar"
+                  orientation="left"
+                  domain={[0, barHi]}
+                  tickFormatter={(v) => formatUsd(Number(v))}
+                  tick={AXIS_TICK}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
                 />
-              )}
-              {VOLUME_COINS.map((coin) =>
-                enabled[coin] ? (
-                  <Bar
-                    key={coin}
-                    yAxisId="bar"
-                    dataKey={coin}
-                    stackId="vol"
-                    fill={COIN_META[coin].color}
-                    barSize={OVERVIEW_BAR_W}
-                    radius={
-                      coin === lastEnabled
-                        ? [OVERVIEW_BAR_RADIUS, OVERVIEW_BAR_RADIUS, 0, 0]
-                        : 0
-                    }
-                  />
-                ) : null,
-              )}
-              {showCumulative && (
-                <Line
+                <YAxis
                   yAxisId="cum"
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="var(--t-spark-line)"
-                  strokeWidth={2.2}
-                  dot={false}
-                  activeDot={{ r: 3, fill: CHART_GOLD }}
+                  orientation="right"
+                  hide={!showCumulative}
+                  domain={[0, cumHi]}
+                  tickFormatter={(v) => formatUsd(Number(v))}
+                  tick={AXIS_TICK}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
                 />
-              )}
-              {showOi && (
-                <Line
+                <YAxis
                   yAxisId="oi"
-                  type="monotone"
-                  dataKey="oi"
-                  stroke={OI_COLOR}
-                  strokeWidth={2}
-                  dot={false}
-                  connectNulls
-                  activeDot={{ r: 3, fill: OI_COLOR }}
+                  orientation="right"
+                  hide={!oiAxisVisible}
+                  domain={[0, oiHi]}
+                  tickFormatter={(v) => formatUsd(Number(v))}
+                  tick={AXIS_TICK}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
                 />
-              )}
-            </ComposedChart>
-          </ResponsiveContainer>
+                <Tooltip
+                  cursor={{ fill: "rgb(var(--t-veil-rgb)/0.03)" }}
+                  content={({ active, payload: tip, label }) => {
+                    if (!active || !tip?.length) return null;
+                    const row = tip[0]?.payload as VolumeBucket | undefined;
+                    if (!row) return null;
+                    return (
+                      <div className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[var(--t-shadow-pop)]">
+                        <p className="font-data m-0 mb-1.5 text-text-muted">
+                          {formatAxisTick(Number(label), range)}
+                        </p>
+                        {VOLUME_COINS.filter((c) => enabled[c] && row[c] > 0).map((c) => (
+                          <p key={c} className="m-0 flex justify-between gap-6 text-text-secondary">
+                            <span>{COIN_META[c].label}</span>
+                            <span className="font-data text-text-primary">{formatUsd(row[c])}</span>
+                          </p>
+                        ))}
+                        <p className="m-0 mt-1 flex justify-between gap-6 text-text-secondary">
+                          <span>Total</span>
+                          <span className="font-data text-text-primary">{formatUsd(row.total)}</span>
+                        </p>
+                        {showCumulative && (
+                          <p className="m-0 flex justify-between gap-6 text-accent">
+                            <span>Cumulative</span>
+                            <span className="font-data">{formatUsd(row.cumulative)}</span>
+                          </p>
+                        )}
+                        {showOi && row.oi != null && (
+                          <p className="m-0 flex justify-between gap-6" style={{ color: OI_COLOR }}>
+                            <span>Open Interest</span>
+                            <span className="font-data">{formatUsd(row.oi)}</span>
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+                {/* Drawn ahead of the bars on purpose. Recharts paints children
+                    in order, so declaring the area here puts it behind the bars
+                    rather than burying them under the cumulative fill. */}
+                {showCumulative && (
+                  <Area
+                    yAxisId="cum"
+                    type="monotone"
+                    dataKey="cumulative"
+                    stroke="none"
+                    fill="url(#volCumWash)"
+                    isAnimationActive={false}
+                    activeDot={false}
+                  />
+                )}
+                {showCumulative && (
+                  <Area
+                    yAxisId="cum"
+                    type="monotone"
+                    dataKey="cumulative"
+                    stroke="none"
+                    fill="url(#volCumMesh)"
+                    isAnimationActive={false}
+                    activeDot={false}
+                  />
+                )}
+                {VOLUME_COINS.map((coin) =>
+                  enabled[coin] ? (
+                    <Bar
+                      key={coin}
+                      yAxisId="bar"
+                      dataKey={coin}
+                      stackId="vol"
+                      fill={COIN_META[coin].color}
+                      barSize={OVERVIEW_BAR_W}
+                      isAnimationActive={false}
+                      radius={
+                        coin === lastEnabled
+                          ? [OVERVIEW_BAR_RADIUS, OVERVIEW_BAR_RADIUS, 0, 0]
+                          : 0
+                      }
+                    />
+                  ) : null,
+                )}
+                {showCumulative && (
+                  <Line
+                    yAxisId="cum"
+                    type="monotone"
+                    dataKey="cumulative"
+                    stroke="var(--t-spark-line)"
+                    strokeWidth={2.2}
+                    dot={false}
+                    isAnimationActive={false}
+                    activeDot={{ r: 3, fill: CHART_GOLD }}
+                  />
+                )}
+                {showOi && (
+                  <Line
+                    yAxisId="oi"
+                    type="monotone"
+                    dataKey="oi"
+                    stroke={OI_COLOR}
+                    strokeWidth={2}
+                    dot={false}
+                    connectNulls
+                    isAnimationActive={false}
+                    activeDot={{ r: 3, fill: OI_COLOR }}
+                  />
+                )}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         )}
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useBootReady } from "@/lib/boot-gate";
 
 /** Flips to true the first time the element scrolls into view, then stops
  * observing. Without IntersectionObserver it reports in view straight away. */
@@ -33,5 +34,8 @@ export function useInViewOnce<T extends HTMLElement>(
     return () => observer.disconnect();
   }, [hasEntered, threshold, rootMargin]);
 
-  return { ref, hasEntered };
+  // Nothing counts as seen under the boot splash: an entrance played there
+  // would be over, or restarting on live data, by the time the page shows.
+  const bootReady = useBootReady();
+  return { ref, hasEntered: hasEntered && bootReady };
 }

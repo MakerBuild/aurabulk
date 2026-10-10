@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLiveExchange, useLiveTps } from "@/components/live/LiveExchangeProvider";
+import { holdBoot } from "@/lib/boot-gate";
 import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
 import { StatSparkCard, seriesRange } from "@/components/overview/StatSparkCard";
 import {
@@ -80,17 +81,20 @@ export function VolumeStatCard() {
     // 1D and W are fallbacks for when the hourly ALL series fails; the spark
     // waits for ALL rather than drawing each partial series in turn, which
     // morphed the line three times in a row as they landed.
+    // Each holds the boot splash, so the spark is drawn when the page opens.
     const load = (query: string, set: (p: VolumeHistoryPayload) => void, onFail?: () => void) =>
-      fetch(`/api/volume-history?${query}`)
-        .then((r) => (r.ok ? (r.json() as Promise<VolumeHistoryPayload>) : null))
-        .then((payload) => {
-          if (cancelled) return;
-          if (payload) set(payload);
-          else onFail?.();
-        })
-        .catch(() => {
-          if (!cancelled) onFail?.();
-        });
+      holdBoot(
+        fetch(`/api/volume-history?${query}`)
+          .then((r) => (r.ok ? (r.json() as Promise<VolumeHistoryPayload>) : null))
+          .then((payload) => {
+            if (cancelled) return;
+            if (payload) set(payload);
+            else onFail?.();
+          })
+          .catch(() => {
+            if (!cancelled) onFail?.();
+          }),
+      );
     void load("range=1D", setDay);
     void load("range=W", setWeek);
     void load("range=ALL&interval=1h", setAll, () => setAllFailed(true));

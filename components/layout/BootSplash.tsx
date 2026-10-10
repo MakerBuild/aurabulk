@@ -1,23 +1,38 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { releaseBoot, settleBoot, useBootReady } from "@/lib/boot-gate";
 import { cn } from "@/lib/utils";
 
+/** Longest the splash waits on data after hydrating; past it the page shows
+ *  with what it has and fills in as the rest lands. */
+const DATA_CAP_MS = 2500;
+
 /**
- * Covers the first paint until the page hydrates. Before that every KPI sits
- * at the start of its count-up ($0), the donut and charts are still empty, and
- * the page read as broken. It lifts once React runs, so the entrance
- * animations play as it fades; a CSS fallback lifts it after 3s if the scripts
- * never do. Client navigations keep the root layout mounted, so it shows once
- * per page load.
+ * Covers the first paint until the page hydrates and its first data is in
+ * (see lib/boot-gate). Before that every KPI sits at the start of its
+ * count-up ($0), the donut and charts are still empty, and the page read as
+ * broken. The entrance animations wait for it and play as it fades; a CSS
+ * fallback lifts it if the scripts never run. Client navigations keep the
+ * root layout mounted, so it shows once per page load.
  */
 export function BootSplash() {
-  const [ready, setReady] = useState(false);
+  const ready = useBootReady();
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(frame);
+    let cancelled = false;
+    // A macrotask later, so the rest of the page's effects in this commit
+    // have registered their first fetches with holdBoot.
+    const timer = window.setTimeout(() => {
+      void settleBoot(DATA_CAP_MS).then(() => {
+        if (!cancelled) requestAnimationFrame(releaseBoot);
+      });
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   return (
