@@ -214,7 +214,7 @@ export function MiniSpark({
         <svg
           viewBox={`0 0 ${VW} ${VH}`}
           preserveAspectRatio="none"
-          className="absolute inset-0 block h-full w-full"
+          className="spark-reveal absolute inset-0 block h-full w-full"
           aria-hidden
         >
           <defs>

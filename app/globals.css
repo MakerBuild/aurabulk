@@ -658,6 +658,21 @@ body {
   border-color: var(--t-green);
 }
 
+/* KPI sparks draw in left to right once their full series lands, rather than
+   popping in and then morphing as each partial series arrives. */
+@keyframes spark-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.spark-reveal {
+  animation: spark-reveal 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* The marker on the live FDV. A lighthouse rather than a pin: it breathes so
    the eye finds it without a dashed rule drawn across the whole plot, which
    was reading as a second axis. */

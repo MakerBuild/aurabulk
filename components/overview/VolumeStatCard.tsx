@@ -73,21 +73,27 @@ export function VolumeStatCard() {
   const [day, setDay] = useState<VolumeHistoryPayload | null>(null);
   const [week, setWeek] = useState<VolumeHistoryPayload | null>(null);
   const [all, setAll] = useState<VolumeHistoryPayload | null>(null);
+  const [allFailed, setAllFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    // 1D and W land quickly and cover the card until the heavier hourly ALL
-    // series arrives. A failed request just leaves its fallback unused.
-    const load = (query: string, set: (p: VolumeHistoryPayload) => void) =>
+    // 1D and W are fallbacks for when the hourly ALL series fails; the spark
+    // waits for ALL rather than drawing each partial series in turn, which
+    // morphed the line three times in a row as they landed.
+    const load = (query: string, set: (p: VolumeHistoryPayload) => void, onFail?: () => void) =>
       fetch(`/api/volume-history?${query}`)
         .then((r) => (r.ok ? (r.json() as Promise<VolumeHistoryPayload>) : null))
         .then((payload) => {
-          if (!cancelled && payload) set(payload);
+          if (cancelled) return;
+          if (payload) set(payload);
+          else onFail?.();
         })
-        .catch(() => {});
+        .catch(() => {
+          if (!cancelled) onFail?.();
+        });
     void load("range=1D", setDay);
     void load("range=W", setWeek);
-    void load("range=ALL&interval=1h", setAll);
+    void load("range=ALL&interval=1h", setAll, () => setAllFailed(true));
     return () => {
       cancelled = true;
     };
@@ -95,6 +101,7 @@ export function VolumeStatCard() {
 
   const now = Date.now();
   const series = useMemo(() => {
+    if (!all?.buckets.length && !allFailed) return [];
     if (mode === "total") {
       const buckets = (all?.buckets.length ? all.buckets : day?.buckets) ?? [];
       const rows = buckets.map((b) => ({ value: b.cumulative, t: b.t }));
@@ -106,7 +113,7 @@ export function VolumeStatCard() {
     }
     const hourly = all?.buckets.length ? all.buckets : (day?.buckets ?? []);
     return rolling24hSeries(hourly, exchange.volume24hUsd);
-  }, [mode, all, day, exchange.volumeTotalUsd, exchange.volume24hUsd]);
+  }, [mode, all, allFailed, day, exchange.volumeTotalUsd, exchange.volume24hUsd]);
 
   const totalUsd =
     exchange.volumeTotalUsd ||
@@ -117,6 +124,9 @@ export function VolumeStatCard() {
     ? sumWindow(hourly, now - 2 * MS_DAY, now - MS_DAY)
     : 0;
   const delta = mode === "24h" ? exchange.volume24hUsd - prev24h : exchange.volume24hUsd;
+  // Without yesterday's window the 24h delta would print today's whole figure
+  // as growth (+$15.5M), and without today's it printed -$18.4M.
+  const deltaReady = value > 0 && (mode === "total" || prev24h > 0);
   const range = seriesRange(series);
   const tps = useLiveTps();
 
@@ -150,9 +160,9 @@ export function VolumeStatCard() {
         </div>
       }
       badge={mode === "total" ? "ALL" : "24H"}
-      figure={<KpiTerminalCounter value={value} format="usd-board" />}
-      delta={formatSignedDelta(delta, usdBoard)}
-      deltaUp={delta >= 0}
+      figure={value > 0 ? <KpiTerminalCounter value={value} format="usd-board" /> : "—"}
+      delta={deltaReady ? formatSignedDelta(delta, usdBoard) : "—"}
+      deltaUp={deltaReady ? delta >= 0 : undefined}
       series={series}
       formatValue={usdBoard}
       formatTime={mode === "24h" ? formatUtcTime : formatUtcDay}

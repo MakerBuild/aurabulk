@@ -24,6 +24,20 @@ export function useLiveExchange(): LiveExchangePayload {
   return value;
 }
 
+/** A zero from the server means its source was down when the payload was
+ *  built (right after a restart, say), not that nothing traded: keep the
+ *  reading already on screen instead of dropping the card to $0. */
+function keepReadings(prev: LiveExchangePayload, next: LiveExchangePayload): LiveExchangePayload {
+  return {
+    ...next,
+    volume24hUsd: next.volume24hUsd || prev.volume24hUsd,
+    volumeTotalUsd: next.volumeTotalUsd || prev.volumeTotalUsd,
+    openInterestUsd: next.openInterestUsd || prev.openInterestUsd,
+    activeTraders: next.activeTraders || prev.activeTraders,
+    totalAccounts: next.totalAccounts || prev.totalAccounts,
+  };
+}
+
 export function LiveExchangeProvider({
   initial,
   children,
@@ -61,7 +75,7 @@ export function LiveExchangeProvider({
     // Every payload is stamped when it is built, so an unchanged `updatedAt`
     // is the same cached reading — skip the write and the re-render of every
     // consumer (and the spark morphs it would restart).
-    setData((prev) => (prev.updatedAt === next.updatedAt ? prev : next));
+    setData((prev) => (prev.updatedAt === next.updatedAt ? prev : keepReadings(prev, next)));
   });
 
   return (
