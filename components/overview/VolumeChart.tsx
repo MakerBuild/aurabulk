@@ -57,6 +57,12 @@ function formatAxisTick(t: number, range: VolumeRange): string {
  * still ahead. */
 type ChartRow = Omit<VolumeBucket, "cumulative"> & { cumulative: number | null };
 
+/** The right axes leave their zero unlabelled: the left axis already marks
+ * the baseline, and a right-hand "$0.00" crowds the last date under it. */
+function rightAxisTick(v: number): string {
+  return Number(v) === 0 ? "" : formatUsd(Number(v));
+}
+
 function niceStep(rough: number): number {
   if (!(rough > 0)) return 1;
   const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
@@ -273,7 +279,7 @@ export function VolumeChart() {
                   orientation="right"
                   hide={!showCumulative}
                   domain={[0, cumHi]}
-                  tickFormatter={(v) => formatUsd(Number(v))}
+                  tickFormatter={rightAxisTick}
                   tick={AXIS_TICK}
                   axisLine={false}
                   tickLine={false}
@@ -284,7 +290,7 @@ export function VolumeChart() {
                   orientation="right"
                   hide={!oiAxisVisible}
                   domain={[0, oiHi]}
-                  tickFormatter={(v) => formatUsd(Number(v))}
+                  tickFormatter={rightAxisTick}
                   tick={AXIS_TICK}
                   axisLine={false}
                   tickLine={false}
