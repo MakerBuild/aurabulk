@@ -10,7 +10,7 @@ import type { LevelPoint } from "@/lib/exchange-level-history";
  *
  * Hourly vertices are kept for two weeks, enough for the 1D and W charts at
  * full resolution. Older ones fold to the last vertex of each UTC day, which
- * is all the M / Q / Y / ALL charts draw.
+ * is all the M / Y / ALL charts draw.
  */
 const HOUR_MS = 3_600_000;
 const DAY_MS = 86_400_000;

@@ -52,6 +52,10 @@ function formatAxisTick(t: number, range: VolumeRange): string {
   return range === "1D" ? formatUtcTime(t) : formatUtcDay(t);
 }
 
+/** A bucket as drawn: only the enabled coins, and no cumulative on W's days
+ * still ahead. */
+type ChartRow = Omit<VolumeBucket, "cumulative"> & { cumulative: number | null };
+
 function niceStep(rough: number): number {
   if (!(rough > 0)) return 1;
   const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
@@ -101,8 +105,8 @@ export function VolumeChart() {
   const rows = useMemo(() => {
     const buckets = payload?.buckets ?? [];
     let running = 0;
-    return buckets.map((b) => {
-      const visible: VolumeBucket = {
+    return buckets.map((b): ChartRow => {
+      const visible: ChartRow = {
         ...b,
         btc: enabled.btc ? b.btc : 0,
         eth: enabled.eth ? b.eth : 0,
@@ -113,13 +117,15 @@ export function VolumeChart() {
       };
       visible.total = visible.btc + visible.eth + visible.sol + visible.others;
       running += visible.total;
-      visible.cumulative = running;
+      // Null, not the running total, on days still ahead: the lines stop at
+      // today instead of running flat across the rest of the week.
+      visible.cumulative = b.future ? null : running;
       return visible;
     });
   }, [payload, enabled]);
 
   const barMax = Math.max(0, ...rows.map((r) => r.total));
-  const cumMax = Math.max(0, ...rows.map((r) => r.cumulative));
+  const cumMax = Math.max(0, ...rows.map((r) => r.cumulative ?? 0));
   const barStep = niceStep(barMax / 4);
   const cumStep = niceStep(cumMax / 4);
   const barHi = Math.max(barStep, Math.ceil(barMax / barStep) * barStep);
@@ -287,8 +293,8 @@ export function VolumeChart() {
                   cursor={{ fill: "rgb(var(--t-veil-rgb)/0.03)" }}
                   content={({ active, payload: tip, label }) => {
                     if (!active || !tip?.length) return null;
-                    const row = tip[0]?.payload as VolumeBucket | undefined;
-                    if (!row) return null;
+                    const row = tip[0]?.payload as ChartRow | undefined;
+                    if (!row || row.future) return null;
                     return (
                       <div className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[var(--t-shadow-pop)]">
                         <p className="font-data m-0 mb-1.5 text-text-muted">
@@ -304,7 +310,7 @@ export function VolumeChart() {
                           <span>Total</span>
                           <span className="font-data text-text-primary">{formatUsd(row.total)}</span>
                         </p>
-                        {showCumulative && (
+                        {showCumulative && row.cumulative != null && (
                           <p className="m-0 flex justify-between gap-6 text-accent">
                             <span>Cumulative</span>
                             <span className="font-data">{formatUsd(row.cumulative)}</span>

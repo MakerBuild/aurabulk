@@ -1,6 +1,7 @@
 import { fetchExchangeStats, fetchKlines, marketBase, type ExchangeCandle } from "@/lib/bulk-exchange";
+import { getNextSnapshotTimestamp } from "@/lib/projected-snapshot-tvl";
 
-export const VOLUME_RANGES = ["1D", "W", "M", "Q", "Y", "ALL"] as const;
+export const VOLUME_RANGES = ["1D", "W", "M", "Y", "ALL"] as const;
 export type VolumeRange = (typeof VOLUME_RANGES)[number];
 
 export const VOLUME_COINS = ["btc", "eth", "sol", "others"] as const;
@@ -17,6 +18,9 @@ export interface VolumeBucket {
   /** Open interest at the bucket, null where no snapshot landed. Added by
    *  /api/volume-history for range charts; the hourly all-time spark has none. */
   oi?: number | null;
+  /** A W slot whose day hasn't started yet: drawn as an empty bar so the
+   *  week keeps all seven, with no cumulative or OI to plot. */
+  future?: true;
 }
 
 export interface VolumeHistoryPayload {
@@ -29,15 +33,13 @@ const RANGE_MS: Record<Exclude<VolumeRange, "ALL">, number> = {
   "1D": 24 * 3_600_000,
   W: 7 * 86_400_000,
   M: 30 * 86_400_000,
-  Q: 90 * 86_400_000,
   Y: 365 * 86_400_000,
 };
 
 const RANGE_INTERVAL: Record<VolumeRange, string> = {
   "1D": "1h",
-  W: "4h",
+  W: "1d",
   M: "1d",
-  Q: "1d",
   Y: "1w",
   ALL: "1d",
 };
@@ -135,6 +137,9 @@ async function buildBuckets(
   interval: string,
   startTime: number | undefined,
   now: number,
+  /** Overrides the interval's own bucketing, for buckets the candles don't
+   *  line up with (W's days start at the Saturday snapshot, not midnight). */
+  bucketOf: (t: number) => number = (t) => bucketTime(t, interval),
 ): Promise<VolumeHistoryPayload> {
   const symbols = await marketSymbols();
   const series = await Promise.all(
@@ -148,7 +153,7 @@ async function buildBuckets(
   for (const { symbol, candles } of series) {
     const coin = coinForSymbol(symbol);
     for (const candle of candles) {
-      const t = bucketTime(Number(candle.t) || 0, interval);
+      const t = bucketOf(Number(candle.t) || 0);
       if (!t) continue;
       const usd = candleUsd(candle);
       if (!(usd > 0)) continue;
@@ -171,9 +176,36 @@ async function buildBuckets(
   return { range, interval, buckets };
 }
 
+const DAY_MS = 86_400_000;
+const WEEK_DAYS = 7;
+
+/**
+ * W is the current campaign week: from the last Saturday 12:00 UTC snapshot
+ * to the next, one bar per 24h from it, so seven bars whatever the day. Days
+ * still ahead come back as empty `future` slots. Hourly candles, because
+ * daily ones open at midnight and would split every snapshot day in two.
+ */
+async function buildCampaignWeek(now: number): Promise<VolumeHistoryPayload> {
+  const weekStart = getNextSnapshotTimestamp(now) - WEEK_DAYS * DAY_MS;
+  const dayOf = (t: number) => weekStart + Math.floor((t - weekStart) / DAY_MS) * DAY_MS;
+  const { buckets } = await buildBuckets("W", "1h", weekStart, now, dayOf);
+
+  const byTime = new Map(buckets.filter((b) => b.t >= weekStart).map((b) => [b.t, b]));
+  const week: VolumeBucket[] = [];
+  let running = 0;
+  for (let i = 0; i < WEEK_DAYS; i++) {
+    const t = weekStart + i * DAY_MS;
+    const row = byTime.get(t) ?? { t, btc: 0, eth: 0, sol: 0, others: 0, total: 0, cumulative: 0 };
+    running += row.total;
+    week.push({ ...row, cumulative: running, ...(t > now ? { future: true as const } : {}) });
+  }
+  return { range: "W", interval: RANGE_INTERVAL.W, buckets: week };
+}
+
 export function buildVolumeHistory(range: VolumeRange): Promise<VolumeHistoryPayload> {
   return staleWhileRevalidate(range, () => {
     const now = Date.now();
+    if (range === "W") return buildCampaignWeek(now);
     const startTime = range === "ALL" ? undefined : now - RANGE_MS[range];
     return buildBuckets(range, RANGE_INTERVAL[range], startTime, now);
   });
