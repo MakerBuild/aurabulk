@@ -29,7 +29,7 @@ import {
 } from "@/lib/overview-bars";
 import { cn, formatUsd } from "@/lib/utils";
 import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
-import { formatUtcDay, formatUtcTime } from "@/components/overview/spark-format";
+import { formatUtcDay, formatUtcMonth, formatUtcTime } from "@/components/overview/spark-format";
 
 const COIN_META: Record<VolumeCoin, { label: string; color: string }> = {
   btc: { label: "BTC", color: chartPrimaryRamp(0, 4) },
@@ -49,7 +49,8 @@ const AXIS_TICK = {
 const RANGE_OPTIONS = VOLUME_RANGES.map((r) => ({ value: r, label: r }));
 
 function formatAxisTick(t: number, range: VolumeRange): string {
-  return range === "1D" ? formatUtcTime(t) : formatUtcDay(t);
+  if (range === "1D") return formatUtcTime(t);
+  return range === "Y" ? formatUtcMonth(t) : formatUtcDay(t);
 }
 
 /** A bucket as drawn: only the enabled coins, and no cumulative on W's days

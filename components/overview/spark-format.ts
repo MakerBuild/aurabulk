@@ -29,6 +29,15 @@ export function formatUtcDay(t: number): string {
   });
 }
 
+/** `Mon YYYY`, UTC. */
+export function formatUtcMonth(t: number): string {
+  return new Date(t).toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 /** `+1,234` / `−1,234` with a true minus sign; `format` gets the magnitude. */
 export function formatSignedDelta(delta: number, format: (n: number) => string): string {
   return `${delta >= 0 ? "+" : "−"}${format(Math.abs(delta))}`;

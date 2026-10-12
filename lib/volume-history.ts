@@ -40,7 +40,7 @@ const RANGE_INTERVAL: Record<VolumeRange, string> = {
   "1D": "1h",
   W: "1d",
   M: "1d",
-  Y: "1w",
+  Y: "1M",
   ALL: "1d",
 };
 
@@ -202,10 +202,26 @@ async function buildCampaignWeek(now: number): Promise<VolumeHistoryPayload> {
   return { range: "W", interval: RANGE_INTERVAL.W, buckets: week };
 }
 
+const YEAR_MONTHS = 12;
+
+/** Y is one bar per UTC calendar month, this one and the eleven before it.
+ *  Daily candles summed by month: months aren't a fixed length to floor to. */
+async function buildMonths(now: number): Promise<VolumeHistoryPayload> {
+  const today = new Date(now);
+  const from = Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - (YEAR_MONTHS - 1), 1);
+  const monthOf = (t: number) => {
+    const d = new Date(t);
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+  };
+  const payload = await buildBuckets("Y", "1d", from, now, monthOf);
+  return { ...payload, interval: RANGE_INTERVAL.Y };
+}
+
 export function buildVolumeHistory(range: VolumeRange): Promise<VolumeHistoryPayload> {
   return staleWhileRevalidate(range, () => {
     const now = Date.now();
     if (range === "W") return buildCampaignWeek(now);
+    if (range === "Y") return buildMonths(now);
     const startTime = range === "ALL" ? undefined : now - RANGE_MS[range];
     return buildBuckets(range, RANGE_INTERVAL[range], startTime, now);
   });
