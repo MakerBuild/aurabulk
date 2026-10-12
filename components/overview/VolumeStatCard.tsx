@@ -12,6 +12,7 @@ import {
   usdBoard,
 } from "@/components/overview/spark-format";
 import type { VolumeHistoryPayload } from "@/lib/volume-history";
+import { loadVolume } from "@/lib/volume-history-client";
 import { cn } from "@/lib/utils";
 
 const MS_DAY = 86_400_000;
@@ -72,31 +73,27 @@ export function VolumeStatCard() {
   const exchange = useLiveExchange();
   const [mode, setMode] = useState<VolumeMode>("24h");
   const [day, setDay] = useState<VolumeHistoryPayload | null>(null);
-  const [week, setWeek] = useState<VolumeHistoryPayload | null>(null);
   const [all, setAll] = useState<VolumeHistoryPayload | null>(null);
   const [allFailed, setAllFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    // 1D and W are fallbacks for when the hourly ALL series fails; the spark
+    // 1D is the fallback for when the hourly ALL series fails; the spark
     // waits for ALL rather than drawing each partial series in turn, which
-    // morphed the line three times in a row as they landed.
-    // Each holds the boot splash, so the spark is drawn when the page opens.
+    // morphed the line as they landed. Shared with the Total Volume chart,
+    // which asks for 1D too. Each holds the boot splash, so the spark is
+    // drawn when the page opens.
     const load = (query: string, set: (p: VolumeHistoryPayload) => void, onFail?: () => void) =>
       holdBoot(
-        fetch(`/api/volume-history?${query}`)
-          .then((r) => (r.ok ? (r.json() as Promise<VolumeHistoryPayload>) : null))
+        loadVolume(query)
           .then((payload) => {
-            if (cancelled) return;
-            if (payload) set(payload);
-            else onFail?.();
+            if (!cancelled) set(payload);
           })
           .catch(() => {
             if (!cancelled) onFail?.();
           }),
       );
     void load("range=1D", setDay);
-    void load("range=W", setWeek);
     void load("range=ALL&interval=1h", setAll, () => setAllFailed(true));
     return () => {
       cancelled = true;
@@ -123,9 +120,9 @@ export function VolumeStatCard() {
     exchange.volumeTotalUsd ||
     (all?.buckets.length ? all.buckets[all.buckets.length - 1].cumulative : 0);
   const value = mode === "24h" ? exchange.volume24hUsd : totalUsd;
-  const hourly = all?.buckets.length ? all.buckets : week?.buckets;
-  const prev24h = hourly
-    ? sumWindow(hourly, now - 2 * MS_DAY, now - MS_DAY)
+  // Yesterday's window needs 48 hourly buckets, which only ALL has.
+  const prev24h = all?.buckets.length
+    ? sumWindow(all.buckets, now - 2 * MS_DAY, now - MS_DAY)
     : 0;
   const delta = mode === "24h" ? exchange.volume24hUsd - prev24h : exchange.volume24hUsd;
   // Without yesterday's window the 24h delta would print today's whole figure

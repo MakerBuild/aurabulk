@@ -69,18 +69,16 @@ ln -sfn "$RELEASE" "$ROOT/current.new"
 mv -T "$ROOT/current.new" "$ROOT/current"
 sudo systemctl restart aurabulk
 
-# Once the server answers, warm the volume caches so the first visitor after
-# a deploy does not wait ~20s for every market's candles. Best effort: a miss
-# only costs that one wait.
+# Once the server answers, warm the live totals so the first visitor after a
+# deploy does not wait for every market's candles. The volume history ranges
+# warm themselves on start (instrumentation.ts), one at a time: asking for
+# them here as well, in parallel, drew 429s from the exchange. Best effort: a
+# miss only costs that one wait.
 for _ in $(seq 30); do
   curl -fs -o /dev/null -m 5 -X POST http://127.0.0.1:3000/api/revalidate && break
   sleep 1
 done
-for path in "/api/live-exchange" "/api/volume-history?range=1D" "/api/volume-history?range=W" \
-  "/api/volume-history?range=ALL&interval=1h"; do
-  curl -fs -o /dev/null -m 60 "http://127.0.0.1:3000$path" &
-done
-wait
+curl -fs -o /dev/null -m 60 "http://127.0.0.1:3000/api/live-exchange" || true
 
 # Keep the three newest releases for a quick manual rollback.
 ls -1dt "$RELEASES"/*/ | tail -n +4 | xargs -r rm -rf

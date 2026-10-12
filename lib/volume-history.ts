@@ -299,3 +299,45 @@ async function buildCandleVolumes(revalidate: number): Promise<{
 export function buildAllTimeHourly(): Promise<VolumeHistoryPayload> {
   return staleWhileRevalidate("ALL:1h", () => buildBuckets("ALL", "1h", MAINNET_START_MS, Date.now()));
 }
+
+const WARM_EVERY_MS = 5 * 60_000;
+let warmTimer: ReturnType<typeof setInterval> | undefined;
+
+/** Waits for `key`'s build to finish, including a background rebuild that
+ *  `get` only kicked off (it hands back the stale value straight away). */
+async function settle(key: string, get: () => Promise<unknown>): Promise<void> {
+  await get().catch(() => {});
+  await cacheSlots.get(key)?.pending?.catch(() => {});
+}
+
+/**
+ * Builds every range when the server starts and refreshes them every few
+ * minutes after. The caches above only ever make the first caller after a
+ * restart wait, but that was every range nobody had opened yet: M, Y and ALL
+ * took 1–3s on their first click after each deploy. The refresh also bounds
+ * how stale a rarely opened range can get before someone asks for it.
+ *
+ * One range at a time: each is a klines call per market, and all of them at
+ * once drew 429s from the exchange, which failed the very builds this warms.
+ */
+export function keepVolumeHistoryWarm(): void {
+  if (warmTimer) return;
+  let running = false;
+  const warm = async () => {
+    if (running) return;
+    running = true;
+    try {
+      // Most-opened first: the chart's default range, then the KPI spark.
+      await settle("1D", () => buildVolumeHistory("1D"));
+      await settle("ALL:1h", buildAllTimeHourly);
+      for (const range of VOLUME_RANGES) {
+        if (range !== "1D") await settle(range, () => buildVolumeHistory(range));
+      }
+    } finally {
+      running = false;
+    }
+  };
+  void warm();
+  warmTimer = setInterval(() => void warm(), WARM_EVERY_MS);
+  warmTimer.unref?.();
+}

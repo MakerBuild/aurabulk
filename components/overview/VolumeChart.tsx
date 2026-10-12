@@ -28,6 +28,7 @@ import {
   OVERVIEW_BAR_W,
 } from "@/lib/overview-bars";
 import { cn, formatUsd } from "@/lib/utils";
+import { loadVolume, peekVolume } from "@/lib/volume-history-client";
 import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
 import { formatUtcDay, formatUtcMonth, formatUtcTime } from "@/components/overview/spark-format";
 
@@ -82,32 +83,41 @@ export function VolumeChart() {
   });
   const [showCumulative, setShowCumulative] = useState(true);
   const [showOi, setShowOi] = useState(true);
-  const [payload, setPayload] = useState<VolumeHistoryPayload | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState<VolumeHistoryPayload | null>(null);
+  const [failedRange, setFailedRange] = useState<VolumeRange | null>(null);
+  // Read during render, not after an effect, so switching to a range that is
+  // already in hand draws it at once rather than flashing "Loading volume…".
+  const payload =
+    loaded?.range === range ? loaded : (peekVolume(`range=${range}`) ?? null);
+  const failed = failedRange === range && !payload;
 
   useEffect(() => {
     let cancelled = false;
-    setPayload(null);
-    setFailed(false);
     // The first range holds the boot splash, so the chart is drawn when the
     // page opens rather than popping in after it.
     void holdBoot(
-      fetch(`/api/volume-history?range=${range}`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`volume-history ${res.status}`);
-          return res.json() as Promise<VolumeHistoryPayload>;
-        })
+      loadVolume(`range=${range}`)
         .then((next) => {
-          if (!cancelled) setPayload(next);
+          if (!cancelled) setLoaded(next);
         })
         .catch(() => {
-          if (!cancelled) setFailed(true);
+          if (!cancelled) setFailedRange(range);
         }),
     );
     return () => {
       cancelled = true;
     };
   }, [range]);
+
+  // Once the page is up, fetch the other ranges in the background so the
+  // first switch to any of them is instant too.
+  useEffect(() => {
+    if (!bootReady) return;
+    const timer = window.setTimeout(() => {
+      for (const r of VOLUME_RANGES) void loadVolume(`range=${r}`).catch(() => {});
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [bootReady]);
 
   const rows = useMemo(() => {
     const buckets = payload?.buckets ?? [];
@@ -227,7 +237,9 @@ export function VolumeChart() {
           // line entrance on mount, and under the splash it would be over
           // before anyone saw it.
           !bootReady ? null : (
-          <div className="h-full w-full">
+          // Keyed by range so each switch replays the entrance rather than
+          // morphing one range's bars into another's.
+          <div key={range} className="h-full w-full">
             <ResponsiveContainer width="100%" height="100%" minHeight={90}>
               <ComposedChart
                 data={rows}

@@ -1,3 +1,4 @@
+import { preload } from "react-dom";
 import { buildLiveFinancialPayloadFromDisk } from "@/lib/live-financial-payload";
 import { buildOverviewPanels } from "@/lib/overview-metrics";
 import { computeDashboardMetrics } from "@/lib/stats";
@@ -9,7 +10,19 @@ import { DepositorsDistributionPanel } from "@/components/overview/DepositorsDis
 export const dynamic = "force-static";
 export const revalidate = 3600;
 
+/** The volume series the page opens on: the chart's 1D range and the KPI
+ * spark's hourly all-time series. */
+const VOLUME_PRELOADS = [
+  "/api/volume-history?range=1D",
+  "/api/volume-history?range=ALL&interval=1h",
+];
+
 export default async function OverviewPage() {
+  // Fetched alongside the scripts instead of after hydration, which is when
+  // the components ask for them. Anonymous so the preload matches their
+  // same-origin fetch() and the browser hands it over rather than refetching.
+  for (const href of VOLUME_PRELOADS) preload(href, { as: "fetch", crossOrigin: "anonymous" });
+
   const metrics = await computeDashboardMetrics();
   const live = buildLiveFinancialPayloadFromDisk();
 
