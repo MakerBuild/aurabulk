@@ -673,37 +673,9 @@ body {
   animation: spark-reveal 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* The Total Volume plot, the same way and a touch slower for its width. */
-.chart-reveal {
-  animation: spark-reveal 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* The Aura ring wipes in clockwise from 12 o'clock under a conic mask, so
-   the chart renders once instead of on every frame of the sweep. */
-@property --donut-sweep {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
-@keyframes donut-sweep {
-  from {
-    --donut-sweep: 0deg;
-  }
-  to {
-    --donut-sweep: 360deg;
-  }
-}
-
-.donut-sweep {
-  -webkit-mask-image: conic-gradient(#000 var(--donut-sweep), transparent 0);
-  mask-image: conic-gradient(#000 var(--donut-sweep), transparent 0);
-  animation: donut-sweep 900ms cubic-bezier(0.33, 1, 0.68, 1) both;
-}
-
 /* Hold entrance animations until the boot splash lifts, so they play where
    they can be seen rather than underneath it. */
-body:has(.boot-splash:not(.is-ready)) :is(.spark-reveal, .chart-reveal, .donut-sweep) {
+body:has(.boot-splash:not(.is-ready)) .spark-reveal {
   animation-play-state: paused;
 }
 

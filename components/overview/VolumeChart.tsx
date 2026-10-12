@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { holdBoot } from "@/lib/boot-gate";
+import { holdBoot, useBootReady } from "@/lib/boot-gate";
 import {
   Area,
   Bar,
@@ -61,6 +61,7 @@ function niceStep(rough: number): number {
 }
 
 export function VolumeChart() {
+  const bootReady = useBootReady();
   const [range, setRange] = useState<VolumeRange>("1D");
   const [enabled, setEnabled] = useState<Record<VolumeCoin, boolean>>({
     btc: true,
@@ -209,11 +210,11 @@ export function VolumeChart() {
         ) : rows.length === 0 ? (
           <p className="font-data m-0 pt-10 text-center text-text-dim">No volume in this window.</p>
         ) : (
-          // Recharts' own series animations stay off: they re-rendered the
-          // whole chart on every frame for 1.5s, and the stacked bars grew
-          // segment by segment, which read as broken under dropped frames.
-          // The plot draws in left to right under a CSS clip instead.
-          <div className="chart-reveal h-full w-full">
+          // Mounted only once the splash lifts: Recharts plays its bar and
+          // line entrance on mount, and under the splash it would be over
+          // before anyone saw it.
+          !bootReady ? null : (
+          <div className="h-full w-full">
             <ResponsiveContainer width="100%" height="100%" minHeight={90}>
               <ComposedChart
                 data={rows}
@@ -353,7 +354,6 @@ export function VolumeChart() {
                       stackId="vol"
                       fill={COIN_META[coin].color}
                       barSize={OVERVIEW_BAR_W}
-                      isAnimationActive={false}
                       radius={
                         coin === lastEnabled
                           ? [OVERVIEW_BAR_RADIUS, OVERVIEW_BAR_RADIUS, 0, 0]
@@ -370,7 +370,6 @@ export function VolumeChart() {
                     stroke="var(--t-spark-line)"
                     strokeWidth={2.2}
                     dot={false}
-                    isAnimationActive={false}
                     activeDot={{ r: 3, fill: CHART_GOLD }}
                   />
                 )}
@@ -383,13 +382,13 @@ export function VolumeChart() {
                     strokeWidth={2}
                     dot={false}
                     connectNulls
-                    isAnimationActive={false}
                     activeDot={{ r: 3, fill: OI_COLOR }}
                   />
                 )}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
+          )
         )}
         </div>
       </div>

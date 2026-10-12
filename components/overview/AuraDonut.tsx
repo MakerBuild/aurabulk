@@ -9,6 +9,7 @@ import { MARK_EASE, markFill, pulseBed, pulseMotion } from "@/lib/chart-gold-pul
 import { cn } from "@/lib/utils";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { useNarrowViewport } from "@/lib/use-narrow-viewport";
+import { useBootReady } from "@/lib/boot-gate";
 import {
   MetricTableHeader,
   MetricTableRow,
@@ -21,8 +22,8 @@ function compactAura(value: number): string {
   if (value >= 10_000) return `${Math.round(value / 1_000)}K`;
   return Math.round(value).toLocaleString("en-US");
 }
-/** 12 o'clock, sweeping clockwise (the .donut-sweep mask in globals.css
- *  starts there too). */
+const SWEEP_MS = 900;
+/** 12 o'clock, sweeping clockwise. */
 const START_ANGLE = 90;
 /** Ring radii as a fraction of the donut box's measured width rather than
  * fixed pixels — the box is sized by the surrounding layout, so deriving the
@@ -147,11 +148,13 @@ function restColorOf(rows: DonutRow[], i: number): string {
  * The ring, and the sweep that draws it in.
  *
  * Recharts' own entrance animation stays off (react-smooth was observed
- * leaving sectors with no rendered path here). The ring renders once at full
- * size and a conic CSS mask wipes it in (.donut-sweep). Stepping `endAngle`
- * on requestAnimationFrame instead re-rendered the whole PieChart sixty times
- * a second, right when every other entrance animation on the page was
- * competing for the same frames.
+ * leaving sectors with no rendered path here), so the wipe steps `endAngle`
+ * from the start angle round to a full turn on requestAnimationFrame. Every
+ * slice grows in proportion as it goes, so the sections travel round the ring
+ * together; a conic mask over a finished ring only uncovered a static picture.
+ * The sweep state lives here rather than in `AuraDonut` so a step redraws the
+ * arcs and not the legend beside them, and it waits for the boot splash so it
+ * plays where it can be seen.
  */
 function DonutRing({
   width,
@@ -170,48 +173,79 @@ function DonutRing({
   onHoverIndex: (index: number) => void;
   onLeave: () => void;
 }) {
+  const bootReady = useBootReady();
+  const [sweep, setSweep] = useState(0);
   const allSlices = useMemo(() => chartData.map((_, i) => i), [chartData]);
   const restAt = (i: number) => restColorOf(chartData, i);
 
+  // Once the splash lifts, and only then, so a resize mid-sweep can't tear
+  // the loop down. StrictMode's mount/unmount/remount simply restarts it.
+  useEffect(() => {
+    if (!bootReady) return;
+    let frame = 0;
+    let start = 0;
+    const step = (now: number) => {
+      if (start === 0) start = now;
+      const t = Math.min(1, (now - start) / SWEEP_MS);
+      setSweep(1 - Math.pow(1 - t, 3)); // ease-out
+      if (t < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+
+    // A hidden tab gets no frames, and at sweep 0 Recharts draws no path at
+    // all — so snap the sweep home once it's clear no frames are coming.
+    // Timers still run in a hidden tab; on a visible one this is a no-op.
+    const fallback = window.setTimeout(() => {
+      cancelAnimationFrame(frame);
+      setSweep(1);
+    }, SWEEP_MS * 3);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(fallback);
+    };
+  }, [bootReady]);
+
   return (
-    <div className="donut-sweep">
-      <PieChart width={width} height={width}>
-        <Pie
-          data={chartData}
-          dataKey="share"
-          nameKey="category"
-          cx="50%"
-          cy="50%"
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
-          startAngle={START_ANGLE}
-          endAngle={START_ANGLE - 360}
-          minAngle={5}
-          paddingAngle={chartData.length > 5 ? 1 : 2}
-          isAnimationActive={false}
-          // Every slice "active", so every slice renders through DonutSlice —
-          // see there for why none can be left to Recharts' plain sector.
-          activeIndex={allSlices}
-          activeShape={(props: unknown) => {
-            const sector = props as SectorGeometry;
-            const i = chartData.findIndex((r) => r.category === sector.name);
-            if (!chartData[i]) return <g />;
-            const lit = hoverIndex === i;
-            return (
-              <DonutSlice
-                geom={sector}
-                fill={markFill(i, hoverIndex, restAt)}
-                bed={pulseBed(restAt(i))}
-                lit={lit}
-                dimmed={hoverIndex != null && !lit}
-              />
-            );
-          }}
-          onMouseEnter={(_, i) => onHoverIndex(i)}
-          onMouseLeave={onLeave}
-        />
-      </PieChart>
-    </div>
+    <PieChart width={width} height={width}>
+      <Pie
+        data={chartData}
+        dataKey="share"
+        nameKey="category"
+        cx="50%"
+        cy="50%"
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={START_ANGLE}
+        endAngle={START_ANGLE - 360 * sweep}
+        // Scaled with the sweep rather than switched on at the end:
+        // snapping them to full size on the last step visibly squeezed
+        // every sector to make room, then let it spring back.
+        minAngle={5 * sweep}
+        paddingAngle={(chartData.length > 5 ? 1 : 2) * sweep}
+        isAnimationActive={false}
+        // Every slice "active", so every slice renders through DonutSlice —
+        // see there for why none can be left to Recharts' plain sector.
+        activeIndex={allSlices}
+        activeShape={(props: unknown) => {
+          const sector = props as SectorGeometry;
+          const i = chartData.findIndex((r) => r.category === sector.name);
+          if (!chartData[i]) return <g />;
+          const lit = hoverIndex === i;
+          return (
+            <DonutSlice
+              geom={sector}
+              fill={markFill(i, hoverIndex, restAt)}
+              bed={pulseBed(restAt(i))}
+              lit={lit}
+              dimmed={hoverIndex != null && !lit}
+            />
+          );
+        }}
+        onMouseEnter={(_, i) => onHoverIndex(i)}
+        onMouseLeave={onLeave}
+      />
+    </PieChart>
   );
 }
 
