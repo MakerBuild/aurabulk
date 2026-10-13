@@ -1,10 +1,12 @@
 import {
+  fetchExchangeStats,
   fetchL2Book,
   fetchTicker,
   fetchTradingMarkets,
   type ExchangeMarketInfo,
 } from "@/lib/bulk-exchange";
 import type { Level } from "@/lib/order-book-math";
+import { sumCandleVolumes } from "@/lib/volume-history";
 
 export const MARKET_QUALITY_TTL_MS = 2_000;
 /** How long the CDN holds the every-market answer. It only keeps the other
@@ -36,6 +38,10 @@ export interface MarketQualityPayload {
   oraclePrice: number | null;
   /** Hourly funding rate as a fraction. */
   fundingRate: number | null;
+  /** Dollars traded over the last 24h, from 1m candles. */
+  volume24hUsd: number | null;
+  /** Open interest in dollars, one side, priced at mark. */
+  openInterestUsd: number | null;
   updatedAt: string;
 }
 
@@ -48,6 +54,59 @@ async function tradingMarkets(): Promise<ExchangeMarketInfo[]> {
   const data = await fetchTradingMarkets().catch(() => []);
   if (data.length) marketsCache = { at: Date.now(), data };
   return data.length ? data : (marketsCache?.data ?? []);
+}
+
+/** How often each market's 24h volume and open interest are re-read. They
+ *  move slowly next to the book, and the volume is a klines call per market. */
+const ACTIVITY_TTL_MS = 30_000;
+
+interface MarketActivity {
+  volume24hUsd: number | null;
+  openInterestUsd: number | null;
+}
+
+let activity: { at: number; bySymbol: Record<string, MarketActivity> } | null = null;
+let activityPending: Promise<void> | null = null;
+
+async function readActivity(): Promise<void> {
+  // The ticker's own volume and open interest are wrong, so volume comes from
+  // the candles the Overview already sums and open interest from /stats.
+  const [volumesR, statsR] = await Promise.allSettled([sumCandleVolumes(), fetchExchangeStats(15)]);
+  const volumes = volumesR.status === "fulfilled" ? volumesR.value.marketVolume24hUsd : null;
+  const stats = statsR.status === "fulfilled" ? statsR.value : null;
+  if (!volumes && !stats) return;
+
+  const bySymbol: Record<string, MarketActivity> = {};
+  const entry = (symbol: string) =>
+    (bySymbol[symbol] ??= {
+      // A source that failed this time keeps its last reading.
+      volume24hUsd: activity?.bySymbol[symbol]?.volume24hUsd ?? null,
+      openInterestUsd: activity?.bySymbol[symbol]?.openInterestUsd ?? null,
+    });
+  for (const [symbol, usd] of Object.entries(volumes ?? {})) {
+    if (Number.isFinite(usd)) entry(symbol).volume24hUsd = usd;
+  }
+  for (const m of stats?.markets ?? []) {
+    const usd = Number(m.openInterest) * Number(m.markPrice);
+    if (Number.isFinite(usd)) entry(m.symbol).openInterestUsd = usd;
+  }
+  activity = { at: Date.now(), bySymbol: { ...activity?.bySymbol, ...bySymbol } };
+}
+
+/**
+ * The last reading straight away, refreshed in the background once stale, so
+ * the 2s book poll never waits on a klines fan-out. Right after a restart it
+ * is empty and the page shows a dash for a poll or two.
+ */
+function marketActivity(symbol: string): MarketActivity {
+  if ((!activity || Date.now() - activity.at >= ACTIVITY_TTL_MS) && !activityPending) {
+    activityPending = readActivity()
+      .catch(() => {})
+      .finally(() => {
+        activityPending = null;
+      });
+  }
+  return activity?.bySymbol[symbol] ?? { volume24hUsd: null, openInterestUsd: null };
 }
 
 function finiteOrNull(value: unknown): number | null {
@@ -89,6 +148,7 @@ export async function buildMarketQualityPayload(
     markPrice: finiteOrNull(ticker?.markPrice),
     oraclePrice: finiteOrNull(ticker?.oraclePrice),
     fundingRate: ticker?.fundingRate != null ? Number(ticker.fundingRate) : null,
+    ...marketActivity(symbol),
     updatedAt: new Date(now).toISOString(),
   };
   cache.set(symbol, { at: now, data });

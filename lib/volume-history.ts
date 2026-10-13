@@ -249,17 +249,18 @@ function sumCandlesUsd(candles: ExchangeCandle[], from?: number): number {
  * when `v` is 0 (orders/ticks). Unique fills come from BulkStats
  * `/api/analytics/stats` `trades.count`.
  */
-export function sumCandleVolumes(revalidate = 60): Promise<{
+export interface CandleVolumes {
   volume24hUsd: number;
   volumeTotalUsd: number;
-}> {
+  /** The same rolling 24h, per market symbol. */
+  marketVolume24hUsd: Record<string, number>;
+}
+
+export function sumCandleVolumes(revalidate = 60): Promise<CandleVolumes> {
   return staleWhileRevalidate("totals", () => buildCandleVolumes(revalidate));
 }
 
-async function buildCandleVolumes(revalidate: number): Promise<{
-  volume24hUsd: number;
-  volumeTotalUsd: number;
-}> {
+async function buildCandleVolumes(revalidate: number): Promise<CandleVolumes> {
   const now = Date.now();
   const start24h = now - RANGE_MS["1D"];
   // The hourly candle covering `start24h` opened before it, so counting that
@@ -273,7 +274,11 @@ async function buildCandleVolumes(revalidate: number): Promise<{
     Promise.all(symbols.map((symbol) => fetchKlines(symbol, "1h", MAINNET_START_MS, now, revalidate))),
   ]);
 
-  const volume24hUsd = minuteSeries.reduce((sum, candles) => sum + sumCandlesUsd(candles, start24h), 0);
+  const marketVolume24hUsd: Record<string, number> = {};
+  symbols.forEach((symbol, i) => {
+    marketVolume24hUsd[symbol] = sumCandlesUsd(minuteSeries[i], start24h);
+  });
+  const volume24hUsd = Object.values(marketVolume24hUsd).reduce((sum, usd) => sum + usd, 0);
   // Minutes between the splice hour and the rolling window start — covered by
   // neither the hourly sum below nor the 24h sum above.
   const spliceGapUsd = minuteSeries.reduce((sum, candles) => {
@@ -292,7 +297,11 @@ async function buildCandleVolumes(revalidate: number): Promise<{
     return sum + usd;
   }, 0);
 
-  return { volume24hUsd, volumeTotalUsd: olderUsd + spliceGapUsd + volume24hUsd };
+  return {
+    volume24hUsd,
+    volumeTotalUsd: olderUsd + spliceGapUsd + volume24hUsd,
+    marketVolume24hUsd,
+  };
 }
 
 /** Hourly buckets from trading mainnet start — for the Total KPI spark. */

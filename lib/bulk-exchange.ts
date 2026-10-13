@@ -19,7 +19,7 @@ interface ExchangeMarketStat {
   markPrice: number;
 }
 
-interface ExchangeStats {
+export interface ExchangeStats {
   timestamp: number;
   period: string;
   volume: { totalUsd: number };

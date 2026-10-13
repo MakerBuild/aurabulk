@@ -33,12 +33,13 @@ export function fmtUsd(n: number | null | undefined): string {
   })}`;
 }
 
-/** Compact dollars for axes and chips: $950, $12K, $2.5M. */
+/** Compact dollars for axes and chips: $950, $12K, $2.5M. The unit is
+ *  picked after rounding, so $999,700 reads $1M, not $1000K. */
 export function fmtUsdShort(n: number): string {
   const abs = Math.abs(n);
-  if (abs >= 1e9) return `$${+(n / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `$${+(n / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `$${+(n / 1e3).toFixed(abs >= 1e5 ? 0 : 1)}K`;
+  if (+(abs / 1e6).toFixed(2) >= 1000) return `$${+(n / 1e9).toFixed(2)}B`;
+  if (+(abs / 1e3).toFixed(0) >= 1000) return `$${+(n / 1e6).toFixed(2)}M`;
+  if (Math.round(abs) >= 1000) return `$${+(n / 1e3).toFixed(abs >= 1e5 ? 0 : 1)}K`;
   return `$${Math.round(n)}`;
 }
 
