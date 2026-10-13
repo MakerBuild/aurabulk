@@ -572,6 +572,51 @@ body {
   background: var(--color-accent);
 }
 
+/* Market picker (TickerSlider): an endless strip that glides under a fixed
+   lens, the picked ticker always in the middle. Each ticker is placed by a
+   transform from the left edge; boxes match .term-seg-btn. */
+.ticker-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  transform-origin: center;
+  will-change: transform, opacity;
+  transition: color 0.15s ease;
+  cursor: pointer;
+}
+
+.ticker-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* The lens: the accent pill, with the same strip again in the on-pill
+   colour inside it, clipped to the pill. It eases to each ticker's width. */
+.ticker-lens {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--color-accent);
+  transition: clip-path 0.32s cubic-bezier(0.22, 0.8, 0.26, 1);
+}
+
+.ticker-lens .ticker-btn {
+  color: var(--color-bulk-base);
+}
+
 /* Studio ON AIR lamp — red LED + halo, only while LIVE is pressed. */
 .live-air {
   position: relative;

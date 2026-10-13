@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { PanelCard } from "@/components/overview/PanelCard";
-import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
+import { TickerSlider } from "@/components/stats/TickerSlider";
 import { usePolledJson } from "@/components/live/use-polled-json";
 import { SwapProvider, SwapValue } from "@/components/ui/SwapValue";
 import { KpiTerminalCounter } from "@/components/cards/KpiTerminalCounter";
@@ -11,7 +11,7 @@ import { CostCurve } from "@/components/stats/CostCurve";
 import { DepthChart } from "@/components/stats/DepthChart";
 import { FeeTierTable } from "@/components/stats/FeeTierTable";
 import { DEFAULT_BAND, LEVELS, TwoSidedLiquidity } from "@/components/stats/TwoSidedLiquidity";
-import { fmtBp, fmtPrice, fmtSignedBp } from "@/components/stats/format";
+import { fmtBp, fmtPrice, fmtSignedBp, fmtUsdShort } from "@/components/stats/format";
 import { FEE_TIERS, MAKER_REBATES } from "@/lib/fee-tiers";
 import type { AllMarketsPayload, MarketQualityPayload } from "@/lib/market-quality";
 import {
@@ -233,10 +233,12 @@ export function StatsDashboard() {
           </div>
 
           {/* After the market switcher on a phone, beside the price from sm. */}
-          <div className="order-3 flex w-full flex-col sm:order-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-7 sm:gap-y-3">
+          <div className="order-3 flex w-full flex-col sm:order-none sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
             {/* Widths measured in the strip's own type: prices run to ten
                 characters (0.00412345, 10,672.043), bp and funding to about
-                eight, and "Mark vs oracle" is set by its label. */}
+                eight, dollars to $123.45M, and "Mark vs oracle" is set by its
+                label. Volume and OI are abbreviated so the switcher still fits
+                on the line at the container's full width. */}
             <StripStat
               label="Spread"
               width="sm:w-[64px]"
@@ -269,18 +271,28 @@ export function StatsDashboard() {
               width="sm:w-[76px]"
               value={<Counted value={live?.fundingRate} format={(n) => `${(n * 100).toFixed(4)}%`} />}
             />
+            <StripStat
+              label="24h vol"
+              width="sm:w-[60px]"
+              value={<Counted value={live?.volume24hUsd} format={fmtUsdShort} />}
+            />
+            <StripStat
+              label="OI"
+              width="sm:w-[60px]"
+              value={<Counted value={live?.openInterestUsd} format={fmtUsdShort} />}
+            />
           </div>
 
-          {/* On a phone the switcher is a 4 × 2 grid, every market in view: a
-              single scrolling row cut the last ticker off at the card edge.
-              `grid!` because .term-seg sets display outside the utilities. */}
-          <div className="order-2 w-full sm:order-none sm:-mx-1 sm:w-auto sm:max-w-full sm:overflow-x-auto sm:px-1 sm:[scrollbar-width:none] xl:ml-auto sm:[&::-webkit-scrollbar]:hidden">
-            <SegmentedToggle
-              className="max-sm:grid! max-sm:grid-cols-4"
+          {/* The market picker, the picked one always in the middle, so any
+              number of markets fits one row. Below xl it has a row of its own;
+              from xl it takes what the line has left after the figures, and
+              drops to its own row when that is less than a few tickers' worth. */}
+          <div className="order-2 flex w-full min-w-0 sm:order-none xl:w-auto xl:min-w-[320px] xl:flex-1 xl:basis-0 xl:justify-end">
+            <TickerSlider
               options={markets.map((m) => ({ value: m, label: m.replace(/-USD$/i, "") }))}
               value={symbol}
               onChange={pickMarket}
-              layoutId="stats-market-pill"
+              className="sm:max-w-[520px]"
             />
           </div>
         </div>
