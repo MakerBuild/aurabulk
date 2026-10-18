@@ -1,60 +1,60 @@
 {
-  "updatedAt": "2026-10-18T07:44:57.408Z",
-  "cursor": 20583,
+  "updatedAt": "2026-10-18T08:45:53.545Z",
+  "cursor": 21783,
   "windowDays": 14,
   "rows": [
     {
       "wallet": "Gd5Cy1RQ2eDXtrBnX8fXkN3Ay7Ayhr2hM919Vy9gHEWm",
       "volumeUsd": 93693369.880776,
-      "balanceUsd": 685904.52027,
-      "pnlUsd": 61279.955590000005,
-      "feesUsd": 17362.302437,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 685978.576442,
+      "pnlUsd": 61826.908478000005,
+      "feesUsd": 17356.748508,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 67578.802551
     },
     {
       "wallet": "3i8LkowoNejA1BRX3QNnvM9aCBLAGhSFuRpvVF9qVUDa",
       "volumeUsd": 70159970.27065,
-      "balanceUsd": 42858.867223,
-      "pnlUsd": 16218.736943,
+      "balanceUsd": 42858.707993,
+      "pnlUsd": 16216.311236,
       "feesUsd": 13016.419002,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 28614.154061999998
     },
     {
       "wallet": "5jn4N6aYkpTZsGM98CD39Wxn31zzu9zsFyBUtjYjhEac",
       "volumeUsd": 57116344.425841,
-      "balanceUsd": 416713.892903,
-      "pnlUsd": -52851.735462,
-      "feesUsd": 7143.418371,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 416595.80356,
+      "pnlUsd": -52798.53694799999,
+      "feesUsd": 7160.602736,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -8519.061308
     },
     {
       "wallet": "FJ2KJkDmwDNzwWuwGHcGKoXTc6qpoAP3XPdnBYv3JBL4",
       "volumeUsd": 55005713.782781,
-      "balanceUsd": 414550.322988,
-      "pnlUsd": 32603.204531000003,
-      "feesUsd": 257.970654,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 414533.846557,
+      "pnlUsd": 32633.936013999995,
+      "feesUsd": 260.417977,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 66558.018646
     },
     {
       "wallet": "7Xg5ginEh2oaSZzrimsBM9AGoaTJpMfXQxvB8xvBJrZd",
       "volumeUsd": 41740330.264768,
-      "balanceUsd": 38134.562583,
-      "pnlUsd": 4657.047689999999,
-      "feesUsd": 2526.254098,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 38147.579001,
+      "pnlUsd": 4664.383438999999,
+      "feesUsd": 2532.290191,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 4771.818093
     },
     {
       "wallet": "HNHWVb62L2owBCEgZcsG6gCJy5o8UaFe7QM6RUsnpzoz",
       "volumeUsd": 35678353.171937,
-      "balanceUsd": 4459.833201,
-      "pnlUsd": -5868.056284,
-      "feesUsd": 3813.073628,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 4448.792582,
+      "pnlUsd": -5866.1312020000005,
+      "feesUsd": 3825.599004,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2038.976975
     },
     {
@@ -63,43 +63,43 @@
       "balanceUsd": 0,
       "pnlUsd": 5787.172316,
       "feesUsd": 18387.68363,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 5808.404637
     },
     {
       "wallet": "BU1Kvokt8sgFftZWYofrp7QDma5PxxBzey8fT3pYhKRC",
       "volumeUsd": 25831816.174812,
-      "balanceUsd": 26998.214298,
-      "pnlUsd": -2722.796953,
-      "feesUsd": 1632.415202,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 26992.30817,
+      "pnlUsd": -2722.1433039999997,
+      "feesUsd": 1626.591158,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 90.614103
     },
     {
       "wallet": "H9J9xPfVap4Xy1fjDcV6HXRTuuwWZAfkyU66QwFWJuoM",
       "volumeUsd": 21351168.945742,
-      "balanceUsd": 2125.873141,
-      "pnlUsd": -2587.023229,
-      "feesUsd": 3687.53636,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 2124.7925,
+      "pnlUsd": -2582.296806,
+      "feesUsd": 3691.009113,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -399.389521
     },
     {
       "wallet": "Dhx5233ZX8QXr37iRakowgrEnWFN1hDfcibUqyqxRWwu",
       "volumeUsd": 12769742.772909,
-      "balanceUsd": 2126.965626,
-      "pnlUsd": -3469.739709,
-      "feesUsd": 4282.299657,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 2118.058341,
+      "pnlUsd": -3466.951934,
+      "feesUsd": 4293.994717,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1969.259595
     },
     {
       "wallet": "H93eRi2sGYcW4MzJu92VLhPCQVZ3S2K1mFAa1Ja1Zwcg",
       "volumeUsd": 8372736.253665,
-      "balanceUsd": 6159.844355,
-      "pnlUsd": 1469.896163,
-      "feesUsd": 312.965501,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 6157.211982,
+      "pnlUsd": 1467.815767,
+      "feesUsd": 306.986316,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1484.281591
     },
     {
@@ -108,7 +108,7 @@
       "balanceUsd": 0,
       "pnlUsd": -13572.855769,
       "feesUsd": 6501.1363,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -7342.41436
     },
     {
@@ -117,7 +117,7 @@
       "balanceUsd": 0,
       "pnlUsd": -3598.873019,
       "feesUsd": 3045.092048,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1925.4001139999998
     },
     {
@@ -126,43 +126,43 @@
       "balanceUsd": 368.238292,
       "pnlUsd": 69.547553,
       "feesUsd": 30.152213,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 407.99792
     },
     {
       "wallet": "HSMXFmNXcvPajFXvA3mrC3wEDGWhru4z827xieiV3CUC",
       "volumeUsd": 5763017.278756,
-      "balanceUsd": 423679.833887,
-      "pnlUsd": 26475.222743000002,
+      "balanceUsd": 423685.797145,
+      "pnlUsd": 26778.810293000002,
       "feesUsd": 2583.736897,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 30226.878428999997
     },
     {
       "wallet": "9P9waTHHPPPdhXAt8sDHWVaFYJYC8rnp1FKGp67JbtSg",
       "volumeUsd": 5598516.470322,
-      "balanceUsd": 11312.265757,
-      "pnlUsd": -5078.301415,
-      "feesUsd": 1588.977028,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 11311.280936,
+      "pnlUsd": -5079.177197999999,
+      "feesUsd": 1588.810928,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -4075.661156
     },
     {
       "wallet": "Dh5ugNcjfLJKw7ZLwhR99jdGgexvnKVqoG9JYdebHmDB",
       "volumeUsd": 5374062.529259,
-      "balanceUsd": 6213.091229,
-      "pnlUsd": 55.72391,
-      "feesUsd": 6838.145981,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 6206.370442,
+      "pnlUsd": 75.018079,
+      "feesUsd": 6844.995762,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 215.855662
     },
     {
       "wallet": "FaSDb1VVH5g2moKRDFYPqKzstDMpPJYzBP7HbG8sAfo9",
       "volumeUsd": 4621237.687672,
-      "balanceUsd": 4600.404744,
-      "pnlUsd": 807.0933419999999,
+      "balanceUsd": 4600.35833,
+      "pnlUsd": 821.8496539999999,
       "feesUsd": 6634.146434,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1126.8210510000001
     },
     {
@@ -171,7 +171,7 @@
       "balanceUsd": 0,
       "pnlUsd": 6275.524689,
       "feesUsd": 5923.896424,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 6616.366403
     },
     {
@@ -180,16 +180,16 @@
       "balanceUsd": 7794.729899,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "C8if99SfZ9zfCfh4ecQe3YJr13QnbHMsczha4z3LTwx9",
       "volumeUsd": 4435068.898179,
-      "balanceUsd": 538826.154587,
-      "pnlUsd": 76603.344183,
+      "balanceUsd": 538839.394963,
+      "pnlUsd": 77211.120726,
       "feesUsd": 1502.054631,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 85513.858583
     },
     {
@@ -198,7 +198,7 @@
       "balanceUsd": 0,
       "pnlUsd": 4380.076286,
       "feesUsd": 3361.148618,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 4380.076286
     },
     {
@@ -207,52 +207,52 @@
       "balanceUsd": 13.94779,
       "pnlUsd": 0.387653,
       "feesUsd": 0.071214,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.387653
     },
     {
       "wallet": "2UuLxPm1Hgi6QGEq6aqANqU4bPHgWLYM7ci8m6ZoYXbd",
       "volumeUsd": 3737068.396032,
-      "balanceUsd": 2528.493783,
-      "pnlUsd": 816.433287,
-      "feesUsd": 338.424023,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 2525.743786,
+      "pnlUsd": 810.481086,
+      "feesUsd": 340.676187,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1171.979268
     },
     {
       "wallet": "E5uzUhXw7fMfpJVfvfww4N5EbZLNar9NrshmvZhcpeEk",
       "volumeUsd": 3728657.0369249997,
-      "balanceUsd": 2615.162479,
-      "pnlUsd": 715.758588,
-      "feesUsd": 687.904243,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 2614.608331,
+      "pnlUsd": 715.667041,
+      "feesUsd": 688.366844,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 812.959774
     },
     {
       "wallet": "5GHMPskpm21G3efYZRoHrCgYZKNTSkMMBVY3vne7PUQm",
       "volumeUsd": 3475088.05293,
-      "balanceUsd": 101871.295139,
-      "pnlUsd": 16372.259997000001,
-      "feesUsd": 1336.567417,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 101872.229163,
+      "pnlUsd": 16746.880985,
+      "feesUsd": 1336.052958,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 19123.642832
     },
     {
       "wallet": "GXXnyvKorz7RLXWaPok5YpezotJ4RgcJvwzbUwFivsem",
       "volumeUsd": 3419973.263434,
-      "balanceUsd": 496.937695,
-      "pnlUsd": -3166.439128,
+      "balanceUsd": 496.873197,
+      "pnlUsd": -3177.004939,
       "feesUsd": 4788.930678,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1016.042447
     },
     {
       "wallet": "EYVq1MrwT5mfsh8kJLw645ARKK3uP4ja3UcTzb8ULcff",
       "volumeUsd": 3312978.883841,
-      "balanceUsd": 49.116055,
-      "pnlUsd": -2639.476738,
-      "feesUsd": 14.432291,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 49.091852,
+      "pnlUsd": -2639.508492,
+      "feesUsd": 14.365284,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -573.5796839999999
     },
     {
@@ -261,25 +261,25 @@
       "balanceUsd": 4.112053,
       "pnlUsd": 225.443582,
       "feesUsd": 412.979022,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 550.924424
     },
     {
       "wallet": "BXLJWemxb7mYxCAQjUBSisNkvyCAi7xtxsxEqkU22oGK",
       "volumeUsd": 3077444.499306,
-      "balanceUsd": 621.550017,
-      "pnlUsd": -2498.48516,
-      "feesUsd": 2738.346197,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 620.791868,
+      "pnlUsd": -2498.786876,
+      "feesUsd": 2738.80263,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -158.241408
     },
     {
       "wallet": "2RYFbdbz2WnXry7fwgESJW9emCKyZ239CQ7764FQAGzY",
       "volumeUsd": 2871420.430941,
-      "balanceUsd": 15165.893692,
-      "pnlUsd": -4175.782484,
+      "balanceUsd": 15166.039684,
+      "pnlUsd": -4065.51635,
       "feesUsd": 1813.371013,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1282.082128
     },
     {
@@ -288,16 +288,16 @@
       "balanceUsd": 0,
       "pnlUsd": 170.06137,
       "feesUsd": 976.44809,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 170.06137
     },
     {
       "wallet": "2MgfKGtKoRfsDgdEcPxi6dGRcg1bAYDqjpFg5q1hN9DG",
       "volumeUsd": 2778333.78501,
-      "balanceUsd": 15744.320496,
-      "pnlUsd": 3386.107127,
+      "balanceUsd": 15744.175523,
+      "pnlUsd": 3277.434272,
       "feesUsd": 942.657641,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3843.65201
     },
     {
@@ -306,25 +306,25 @@
       "balanceUsd": 0,
       "pnlUsd": -55.862479,
       "feesUsd": 971.206358,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -55.862479
     },
     {
       "wallet": "CatKtinzqjr4HgJ8SXsAsBnpf6Jpr7mL2CPZ9iGQyDij",
       "volumeUsd": 2763280.557703,
-      "balanceUsd": 420.97206,
-      "pnlUsd": 2149.493606,
+      "balanceUsd": 420.949598,
+      "pnlUsd": 2149.989719,
       "feesUsd": 5267.362984,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2590.816835
     },
     {
       "wallet": "EbaoY81MhbrXiP52Nk35XTeYDLwaiKooLMWgfNMBJnpf",
       "volumeUsd": 2696089.683672,
-      "balanceUsd": 69280.417891,
-      "pnlUsd": -7772.719819,
+      "balanceUsd": 69284.956967,
+      "pnlUsd": -8044.620875,
       "feesUsd": 773.999755,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -5072.640296
     },
     {
@@ -333,7 +333,7 @@
       "balanceUsd": 0,
       "pnlUsd": 16.56425,
       "feesUsd": 939.870646,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 16.56425
     },
     {
@@ -342,34 +342,34 @@
       "balanceUsd": 0,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "8sWQQbtxhZc99vJrpN7Hwx9Ki3GmBGUJRtQuASj6ipQA",
       "volumeUsd": 2460015.37381,
-      "balanceUsd": 86.055496,
-      "pnlUsd": -22.934518999999998,
+      "balanceUsd": 86.090984,
+      "pnlUsd": -24.568455,
       "feesUsd": 1005.595926,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1092.667786
     },
     {
       "wallet": "ztqQ4TNC6Yju9zJaK9ZsPNMjxiUqjiT6rP76eeatgTy",
       "volumeUsd": 2428028.550914,
-      "balanceUsd": 21315.314907,
-      "pnlUsd": -24134.423228,
+      "balanceUsd": 21314.295112,
+      "pnlUsd": -24100.160581,
       "feesUsd": 820.421582,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -8164.240326000001
     },
     {
       "wallet": "7ELZ98VJWERbEUgVFtHdcYHNMR1YvANWctgSjknsCMMo",
       "volumeUsd": 2288310.462065,
-      "balanceUsd": 53713.2907,
-      "pnlUsd": -26446.875733,
+      "balanceUsd": 53710.071479,
+      "pnlUsd": -26557.745323000003,
       "feesUsd": 1157.83995,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3761.62665
     },
     {
@@ -378,7 +378,7 @@
       "balanceUsd": 11196.187217,
       "pnlUsd": -5872.277011,
       "feesUsd": 1285.155135,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 5638.145442
     },
     {
@@ -387,16 +387,16 @@
       "balanceUsd": 4058.780051,
       "pnlUsd": -4294.265622,
       "feesUsd": 5079.802794,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1354.713901
     },
     {
       "wallet": "6BfHoD9UVBYxfaAsfrxjhRYxqnw664vPzjm4CEihiW6P",
       "volumeUsd": 2077824.365989,
-      "balanceUsd": 5935.53129,
-      "pnlUsd": 2924.492317,
+      "balanceUsd": 5936.551084,
+      "pnlUsd": 2889.7646950000003,
       "feesUsd": 830.309082,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3946.6542099999997
     },
     {
@@ -405,16 +405,16 @@
       "balanceUsd": 562.079987,
       "pnlUsd": -481.166113,
       "feesUsd": 718.956523,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 113.594817
     },
     {
       "wallet": "4feMLRePQqNnzaTc72zhrFx5KjV6rgNN1kwKpXB1vZrz",
       "volumeUsd": 1985611.279456,
-      "balanceUsd": 4196.055661,
-      "pnlUsd": 63.04048700000021,
+      "balanceUsd": 4195.831287,
+      "pnlUsd": 48.09297400000014,
       "feesUsd": 2345.349566,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2983.70676
     },
     {
@@ -423,25 +423,25 @@
       "balanceUsd": 3801.23171,
       "pnlUsd": -1029.043742,
       "feesUsd": 670.402358,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1012.4787330000001
     },
     {
       "wallet": "HTbXmEQxHpY6VXgqNSHLkzueQ1UdiAaiahLqzWZwdSvV",
       "volumeUsd": 1925430.003326,
-      "balanceUsd": 5922.03554,
-      "pnlUsd": -2014.604123,
+      "balanceUsd": 5921.670803,
+      "pnlUsd": -2019.5669940000002,
       "feesUsd": 1131.374986,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 89.733834
     },
     {
       "wallet": "FDUHiXFYM3V5gbR7rW4yXBJZrRKD8juJFpTDSyFMPe3t",
       "volumeUsd": 1924536.635573,
-      "balanceUsd": 214657.613634,
-      "pnlUsd": 30621.648035,
+      "balanceUsd": 214650.493879,
+      "pnlUsd": 28597.793196,
       "feesUsd": 901.969635,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 133120.526407
     },
     {
@@ -450,7 +450,7 @@
       "balanceUsd": 16.684588,
       "pnlUsd": -3874.626385,
       "feesUsd": 736.741278,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -79.359761
     },
     {
@@ -459,34 +459,34 @@
       "balanceUsd": 516.417803,
       "pnlUsd": -241.4786,
       "feesUsd": 656.127545,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 7.469724000000001
     },
     {
       "wallet": "ERFL1opxKXbytJwyodVUn1WB8NuFQAmbyFtAhf5DRQQT",
       "volumeUsd": 1792977.966109,
-      "balanceUsd": 38852.625015,
-      "pnlUsd": 9366.654951999999,
+      "balanceUsd": 38855.961269,
+      "pnlUsd": 9358.995039,
       "feesUsd": 2294.787906,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 10821.146837
     },
     {
       "wallet": "CDz6JpoGtmFLQT2bdj9TuWduES7dc1mU9oG5DZCX6mTW",
       "volumeUsd": 1695207.518482,
-      "balanceUsd": 15.944946,
-      "pnlUsd": 3084.899616,
+      "balanceUsd": 15.943656,
+      "pnlUsd": 3084.688337,
       "feesUsd": 3183.284018,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3125.248829
     },
     {
       "wallet": "FM3m8Vd82RNewwXCYYBPDaDCJww21nreh36q6GUd2Exd",
       "volumeUsd": 1689190.033455,
-      "balanceUsd": 5552.771733,
-      "pnlUsd": 108.1261820000002,
+      "balanceUsd": 5552.465794,
+      "pnlUsd": 118.16119300000014,
       "feesUsd": 6390.678118,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3270.980687
     },
     {
@@ -495,7 +495,7 @@
       "balanceUsd": 3891.977029,
       "pnlUsd": -5117.704223,
       "feesUsd": 926.626957,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 919.7202360000001
     },
     {
@@ -504,7 +504,7 @@
       "balanceUsd": 0,
       "pnlUsd": 174.760205,
       "feesUsd": 1585.946719,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 298.06983599999995
     },
     {
@@ -513,16 +513,16 @@
       "balanceUsd": 1260.258348,
       "pnlUsd": -1318.629463,
       "feesUsd": 2370.304537,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3081.567708
     },
     {
       "wallet": "FTdRCufhBAKDBo55iJrSVngqymjbzzHGWxWuYj8fprTr",
       "volumeUsd": 1552781.902668,
-      "balanceUsd": 3148.984652,
-      "pnlUsd": -2557.827644,
+      "balanceUsd": 3148.678713,
+      "pnlUsd": -2547.769528,
       "feesUsd": 5367.049719,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1462.834519
     },
     {
@@ -531,34 +531,34 @@
       "balanceUsd": 1063.285471,
       "pnlUsd": -233.706276,
       "feesUsd": 329.41188,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -201.491828
     },
     {
       "wallet": "3TzRHwr5HirpigCVpSHUekK7wjw1ub2fJv6wMQU6t6Yq",
       "volumeUsd": 1497668.735011,
-      "balanceUsd": 1344.175157,
-      "pnlUsd": -135.996294,
+      "balanceUsd": 1344.14885,
+      "pnlUsd": -132.221612,
       "feesUsd": 377.66785,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 56.903321
     },
     {
       "wallet": "HpLeAYmgXj46exiHYrqCwgtXAd6SwFC4hfeLdYKiFgZ4",
       "volumeUsd": 1486983.172732,
-      "balanceUsd": 6135.356087,
-      "pnlUsd": 561.164741,
-      "feesUsd": 128.633858,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 6287.810644,
+      "pnlUsd": 533.157492,
+      "feesUsd": 136.418477,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 907.822784
     },
     {
       "wallet": "5dXepzVKHU6XLUpsbMurezj4GqwsFqdBGbpYg35hmGg3",
       "volumeUsd": 1477100.360313,
-      "balanceUsd": 9948.776154,
-      "pnlUsd": 824.151185,
+      "balanceUsd": 9947.529745,
+      "pnlUsd": 854.360723,
       "feesUsd": 528.00148,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2513.4595679999998
     },
     {
@@ -567,70 +567,70 @@
       "balanceUsd": 305.300047,
       "pnlUsd": -133.260785,
       "feesUsd": 143.820868,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -39.819081000000004
     },
     {
       "wallet": "79AfseUUorzy84MAhXGyKywRYFZ8ZkaabHAEUH78pe3f",
       "volumeUsd": 1464052.900602,
-      "balanceUsd": 6446.549543,
-      "pnlUsd": -70.616939,
-      "feesUsd": 563.890306,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 6445.766765,
+      "pnlUsd": -70.727255,
+      "feesUsd": 564.550268,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 6.863168
     },
     {
       "wallet": "2KNWfvYqBy5jdbBst7v5cD6F1D1gezi9rGnKdkS65k2Z",
       "volumeUsd": 1460201.477927,
-      "balanceUsd": 155.503336,
-      "pnlUsd": -11.805176,
+      "balanceUsd": 155.495357,
+      "pnlUsd": -11.313851,
       "feesUsd": 171.56333,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 30.113683
     },
     {
       "wallet": "F5hYxtrGUMi4QsLUNnSzhFoMVoKndBscNQNee6d4ihZm",
       "volumeUsd": 1459054.98666,
-      "balanceUsd": 17766.40906,
-      "pnlUsd": -1605.996881,
-      "feesUsd": 428.351021,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 17764.257705,
+      "pnlUsd": -1609.05042,
+      "feesUsd": 429.521569,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3250.0784830000002
     },
     {
       "wallet": "E674xuq9Z35oU6CEPuGA6Vt6KR6FZ6LBQu915JiBhVvB",
       "volumeUsd": 1438798.510988,
-      "balanceUsd": 98.03664,
-      "pnlUsd": -953.697977,
+      "balanceUsd": 97.468358,
+      "pnlUsd": -953.468956,
       "feesUsd": 24.59236,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -714.788322
     },
     {
       "wallet": "4E8NN59xFAqHeX1Rjkcow4CMwzKYitMhZ7Fomo9GRRH6",
       "volumeUsd": 1395008.109496,
-      "balanceUsd": 218.061952,
-      "pnlUsd": -123.84445400000001,
+      "balanceUsd": 217.962017,
+      "pnlUsd": -120.69453900000002,
       "feesUsd": 681.545921,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 202.535106
     },
     {
       "wallet": "9tf6oVuYfYDSzo7Bk5kvY2GbPDnbtRnvfNSkWbSfr7Gf",
       "volumeUsd": 1367999.06728,
-      "balanceUsd": 7470.378762,
-      "pnlUsd": -11.921653,
-      "feesUsd": 517.772453,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 7469.401291,
+      "pnlUsd": -12.173207,
+      "feesUsd": 518.49837,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 5.034813
     },
     {
       "wallet": "Ex4sZt9aa77GfBMXV1M8H2Ju7Mj8QdWJKw7Dnq5gYX4u",
       "volumeUsd": 1309174.945991,
-      "balanceUsd": 308.437758,
-      "pnlUsd": -100.962486,
+      "balanceUsd": 308.445736,
+      "pnlUsd": -101.329801,
       "feesUsd": 122.306283,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -23.10843
     },
     {
@@ -639,7 +639,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -648,7 +648,7 @@
       "balanceUsd": 2.675949,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3.326031
     },
     {
@@ -657,16 +657,16 @@
       "balanceUsd": 130.769238,
       "pnlUsd": 1.963905,
       "feesUsd": 0.657478,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1.963905
     },
     {
       "wallet": "FnN2dFruprqdhTrRptumqmNpHERuXC19kuE3ZkWawAKm",
       "volumeUsd": 1185217.736719,
-      "balanceUsd": 260.698186,
-      "pnlUsd": 530.726671,
+      "balanceUsd": 260.720919,
+      "pnlUsd": 530.210426,
       "feesUsd": 619.51939,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 775.935773
     },
     {
@@ -675,43 +675,43 @@
       "balanceUsd": 0,
       "pnlUsd": -6119.2357,
       "feesUsd": 1171.124113,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3437.583409
     },
     {
       "wallet": "HvaTFynLURU8mvPr3e1jfifzehnM895prDKwUEAeNWu",
       "volumeUsd": 1102975.339178,
       "balanceUsd": 707.43369,
-      "pnlUsd": -1230.931302,
+      "pnlUsd": -1230.07434,
       "feesUsd": 625.915775,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -382.49928900000003
     },
     {
       "wallet": "2kyoEvCVfCoGmWGZG4MCzbv9xDgV7NCNDujFr776YzDQ",
       "volumeUsd": 1094782.204022,
-      "balanceUsd": 24092.510451,
-      "pnlUsd": 2140.067311,
+      "balanceUsd": 24091.726311,
+      "pnlUsd": 2164.583137,
       "feesUsd": 1083.590087,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3935.824462
     },
     {
       "wallet": "8ceHrsZ254AnLqTr3EuXJzbrwSf11tz8cYKDnACrvrwz",
       "volumeUsd": 1028800.051059,
-      "balanceUsd": 936.033986,
-      "pnlUsd": -59.185107,
-      "feesUsd": 660.249895,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 930.948612,
+      "pnlUsd": -59.316976,
+      "feesUsd": 665.2034,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 193.406162
     },
     {
       "wallet": "HStHkXemZweWV4mKPXDvMAkzW8xjyFxKi3fJuDNSGF4X",
       "volumeUsd": 1017951.218089,
-      "balanceUsd": 128.964427,
-      "pnlUsd": 135.354313,
+      "balanceUsd": 128.963819,
+      "pnlUsd": 135.375022,
       "feesUsd": 1333.953939,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 250.332233
     },
     {
@@ -720,7 +720,7 @@
       "balanceUsd": 571.92902,
       "pnlUsd": -548.979175,
       "feesUsd": 173.933933,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -34.569236
     },
     {
@@ -729,43 +729,43 @@
       "balanceUsd": 0,
       "pnlUsd": -3041.975932,
       "feesUsd": 2536.734121,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 678.7049930000001
     },
     {
       "wallet": "BqnyeS55yP7AbhMCgkpceseZoqBCER22Akjd3aUc25Dy",
       "volumeUsd": 976649.542791,
-      "balanceUsd": 228.125286,
-      "pnlUsd": 437.840444,
+      "balanceUsd": 228.120712,
+      "pnlUsd": 437.048352,
       "feesUsd": 592.713119,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 874.0000769999999
     },
     {
       "wallet": "BafLckiopkxB1AoLVaKvntqvJfGMVFa4LYWyZkUKXRZ7",
       "volumeUsd": 974347.034261,
-      "balanceUsd": 1692.329201,
-      "pnlUsd": -1495.145805,
+      "balanceUsd": 1692.642139,
+      "pnlUsd": -1437.054677,
       "feesUsd": 568.196021,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1127.2655240000001
     },
     {
       "wallet": "5EFWaeZ5pEuEpduxyd9uMK4fQv2qJzoHsxAdCW5WQDDV",
       "volumeUsd": 963318.8536389999,
-      "balanceUsd": 3719.058126,
-      "pnlUsd": 296.454815,
+      "balanceUsd": 3719.198722,
+      "pnlUsd": 289.90747999999996,
       "feesUsd": 513.001121,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 514.074697
     },
     {
       "wallet": "72NM1qxRzmoTiPkhGGZ8Usgivk4V4qAKWTKPGzHKykcS",
       "volumeUsd": 960518.639252,
-      "balanceUsd": 2466.734626,
-      "pnlUsd": 979.3824179999999,
+      "balanceUsd": 2466.596216,
+      "pnlUsd": 989.9422030000001,
       "feesUsd": 54.759883,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1627.5188910000002
     },
     {
@@ -774,25 +774,25 @@
       "balanceUsd": 78.165361,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "2KZC7x2xtfMrGw8gUVKgvGXe6jkkQ28ExUozSCkgUofo",
       "volumeUsd": 917622.092804,
-      "balanceUsd": 13817.828198,
-      "pnlUsd": 252.98471199999997,
-      "feesUsd": 659.87992,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 13817.694807,
+      "pnlUsd": 312.800481,
+      "feesUsd": 660.037754,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2493.007616
     },
     {
       "wallet": "GCymMCdrcxffEnUdUwzaxjAYXHduvrnoPg4o4XBzkqur",
       "volumeUsd": 901400.412533,
-      "balanceUsd": 4816.316012,
-      "pnlUsd": 91.812128,
-      "feesUsd": 269.65903,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 4810.014092,
+      "pnlUsd": 25.332465,
+      "feesUsd": 275.96095,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 91.812128
     },
     {
@@ -801,7 +801,7 @@
       "balanceUsd": 0,
       "pnlUsd": 2577.828957,
       "feesUsd": 1066.837644,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2768.692677
     },
     {
@@ -810,7 +810,7 @@
       "balanceUsd": 0,
       "pnlUsd": 8935.786325,
       "feesUsd": 261.026408,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 9592.107793
     },
     {
@@ -819,16 +819,16 @@
       "balanceUsd": 0,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "7HJrKdfbJ8HHXAvjPoSfNDxyHm18xKyad9U9ZZyRf8v2",
       "volumeUsd": 856277.823786,
-      "balanceUsd": 8245.733906,
-      "pnlUsd": -2012.7797889999997,
+      "balanceUsd": 8244.955099,
+      "pnlUsd": -2025.5335719999998,
       "feesUsd": 271.939432,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -16.482321999999954
     },
     {
@@ -837,7 +837,7 @@
       "balanceUsd": 96.664055,
       "pnlUsd": -79.777551,
       "feesUsd": 165.067833,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -17.047503
     },
     {
@@ -846,16 +846,16 @@
       "balanceUsd": 516.513346,
       "pnlUsd": 47.352076,
       "feesUsd": 181.761489,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 108.259502
     },
     {
       "wallet": "3HQjqAyakMadseGSgRX99di6A7X5tmrvyphM7HboQkxz",
       "volumeUsd": 834185.024121,
-      "balanceUsd": 4713.016417,
-      "pnlUsd": -873.1137249999999,
+      "balanceUsd": 4713.381153,
+      "pnlUsd": -855.023549,
       "feesUsd": 286.265374,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -552.253854
     },
     {
@@ -864,52 +864,52 @@
       "balanceUsd": 1460.183102,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 134.314449
     },
     {
       "wallet": "HPtiCZSg4kFuYPQtxfEz4qQKuZqojqvwTM4HAxNogVJ7",
       "volumeUsd": 825755.408316,
-      "balanceUsd": 255.617766,
-      "pnlUsd": -83.887058,
-      "feesUsd": 39.94457,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 255.583117,
+      "pnlUsd": -83.679593,
+      "feesUsd": 39.969562,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.345754
     },
     {
       "wallet": "HXxFB3qZP5JtqEoTDnGDZ8y3w5fdr35fx2db1LTptj8j",
       "volumeUsd": 814241.43806,
-      "balanceUsd": 13830.615924,
-      "pnlUsd": 2711.144726,
+      "balanceUsd": 13830.698574,
+      "pnlUsd": 2785.985431,
       "feesUsd": 288.035577,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2949.390689
     },
     {
       "wallet": "3tHhrQFGDoaWUHCyKFbQbqhKGk4jjGFgfWdwo2Kcn5u5",
       "volumeUsd": 804088.940161,
-      "balanceUsd": 346.854551,
-      "pnlUsd": -143.137585,
-      "feesUsd": 580.785057,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 342.651357,
+      "pnlUsd": -137.62841,
+      "feesUsd": 587.280502,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 369.638349
     },
     {
       "wallet": "FJSkmoWXpxe5P4E3KAZc9j2UwYtkqof4YjqSNZPu7dZZ",
       "volumeUsd": 791656.454811,
-      "balanceUsd": 2031.234528,
-      "pnlUsd": 115.318179,
+      "balanceUsd": 2031.385519,
+      "pnlUsd": 107.96229600000001,
       "feesUsd": 218.936391,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 583.1841270000001
     },
     {
       "wallet": "97Nq39YDZq77pfPY97RLA8ScBbPapQEwkDUjYNZiuMUd",
       "volumeUsd": 776507.938526,
-      "balanceUsd": 89802.303938,
-      "pnlUsd": -31509.827124999996,
+      "balanceUsd": 89803.342075,
+      "pnlUsd": -31052.111300999997,
       "feesUsd": 311.552473,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -19700.057412000002
     },
     {
@@ -918,7 +918,7 @@
       "balanceUsd": 405.638556,
       "pnlUsd": -0.295267,
       "feesUsd": 0.911142,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 50.130644000000004
     },
     {
@@ -927,7 +927,7 @@
       "balanceUsd": 1242.103586,
       "pnlUsd": -648.854157,
       "feesUsd": 193.177263,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 19.255361000000008
     },
     {
@@ -936,16 +936,16 @@
       "balanceUsd": 0,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "AC7QoKZx7jVdubSj7XYfBiyNHmdueDUyFjos5aYu2vSj",
       "volumeUsd": 738065.966952,
-      "balanceUsd": 2461.835712,
-      "pnlUsd": 185.878247,
+      "balanceUsd": 2461.783806,
+      "pnlUsd": 185.260247,
       "feesUsd": 447.951825,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 589.2317820000001
     },
     {
@@ -954,16 +954,16 @@
       "balanceUsd": 1270.496509,
       "pnlUsd": -150.521822,
       "feesUsd": 111.528887,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 37.833173
     },
     {
       "wallet": "7E3Zc3g1eJ7ueosPPoHDSkhuHvBVfN41eXcJXWeffozU",
       "volumeUsd": 732373.400363,
-      "balanceUsd": 5724.375353,
-      "pnlUsd": 1796.905369,
+      "balanceUsd": 5724.890694,
+      "pnlUsd": 1798.067389,
       "feesUsd": 324.086663,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2248.861093
     },
     {
@@ -972,7 +972,7 @@
       "balanceUsd": 0,
       "pnlUsd": 445.232559,
       "feesUsd": 140.966702,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1144.7319659999998
     },
     {
@@ -981,16 +981,16 @@
       "balanceUsd": 0.0075,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "nAU5tETTb3DRT6oHEnXYUzcEokBKEpfiCQPWwyMNc3f",
       "volumeUsd": 709498.637234,
-      "balanceUsd": 44929.031191,
-      "pnlUsd": -14255.485981999998,
+      "balanceUsd": 44931.654544,
+      "pnlUsd": -14278.123252,
       "feesUsd": 547.879023,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -6724.701671000001
     },
     {
@@ -999,7 +999,7 @@
       "balanceUsd": 328.508886,
       "pnlUsd": -159.899402,
       "feesUsd": 84.082576,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -159.899402
     },
     {
@@ -1008,16 +1008,16 @@
       "balanceUsd": 690.159048,
       "pnlUsd": -265.646602,
       "feesUsd": 568.99667,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -30.670417
     },
     {
       "wallet": "9PwmueUPAL5natmTohEhauWKAwargJH2nqK3cJoMRGje",
       "volumeUsd": 678971.872776,
-      "balanceUsd": 1347.161789,
-      "pnlUsd": -179.876509,
+      "balanceUsd": 1347.105335,
+      "pnlUsd": -161.077295,
       "feesUsd": 293.062044,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -39.329211000000015
     },
     {
@@ -1026,7 +1026,7 @@
       "balanceUsd": 825.62118,
       "pnlUsd": -50.744656,
       "feesUsd": 89.059406,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -11.931054
     },
     {
@@ -1035,7 +1035,7 @@
       "balanceUsd": 849.482861,
       "pnlUsd": -121.781554,
       "feesUsd": 328.625156,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -109.625653
     },
     {
@@ -1044,25 +1044,25 @@
       "balanceUsd": 680.060831,
       "pnlUsd": 6.688385,
       "feesUsd": 24.188996,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 6.688385
     },
     {
       "wallet": "8AUT2kmGgT3LZ5sqmk8aGSMyENdGDpBRtLPhytvApzcc",
       "volumeUsd": 656514.767939,
-      "balanceUsd": 3824.507193,
-      "pnlUsd": -1920.132646,
+      "balanceUsd": 3824.460129,
+      "pnlUsd": -1913.099853,
       "feesUsd": 119.340741,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 844.307653
     },
     {
       "wallet": "6ot3dw9Q7uqSWFd4kPm6QtH1s8siQGXxBs1Ldn2Wqvx5",
       "volumeUsd": 649057.460022,
-      "balanceUsd": 367.096252,
-      "pnlUsd": 361.759944,
-      "feesUsd": 358.140851,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 366.50006,
+      "pnlUsd": 358.293295,
+      "feesUsd": 358.740534,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 400.63910799999996
     },
     {
@@ -1071,7 +1071,7 @@
       "balanceUsd": 1487.98228,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -1080,7 +1080,7 @@
       "balanceUsd": 1000.443958,
       "pnlUsd": -2505.163532,
       "feesUsd": 385.033577,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -229.80241499999988
     },
     {
@@ -1089,25 +1089,25 @@
       "balanceUsd": 601.040356,
       "pnlUsd": -0.726019,
       "feesUsd": 27.409793,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.342851
     },
     {
       "wallet": "FbdEu6n45EvWV2t9mksjxEFu5Z2Adb8PRTRY7pcbwdmy",
       "volumeUsd": 635608.85647,
-      "balanceUsd": 2211.753193,
-      "pnlUsd": 1901.647262,
+      "balanceUsd": 2211.660643,
+      "pnlUsd": 1895.087965,
       "feesUsd": 737.636164,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2020.391031
     },
     {
       "wallet": "42p73vcYEbB2am14YvBLWWxLqGgZ2f9mxHh63RrA6eDo",
       "volumeUsd": 630650.866852,
-      "balanceUsd": 1377.886502,
-      "pnlUsd": -1068.074873,
+      "balanceUsd": 1377.853569,
+      "pnlUsd": -1063.4181979999998,
       "feesUsd": 88.209713,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -865.000816
     },
     {
@@ -1116,16 +1116,16 @@
       "balanceUsd": 74.332995,
       "pnlUsd": -123.605311,
       "feesUsd": 472.092508,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 26.306548
     },
     {
       "wallet": "expwKo5XkVdJ9ZRpggVdhCjsStX4WAT7LSTpt7m7BYe",
       "volumeUsd": 620707.829525,
-      "balanceUsd": 11787.66306,
-      "pnlUsd": -2495.3423239999997,
+      "balanceUsd": 11787.405111,
+      "pnlUsd": -2475.104531,
       "feesUsd": 7.477628,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1121.241193
     },
     {
@@ -1134,25 +1134,25 @@
       "balanceUsd": 656.312104,
       "pnlUsd": 783.664848,
       "feesUsd": 69.202624,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 813.228737
     },
     {
       "wallet": "FeXoNe2d2gEchacY1PkAjZHbCZarbhnVGUukJkcTtHiA",
       "volumeUsd": 614323.638164,
-      "balanceUsd": 4564.524569,
-      "pnlUsd": 1551.529781,
+      "balanceUsd": 4564.58698,
+      "pnlUsd": 1548.652562,
       "feesUsd": 40.374912,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1552.051561
     },
     {
       "wallet": "HLJvg5N93qQRmYTGieywKayfp85fhu6xFzT531VhXV9D",
       "volumeUsd": 608140.255843,
-      "balanceUsd": 46463.455492,
-      "pnlUsd": -55319.54686999999,
+      "balanceUsd": 46466.715311,
+      "pnlUsd": -55499.274122999996,
       "feesUsd": 183.397747,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -41779.378688
     },
     {
@@ -1161,16 +1161,16 @@
       "balanceUsd": 457.822672,
       "pnlUsd": -274.963153,
       "feesUsd": 468.622017,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 47.183499
     },
     {
       "wallet": "8Byn9ag21JcuJR1iSfzWDuCTZWUkcCsGoW6tMbz2LBk",
       "volumeUsd": 600602.53017,
-      "balanceUsd": 396.352601,
-      "pnlUsd": 3.5637410000000074,
+      "balanceUsd": 396.30711,
+      "pnlUsd": 14.698120000000017,
       "feesUsd": 201.884755,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 78.052619
     },
     {
@@ -1179,7 +1179,7 @@
       "balanceUsd": 0,
       "pnlUsd": -1532.199831,
       "feesUsd": 339.188468,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1177.1245020000001
     },
     {
@@ -1188,7 +1188,7 @@
       "balanceUsd": 1635.601244,
       "pnlUsd": -145.102489,
       "feesUsd": 79.845045,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 174.978928
     },
     {
@@ -1197,25 +1197,25 @@
       "balanceUsd": 2804.497154,
       "pnlUsd": -202.603277,
       "feesUsd": 219.020146,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -191.588944
     },
     {
       "wallet": "FficaS81stF24WZeT1CQUktLmSwFqGtGEypbiDei5YMu",
       "volumeUsd": 583077.713689,
-      "balanceUsd": 3643.163238,
-      "pnlUsd": 1488.4494109999998,
-      "feesUsd": 208.187065,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 3665.657847,
+      "pnlUsd": 1493.2569369999999,
+      "feesUsd": 209.999882,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1542.492049
     },
     {
       "wallet": "8rbJqTJd8htHGoXdHbVpDkQZCY4rWdimLvF1Pm69Crop",
       "volumeUsd": 577100.311109,
-      "balanceUsd": 1001.12108,
-      "pnlUsd": -187.27748400000002,
+      "balanceUsd": 1001.10474,
+      "pnlUsd": -189.948836,
       "feesUsd": 400.181204,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 9.704376
     },
     {
@@ -1224,25 +1224,25 @@
       "balanceUsd": 0,
       "pnlUsd": -2.178621,
       "feesUsd": 54.515652,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2.178621
     },
     {
       "wallet": "4AevRYYxdw94Lk4VsTyyiGh36mQJHHkduvm4cUuvuQnQ",
       "volumeUsd": 562274.189656,
-      "balanceUsd": 179.984483,
-      "pnlUsd": -583.4635509999999,
+      "balanceUsd": 179.980316,
+      "pnlUsd": -582.933182,
       "feesUsd": 658.119396,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 173.245697
     },
     {
       "wallet": "3Jjmh1VVCJWwx7CFt5LJLEihwAGJkwv3oq2RJgkX49uf",
       "volumeUsd": 549691.413946,
-      "balanceUsd": 438.335354,
-      "pnlUsd": -95.268844,
+      "balanceUsd": 438.202639,
+      "pnlUsd": -95.906329,
       "feesUsd": 2.667787,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 35.296296999999996
     },
     {
@@ -1251,7 +1251,7 @@
       "balanceUsd": 208.77632,
       "pnlUsd": -472.060164,
       "feesUsd": 484.448302,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -1260,25 +1260,25 @@
       "balanceUsd": 0,
       "pnlUsd": -1463.294093,
       "feesUsd": 214.993024,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 604.2587960000001
     },
     {
       "wallet": "E33tJTQU775avigomUzR7uCcizvBWoxGnvJn2jz8ixsK",
       "volumeUsd": 528343.106042,
-      "balanceUsd": 5504.890804,
-      "pnlUsd": 852.0465130000001,
+      "balanceUsd": 5504.838861,
+      "pnlUsd": 849.8709510000001,
       "feesUsd": 591.755799,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1049.229418
     },
     {
       "wallet": "DaxjqNCjgKyHNDSiahxM95S42ii6qJ9q7b7avR52G3Jf",
       "volumeUsd": 526995.701414,
-      "balanceUsd": 1881.590716,
-      "pnlUsd": 22.997110000000006,
+      "balanceUsd": 1881.731841,
+      "pnlUsd": 25.426810000000003,
       "feesUsd": 279.57041,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 124.923311
     },
     {
@@ -1287,7 +1287,7 @@
       "balanceUsd": 1027.601088,
       "pnlUsd": -1946.203591,
       "feesUsd": 468.08841,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 371.544556
     },
     {
@@ -1296,34 +1296,34 @@
       "balanceUsd": 539.071007,
       "pnlUsd": -258.383739,
       "feesUsd": 560.666593,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 42.153360000000006
     },
     {
       "wallet": "8sg1DVLWPkVn1FSfjiaFrEo8YXFboDDjXHAGP85KQnuX",
       "volumeUsd": 514971.898401,
-      "balanceUsd": 1674.11912,
+      "balanceUsd": 113.557121,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 67.814876
     },
     {
       "wallet": "DyLkqThSYe7HzgaTVZrdgCQmjLgHZVTQM8fnxYpvzBqS",
       "volumeUsd": 509973.288815,
-      "balanceUsd": 2001.609748,
-      "pnlUsd": -157.372059,
-      "feesUsd": 201.045485,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 2001.42018,
+      "pnlUsd": -156.656537,
+      "feesUsd": 201.097027,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 857.31684
     },
     {
       "wallet": "129X4U3SDqCy76MuXwvfc7nNVBy5YBiSqBiAq2gtfwuT",
       "volumeUsd": 508847.0809659999,
-      "balanceUsd": 484.392197,
-      "pnlUsd": -578.849625,
+      "balanceUsd": 484.320173,
+      "pnlUsd": -585.3512939999999,
       "feesUsd": 178.096478,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 288.55927599999995
     },
     {
@@ -1332,43 +1332,43 @@
       "balanceUsd": 141.643697,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 35.380039
     },
     {
       "wallet": "APV58CqKAZW2kj6y3qCzY2vvdMGZHSXEzLjr9NhmEqj4",
       "volumeUsd": 485922.660385,
-      "balanceUsd": 1292.141467,
-      "pnlUsd": -1115.884774,
+      "balanceUsd": 1292.103833,
+      "pnlUsd": -1121.282166,
       "feesUsd": 63.722973,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "8ygLgeCCPdPfTARU8pmV7teev9WnHtS7GksWx5kZibee",
       "volumeUsd": 485755.793192,
-      "balanceUsd": 1724.75961,
-      "pnlUsd": 730.891322,
+      "balanceUsd": 1724.424142,
+      "pnlUsd": 746.513427,
       "feesUsd": 99.169639,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 883.0127229999999
     },
     {
       "wallet": "ActrzVBvtPKPXBhUMjyTrAnEQfQz5EyGejLFaaCcftdB",
       "volumeUsd": 485171.255155,
-      "balanceUsd": 1834.978588,
+      "balanceUsd": 114.185589,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "5Ha4nB6aMcM9ZPExSQXN55XSBHUtXkLNY9QePvhabEoX",
       "volumeUsd": 484038.067391,
-      "balanceUsd": 766.913952,
-      "pnlUsd": 355.743733,
+      "balanceUsd": 766.904987,
+      "pnlUsd": 356.700135,
       "feesUsd": 567.245625,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 364.1169
     },
     {
@@ -1377,7 +1377,7 @@
       "balanceUsd": 0,
       "pnlUsd": -78.478935,
       "feesUsd": 173.581715,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -66.545535
     },
     {
@@ -1386,7 +1386,7 @@
       "balanceUsd": 1.820452,
       "pnlUsd": -41.331772,
       "feesUsd": 208.74246,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -10.179168
     },
     {
@@ -1395,7 +1395,7 @@
       "balanceUsd": 3102.56863,
       "pnlUsd": -278.944865,
       "feesUsd": 248.772596,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -277.424465
     },
     {
@@ -1404,7 +1404,7 @@
       "balanceUsd": 67.401779,
       "pnlUsd": -132.455085,
       "feesUsd": 0.134925,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -15.745997
     },
     {
@@ -1413,7 +1413,7 @@
       "balanceUsd": 0,
       "pnlUsd": 153.860024,
       "feesUsd": 155.624933,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 161.813496
     },
     {
@@ -1422,7 +1422,7 @@
       "balanceUsd": 4433.98452,
       "pnlUsd": -8046.765599,
       "feesUsd": 937.155538,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -5003.600311
     },
     {
@@ -1431,16 +1431,16 @@
       "balanceUsd": 3013.54076,
       "pnlUsd": -614.672011,
       "feesUsd": 14.858353,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 175.97737999999998
     },
     {
       "wallet": "2HuYYV3pahBH4tWnGDSUrkPQNm3Pfv6jN5oLq3T43MNJ",
       "volumeUsd": 446812.278524,
-      "balanceUsd": 145125.00934,
-      "pnlUsd": -4307.230875,
+      "balanceUsd": 145123.015397,
+      "pnlUsd": -4241.383656,
       "feesUsd": 8.000944,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2024.333129
     },
     {
@@ -1449,7 +1449,7 @@
       "balanceUsd": 224.556337,
       "pnlUsd": -219.779173,
       "feesUsd": 141.275101,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -1458,16 +1458,16 @@
       "balanceUsd": 146.73441,
       "pnlUsd": 23.804185,
       "feesUsd": 240.236135,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 110.815302
     },
     {
       "wallet": "FYDJZ7a1NVvPNEE22thGP6wUJRJifdrJ7dkRNuJgQvAM",
       "volumeUsd": 425145.935425,
-      "balanceUsd": 2595.401372,
-      "pnlUsd": 569.78712,
+      "balanceUsd": 2595.138969,
+      "pnlUsd": 546.0995089999999,
       "feesUsd": 149.014842,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 809.129356
     },
     {
@@ -1476,25 +1476,25 @@
       "balanceUsd": 0,
       "pnlUsd": -31.460702,
       "feesUsd": 529.067407,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 23.800562
     },
     {
       "wallet": "B4P4miyudoJTSpiuchDJs4HvxhSvyStni49LtEVoYVM",
       "volumeUsd": 413403.892052,
-      "balanceUsd": 814.188988,
-      "pnlUsd": -366.098695,
+      "balanceUsd": 814.031091,
+      "pnlUsd": -373.64072500000003,
       "feesUsd": 177.991553,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 18.674732000000002
     },
     {
       "wallet": "A73VCAtX28riRPdHmvxtRzodFN1CvcBhQ7ods8iwG7V6",
       "volumeUsd": 407965.216588,
-      "balanceUsd": 12.300127,
-      "pnlUsd": -52.562638,
+      "balanceUsd": 12.295965,
+      "pnlUsd": -52.371058,
       "feesUsd": 135.204611,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -43.869299
     },
     {
@@ -1503,16 +1503,16 @@
       "balanceUsd": 18892.237866,
       "pnlUsd": -53.380599,
       "feesUsd": 245.186739,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 4110.001850000001
     },
     {
       "wallet": "23e6fC2NTVCjNCRGrHfTrXemibqJBvafEzoxg8ufEXV4",
       "volumeUsd": 398057.1029,
-      "balanceUsd": 188.588401,
-      "pnlUsd": -31.625550999999998,
+      "balanceUsd": 188.651209,
+      "pnlUsd": -35.672774000000004,
       "feesUsd": 156.124249,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 36.566108
     },
     {
@@ -1521,7 +1521,7 @@
       "balanceUsd": 228.95805,
       "pnlUsd": -57.062837,
       "feesUsd": 289.284886,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 44.898861000000004
     },
     {
@@ -1530,16 +1530,16 @@
       "balanceUsd": 272.262265,
       "pnlUsd": -20.790774,
       "feesUsd": 3.008114,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "7ssCWnDFJBnRX1ztXpLjsUKgzAinYDe5ayJJHQ5qdBFs",
       "volumeUsd": 388682.03841,
-      "balanceUsd": 3510.371293,
-      "pnlUsd": -119.23002199999996,
+      "balanceUsd": 3510.089484,
+      "pnlUsd": -157.32359499999995,
       "feesUsd": 53.088469,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 5524.964251
     },
     {
@@ -1548,61 +1548,61 @@
       "balanceUsd": 0,
       "pnlUsd": 1391.020575,
       "feesUsd": 1434.296908,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1723.406547
     },
     {
       "wallet": "BaXgGfttWPnJshoFUjSLtN48zTWGTGSBmHCZBDWcvhRh",
       "volumeUsd": 366919.226472,
-      "balanceUsd": 48788.904496,
-      "pnlUsd": -5660.177697,
+      "balanceUsd": 48786.396743,
+      "pnlUsd": -5702.384179,
       "feesUsd": 309.744437,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2820.756499
     },
     {
       "wallet": "Ch7PyYvZ7PrpgAa1Lq2oqDKewr9wNWpVCwoaEqxtmVuG",
       "volumeUsd": 363442.31673,
-      "balanceUsd": 2772.827983,
-      "pnlUsd": -405.249558,
+      "balanceUsd": 2772.775669,
+      "pnlUsd": -393.424221,
       "feesUsd": 175.443147,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 882.6471140000001
     },
     {
       "wallet": "Gj7DgVV4KEmQ8xDcroFuwD7AnnmTQ63Cuw1nFzsCKMXS",
       "volumeUsd": 353500.141481,
-      "balanceUsd": 50802.393723,
-      "pnlUsd": 5540.959522,
+      "balanceUsd": 50804.901061,
+      "pnlUsd": 5583.309267,
       "feesUsd": 86.830034,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 8860.794974
     },
     {
       "wallet": "GTzjhVMs4eDwj4ZvaH7Fm5LPaEgLFHACJRfX8PD9DH5V",
       "volumeUsd": 345345.759302,
-      "balanceUsd": 355.022151,
-      "pnlUsd": 187.031712,
+      "balanceUsd": 355.049164,
+      "pnlUsd": 184.707822,
       "feesUsd": 216.557378,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 213.025202
     },
     {
       "wallet": "46sL3qJyzDpqvVvA6Ekv1FVJpTbdG9p1CQcs74Eq5jgi",
       "volumeUsd": 339765.278831,
-      "balanceUsd": 39.01538,
+      "balanceUsd": 111.82536,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 173.66272200000003
     },
     {
       "wallet": "F4HaoqzCyRG5HtXUNNH37CMBex6jue4FBZTLU5C5zNHs",
       "volumeUsd": 335476.341048,
-      "balanceUsd": 344.325015,
-      "pnlUsd": -751.428853,
+      "balanceUsd": 344.337902,
+      "pnlUsd": -745.102294,
       "feesUsd": 180.511006,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -69.23314500000001
     },
     {
@@ -1611,7 +1611,7 @@
       "balanceUsd": 28654.26038,
       "pnlUsd": -969.993426,
       "feesUsd": 460.106586,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2723.6634050000002
     },
     {
@@ -1620,7 +1620,7 @@
       "balanceUsd": 683.352528,
       "pnlUsd": -663.272299,
       "feesUsd": 332.699736,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -82.17750600000001
     },
     {
@@ -1629,7 +1629,7 @@
       "balanceUsd": 437.867235,
       "pnlUsd": -58.019381,
       "feesUsd": 7.130774,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3.423385
     },
     {
@@ -1638,7 +1638,7 @@
       "balanceUsd": 0,
       "pnlUsd": 1.987242,
       "feesUsd": 16.132483,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1.987242
     },
     {
@@ -1647,34 +1647,34 @@
       "balanceUsd": 33.030114,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "6hbfeNn1dbNFXgggBCT5bxaZf6TpewYeQK9MqhyGEa22",
       "volumeUsd": 319170.040696,
-      "balanceUsd": 92.099343,
-      "pnlUsd": -203.436936,
+      "balanceUsd": 92.107974,
+      "pnlUsd": -204.22733399999998,
       "feesUsd": 122.102581,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -67.504739
     },
     {
       "wallet": "BAhoD91aNr25EariHnuApnRJJFZgdVqFCu3FKi9LMauw",
       "volumeUsd": 318875.260663,
-      "balanceUsd": 3329.331664,
-      "pnlUsd": -2113.747209,
+      "balanceUsd": 3329.006076,
+      "pnlUsd": -2098.585193,
       "feesUsd": 853.604261,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1293.808368
     },
     {
       "wallet": "GmN4qZAGxkDGM1wW7uNdh9Mh1dZqLVVFtKf6eyCtSV8x",
       "volumeUsd": 317193.446443,
-      "balanceUsd": 4015.148719,
-      "pnlUsd": -16475.511281000003,
+      "balanceUsd": 4015.801163,
+      "pnlUsd": -16462.059970000002,
       "feesUsd": 192.334909,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2863.814494
     },
     {
@@ -1683,7 +1683,7 @@
       "balanceUsd": 0,
       "pnlUsd": -115.687141,
       "feesUsd": 150.760239,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 453.005663
     },
     {
@@ -1692,7 +1692,7 @@
       "balanceUsd": 0,
       "pnlUsd": 690.388911,
       "feesUsd": 51.024256,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 690.388911
     },
     {
@@ -1701,25 +1701,25 @@
       "balanceUsd": 67.153651,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "54UKisNxv3NHFQawkzEqxKD5ZUrz8gDJxHj9W72x9KAe",
       "volumeUsd": 305148.77994,
-      "balanceUsd": 173.910447,
-      "pnlUsd": -472.701207,
+      "balanceUsd": 173.888277,
+      "pnlUsd": -476.565203,
       "feesUsd": 291.346806,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1179.5616240000002
     },
     {
       "wallet": "6L6ZMV3BsTM8KQwFxe3QqJ32a22NSqsuKwfunawbL4kc",
       "volumeUsd": 299648.275903,
-      "balanceUsd": 3655.521577,
-      "pnlUsd": -1118.0213390000001,
+      "balanceUsd": 3655.770865,
+      "pnlUsd": -1073.943643,
       "feesUsd": 83.947364,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1673.619735
     },
     {
@@ -1728,16 +1728,16 @@
       "balanceUsd": 568.723159,
       "pnlUsd": -198.088025,
       "feesUsd": 74.91387,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -11.414962
     },
     {
       "wallet": "62TRH4mbBjr7ouvSWAvNLGphLw3SxSQbkqH3B1Ho19LZ",
       "volumeUsd": 295703.782439,
-      "balanceUsd": 30.309452,
-      "pnlUsd": -103.996567,
-      "feesUsd": 76.974321,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 30.207813,
+      "pnlUsd": -104.00241,
+      "feesUsd": 77.039329,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -21.717331
     },
     {
@@ -1746,16 +1746,16 @@
       "balanceUsd": 0,
       "pnlUsd": -32.396049,
       "feesUsd": 393.053488,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -21.425114999999998
     },
     {
       "wallet": "7GubKrvMQWX2Aok5fWNijFXxc7mU3MYz8cccYr1zsGka",
       "volumeUsd": 291741.57361,
-      "balanceUsd": 15706.147915,
-      "pnlUsd": -2313.91676,
+      "balanceUsd": 15706.239214,
+      "pnlUsd": -2306.92744,
       "feesUsd": 93.028308,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 22.939452999999958
     },
     {
@@ -1764,25 +1764,25 @@
       "balanceUsd": 71.205621,
       "pnlUsd": 18.609731,
       "feesUsd": 337.503451,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 22.556388
     },
     {
       "wallet": "8JcQXPx6SFw5JxJCPkUfzi2K5g3poUr6PK52zRhSQ9Sq",
       "volumeUsd": 278688.309164,
-      "balanceUsd": 37.765033,
-      "pnlUsd": 417.52803600000004,
+      "balanceUsd": 37.764016,
+      "pnlUsd": 417.650589,
       "feesUsd": 1558.91824,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 820.239959
     },
     {
       "wallet": "BpH3rVLByZyb8xRSR6D6gZFm5iGgpibP99523Li8JzES",
       "volumeUsd": 278242.010243,
-      "balanceUsd": 1647.727578,
-      "pnlUsd": -4601.802865,
+      "balanceUsd": 1647.643158,
+      "pnlUsd": -4588.593113999999,
       "feesUsd": 250.070869,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -3436.120014
     },
     {
@@ -1791,25 +1791,25 @@
       "balanceUsd": 6.905004,
       "pnlUsd": -93.084419,
       "feesUsd": 0.005868,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -15.648096
     },
     {
       "wallet": "BiRqMDpwEGiLYB4hNB8xZjWnHaL81oo8KctaWqGzS1LH",
       "volumeUsd": 274059.149228,
-      "balanceUsd": 596.031381,
-      "pnlUsd": -2.014043,
+      "balanceUsd": 596.018341,
+      "pnlUsd": -1.4068129999999999,
       "feesUsd": 1.068477,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 169.710476
     },
     {
       "wallet": "BX9sCtuPGi8RA1TNj6TX9tuBK27UpKcG3t77J13yVKBe",
       "volumeUsd": 273064.01775,
-      "balanceUsd": 2095.10725,
-      "pnlUsd": -489.546652,
+      "balanceUsd": 2095.358121,
+      "pnlUsd": -501.229367,
       "feesUsd": 68.984657,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 166.27025799999998
     },
     {
@@ -1836,25 +1836,25 @@
       "balanceUsd": 6118.558523,
       "pnlUsd": 218.940027,
       "feesUsd": 110.591593,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 218.940027
     },
     {
       "wallet": "DT361e7k5x85Vpg4kryzR5REmFYaywtKEUT3R9kAtTXr",
       "volumeUsd": 266417.749055,
-      "balanceUsd": 135.400993,
-      "pnlUsd": -2458.6977300000003,
+      "balanceUsd": 135.355253,
+      "pnlUsd": -2457.1845270000003,
       "feesUsd": 333.744853,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 297.78936799999997
     },
     {
       "wallet": "BhTtgzrnMaqMmgMP52z4nFiNCtbJuZnQwVRxwYjdvgde",
       "volumeUsd": 265293.497727,
-      "balanceUsd": 10161.384501,
-      "pnlUsd": 1955.888975,
+      "balanceUsd": 10162.052106,
+      "pnlUsd": 1973.5028320000001,
       "feesUsd": 616.952792,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3726.7264720000003
     },
     {
@@ -1872,7 +1872,7 @@
       "balanceUsd": 237.811615,
       "pnlUsd": 70.988964,
       "feesUsd": 275.803917,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 80.415417
     },
     {
@@ -1881,7 +1881,7 @@
       "balanceUsd": 13.445506,
       "pnlUsd": -64.977715,
       "feesUsd": 970.038366,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 95.942858
     },
     {
@@ -1890,7 +1890,7 @@
       "balanceUsd": 22.812507,
       "pnlUsd": 13.067111,
       "feesUsd": 118.523399,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 151.944846
     },
     {
@@ -1905,10 +1905,10 @@
     {
       "wallet": "5vVVB75a2gRDTPGhHFdQhsuUN7MpxSdETeKnBQCXUENj",
       "volumeUsd": 254683.258236,
-      "balanceUsd": 1944.021737,
-      "pnlUsd": -125.696912,
+      "balanceUsd": 1943.998535,
+      "pnlUsd": -123.40781399999999,
       "feesUsd": 80.873023,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 39.56279
     },
     {
@@ -1962,7 +1962,7 @@
       "balanceUsd": 3144.973132,
       "pnlUsd": -559.535302,
       "feesUsd": 111.565123,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 32.34546999999999
     },
     {
@@ -2031,10 +2031,10 @@
     {
       "wallet": "J4kVhMtSiU8YpyohkVCuvzAw7mEDJTWUS1DhRDuDFsiB",
       "volumeUsd": 234733.544932,
-      "balanceUsd": 3755.426768,
-      "pnlUsd": -1157.1311230000001,
+      "balanceUsd": 3755.501951,
+      "pnlUsd": -1167.7987560000001,
       "feesUsd": 145.24829,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -299.031166
     },
     {
@@ -2043,7 +2043,7 @@
       "balanceUsd": 1136.28115,
       "pnlUsd": 145.202361,
       "feesUsd": 149.518173,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 453.739879
     },
     {
@@ -2067,10 +2067,10 @@
     {
       "wallet": "FAiJCRxZTaeEeqbKXpj5NMwwPEbmCVVb9EjxaTJgV3vq",
       "volumeUsd": 232462.19740399998,
-      "balanceUsd": 8770.398409,
-      "pnlUsd": -191.73508800000013,
+      "balanceUsd": 8770.241471,
+      "pnlUsd": -180.46103700000003,
       "feesUsd": 414.88902,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1472.4287089999998
     },
     {
@@ -2130,10 +2130,10 @@
     {
       "wallet": "AYX9assgNpZfcJ1edCfHHXVgykZ8zjD6CThCZFJg1Hu2",
       "volumeUsd": 217611.728034,
-      "balanceUsd": 3974.319111,
-      "pnlUsd": -1957.954115,
+      "balanceUsd": 3975.059166,
+      "pnlUsd": -1929.4727129999999,
       "feesUsd": 150.602208,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2018.347167
     },
     {
@@ -2196,7 +2196,7 @@
       "balanceUsd": 96.917154,
       "pnlUsd": -5.409085,
       "feesUsd": 18.32655,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -5.409085
     },
     {
@@ -2232,7 +2232,7 @@
       "balanceUsd": 326.232328,
       "pnlUsd": -0.60674,
       "feesUsd": 37.529533,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 39.820879
     },
     {
@@ -2304,7 +2304,7 @@
       "balanceUsd": 0,
       "pnlUsd": -665.506572,
       "feesUsd": 150.489365,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -665.506572
     },
     {
@@ -2385,7 +2385,7 @@
       "balanceUsd": 4092.569345,
       "pnlUsd": 1171.242274,
       "feesUsd": 82.04532,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1499.813283
     },
     {
@@ -2403,7 +2403,7 @@
       "balanceUsd": 361.790635,
       "pnlUsd": -163.604879,
       "feesUsd": 67.379667,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 16.477977
     },
     {
@@ -2454,10 +2454,10 @@
     {
       "wallet": "B1Xob8YpDcTYKaWWhPu9kQxpw8eq3Eryg2ikCr8Jt26D",
       "volumeUsd": 175037.005255,
-      "balanceUsd": 2869.338724,
-      "pnlUsd": -5152.724826,
+      "balanceUsd": 2869.065574,
+      "pnlUsd": -5189.993385,
       "feesUsd": 312.166093,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 600.1707070000001
     },
     {
@@ -2466,7 +2466,7 @@
       "balanceUsd": 12.410018,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -2526,19 +2526,19 @@
     {
       "wallet": "FeXuuSVuD6dHt3gJEBD9GDeqUVGLZjfcLN8wFPuaoqsK",
       "volumeUsd": 170930.776453,
-      "balanceUsd": 24.078364,
-      "pnlUsd": -403.06057899999996,
+      "balanceUsd": 24.07679,
+      "pnlUsd": -402.74274199999996,
       "feesUsd": 83.637761,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 32.331038
     },
     {
       "wallet": "G4vmCGfUhrsRzob85qWR3yHpVzwAe8wRmJKh2dryqaxU",
       "volumeUsd": 169998.075486,
-      "balanceUsd": 853.013618,
-      "pnlUsd": -2040.909453,
+      "balanceUsd": 852.845364,
+      "pnlUsd": -2027.526968,
       "feesUsd": 241.32396,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1579.450027
     },
     {
@@ -2637,7 +2637,7 @@
       "balanceUsd": 0,
       "pnlUsd": -46.357717,
       "feesUsd": 0.052509,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.081459
     },
     {
@@ -2682,7 +2682,7 @@
       "balanceUsd": 300.453606,
       "pnlUsd": -365.472215,
       "feesUsd": 58.882841,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -195.148725
     },
     {
@@ -2706,10 +2706,10 @@
     {
       "wallet": "Ffd5bfJKuLWzoqbf4Scwt638EKG2FAPArkuYCkWxn9Qo",
       "volumeUsd": 157468.641065,
-      "balanceUsd": 40.217944,
-      "pnlUsd": -874.343332,
+      "balanceUsd": 40.231067,
+      "pnlUsd": -874.952495,
       "feesUsd": 460.489906,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -325.58401499999997
     },
     {
@@ -2718,7 +2718,7 @@
       "balanceUsd": 24.216287,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 383.09427700000003
     },
     {
@@ -2760,10 +2760,10 @@
     {
       "wallet": "9XJffvbNe8bGWgX96QAuEyajw9h29uaFe86MSvas54Vm",
       "volumeUsd": 154220.545408,
-      "balanceUsd": 574.99481,
-      "pnlUsd": -462.94143699999995,
+      "balanceUsd": 575.06018,
+      "pnlUsd": -458.005117,
       "feesUsd": 59.870019,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 206.09391300000001
     },
     {
@@ -2832,19 +2832,19 @@
     {
       "wallet": "9BtTvzo2kA42wVPaZPJLwf35dw3jaCetp1pgkrqBBfq7",
       "volumeUsd": 151309.81076,
-      "balanceUsd": 35.7287,
-      "pnlUsd": -217.149039,
+      "balanceUsd": 35.717253,
+      "pnlUsd": -216.616013,
       "feesUsd": 70.720299,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 21.70507
     },
     {
       "wallet": "D5NVNspeNQffwkZV1owu3VvQarXn64qpEtjfUZMxzrvx",
       "volumeUsd": 151022.482606,
-      "balanceUsd": 1111.586755,
-      "pnlUsd": 800.768993,
+      "balanceUsd": 1111.534849,
+      "pnlUsd": 800.150993,
       "feesUsd": 105.901536,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1227.713493
     },
     {
@@ -2922,10 +2922,10 @@
     {
       "wallet": "ADrHFm9418oZcBAvaqdtnfkRCh8B2vThAe1eAdyhvxDM",
       "volumeUsd": 148004.017144,
-      "balanceUsd": 50335.087568,
-      "pnlUsd": 4113.689267,
+      "balanceUsd": 50336.906707,
+      "pnlUsd": 4014.6965139999993,
       "feesUsd": 13.39097,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 6660.401250000001
     },
     {
@@ -3114,7 +3114,7 @@
       "balanceUsd": 6984.190577,
       "pnlUsd": -89.955349,
       "feesUsd": 48.26952,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 199.14644
     },
     {
@@ -3156,10 +3156,10 @@
     {
       "wallet": "9SjxTcHJskpNwdszwFqcP5ufBmoNyDC44huT1TdVVWy5",
       "volumeUsd": 130484.082753,
-      "balanceUsd": 580.573337,
-      "pnlUsd": -1188.145233,
+      "balanceUsd": 580.528708,
+      "pnlUsd": -1190.981665,
       "feesUsd": 10.826943,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 28.491075
     },
     {
@@ -3192,10 +3192,10 @@
     {
       "wallet": "5TgJ2byNeh76RfupeQNUAbX1vMs1BTdJEUsa4THEBMn7",
       "volumeUsd": 129329.937243,
-      "balanceUsd": 1949.743563,
-      "pnlUsd": -1854.86987,
+      "balanceUsd": 1949.836547,
+      "pnlUsd": -1881.4453700000001,
       "feesUsd": 89.408652,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -815.7426509999999
     },
     {
@@ -3249,7 +3249,7 @@
       "balanceUsd": 0.005678,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -3264,10 +3264,10 @@
     {
       "wallet": "ESJv1QdusnGVj4ckVZbfM2Z9n4FUCGc4utc6GYHbjuer",
       "volumeUsd": 126607.796446,
-      "balanceUsd": 16.668744,
-      "pnlUsd": 200.541372,
+      "balanceUsd": 16.66834,
+      "pnlUsd": 200.591586,
       "feesUsd": 1129.624284,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 481.310156
     },
     {
@@ -3294,7 +3294,7 @@
       "balanceUsd": 123.412387,
       "pnlUsd": -29.190898,
       "feesUsd": 673.844878,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 101.349965
     },
     {
@@ -3321,7 +3321,7 @@
       "balanceUsd": 1322.693729,
       "pnlUsd": -414.381322,
       "feesUsd": 25.359875,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 221.959679
     },
     {
@@ -3357,7 +3357,7 @@
       "balanceUsd": 51.493858,
       "pnlUsd": -995.052903,
       "feesUsd": 31.656491,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -941.508165
     },
     {
@@ -3516,10 +3516,10 @@
     {
       "wallet": "YBH2ZKVJchzK3DF4fAvwboQhgiGGXaZ1qn1gR5534ms",
       "volumeUsd": 108288.749999,
-      "balanceUsd": 22444.837208,
-      "pnlUsd": -7890.388829000001,
+      "balanceUsd": 22443.67626,
+      "pnlUsd": -8089.288829000001,
       "feesUsd": 0.00164,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2692.909203
     },
     {
@@ -3591,7 +3591,7 @@
       "balanceUsd": 241.810309,
       "pnlUsd": 82.780138,
       "feesUsd": 277.268369,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 415.623791
     },
     {
@@ -3624,10 +3624,10 @@
     {
       "wallet": "AruRWcVa4CMy1urCgY9tc3BAaSZ9e26JMCeuG4SYDojd",
       "volumeUsd": 104058.560004,
-      "balanceUsd": 3467.360248,
-      "pnlUsd": -889.723371,
+      "balanceUsd": 3467.788561,
+      "pnlUsd": -904.31945,
       "feesUsd": 105.78844,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -334.18205
     },
     {
@@ -3690,7 +3690,7 @@
       "balanceUsd": 9983.005707,
       "pnlUsd": -6.648544,
       "feesUsd": 17.497673,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 24.46436
     },
     {
@@ -3753,7 +3753,7 @@
       "balanceUsd": 0,
       "pnlUsd": 68.21243,
       "feesUsd": 77.876971,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 134.785073
     },
     {
@@ -3768,10 +3768,10 @@
     {
       "wallet": "fnHbvxXk9diaYfJmDPRfgSMKETvYmx1XfZZcHnGvrdw",
       "volumeUsd": 96095.97098,
-      "balanceUsd": 728.225481,
-      "pnlUsd": 41.802043999999995,
+      "balanceUsd": 728.274454,
+      "pnlUsd": 38.651599,
       "feesUsd": 82.169755,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 230.393542
     },
     {
@@ -3831,10 +3831,10 @@
     {
       "wallet": "4YrrfALqoEZtpk1zsdeVn3GPiFsQCU6hmFzSijPJndD3",
       "volumeUsd": 92547.100717,
-      "balanceUsd": 347.762803,
-      "pnlUsd": -2700.2541,
+      "balanceUsd": 347.735194,
+      "pnlUsd": -2698.96393,
       "feesUsd": 13.270457,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 962.986265
     },
     {
@@ -3960,7 +3960,7 @@
       "balanceUsd": 844.912054,
       "pnlUsd": -2037.641951,
       "feesUsd": 20.99654,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -415.127041
     },
     {
@@ -4086,7 +4086,7 @@
       "balanceUsd": 10280.188487,
       "pnlUsd": 732.454212,
       "feesUsd": 422.605991,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 969.640807
     },
     {
@@ -4140,7 +4140,7 @@
       "balanceUsd": 0,
       "pnlUsd": -29.293808,
       "feesUsd": 42.796896,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2.689713
     },
     {
@@ -4149,7 +4149,7 @@
       "balanceUsd": 142.685962,
       "pnlUsd": 103.345102,
       "feesUsd": 109.609342,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 154.607533
     },
     {
@@ -4182,10 +4182,10 @@
     {
       "wallet": "G9kgSo6xPsZbuoXg24dg7qZ3sTrcQAGo66916gw3gRjo",
       "volumeUsd": 77604.758964,
-      "balanceUsd": 43.869462,
-      "pnlUsd": -87.898064,
+      "balanceUsd": 43.869017,
+      "pnlUsd": -87.778829,
       "feesUsd": 242.338274,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 109.405506
     },
     {
@@ -4218,10 +4218,10 @@
     {
       "wallet": "JBq9T7sUWcLpYQAmYmBnB3jtfKwk3C9JqmNLpp24Cn2j",
       "volumeUsd": 76512.39116,
-      "balanceUsd": 425.128358,
-      "pnlUsd": 9.20305,
+      "balanceUsd": 425.119298,
+      "pnlUsd": 10.843728,
       "feesUsd": 394.378388,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 61.995492999999996
     },
     {
@@ -4371,10 +4371,10 @@
     {
       "wallet": "B8esH7ZNMHVwm3gQuzeM3XEa8pUa1ELRCYTezwRsMcjA",
       "volumeUsd": 69657.109812,
-      "balanceUsd": 167.088245,
+      "balanceUsd": 167.088244,
       "pnlUsd": 112.576685,
       "feesUsd": 54.375561,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 449.72943999999995
     },
     {
@@ -4470,10 +4470,10 @@
     {
       "wallet": "6T6Uj6risnj9n3yXG37B62GXqeBEcUrkwRqhsNCLRgxT",
       "volumeUsd": 67804.580846,
-      "balanceUsd": 27.96123,
-      "pnlUsd": -442.182199,
+      "balanceUsd": 27.967361,
+      "pnlUsd": -442.467504,
       "feesUsd": 160.490601,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -219.302825
     },
     {
@@ -4500,7 +4500,7 @@
       "balanceUsd": 0,
       "pnlUsd": -375.164353,
       "feesUsd": 830.046641,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -103.81396699999999
     },
     {
@@ -4509,7 +4509,7 @@
       "balanceUsd": 0,
       "pnlUsd": 759.148992,
       "feesUsd": 11.730631,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 908.308
     },
     {
@@ -4518,7 +4518,7 @@
       "balanceUsd": 1155.506992,
       "pnlUsd": 3768.530708,
       "feesUsd": 3580.742779,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3811.076844
     },
     {
@@ -4578,10 +4578,10 @@
     {
       "wallet": "7tQAt3KY3HHePATUhQNB9yApK4qhbyaMAQHyuoHTAoNr",
       "volumeUsd": 64844.316141,
-      "balanceUsd": 649.534443,
-      "pnlUsd": -166.1507,
+      "balanceUsd": 649.532167,
+      "pnlUsd": -163.227392,
       "feesUsd": 63.387691,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 128.10885000000002
     },
     {
@@ -4623,10 +4623,10 @@
     {
       "wallet": "8hV4BKm7j3GoAYfHbdPZY1NhJxJ7HLzADLmzVEqN3WeV",
       "volumeUsd": 63094.496697,
-      "balanceUsd": 3375.238051,
-      "pnlUsd": -584.811511,
+      "balanceUsd": 3375.230091,
+      "pnlUsd": -585.308834,
       "feesUsd": 74.546091,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 799.8436899999999
     },
     {
@@ -4788,7 +4788,7 @@
       "balanceUsd": 0,
       "pnlUsd": -286.982886,
       "feesUsd": 252.782594,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -97.401233
     },
     {
@@ -4830,10 +4830,10 @@
     {
       "wallet": "En64gVTZ8zygBrwaHS77NDeWYJZm45LmXvcn8DhsS4pw",
       "volumeUsd": 59055.208098,
-      "balanceUsd": 103.038909,
-      "pnlUsd": -316.875768,
+      "balanceUsd": 103.032441,
+      "pnlUsd": -316.586523,
       "feesUsd": 252.553845,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 74.181239
     },
     {
@@ -4848,10 +4848,10 @@
     {
       "wallet": "4pZbVDDf1knALzMoso5KVAFdcFeE5LJLPcxFLbe9S8u5",
       "volumeUsd": 58267.24548,
-      "balanceUsd": 2502.597086,
-      "pnlUsd": -1463.396511,
+      "balanceUsd": 2502.596744,
+      "pnlUsd": -1473.791847,
       "feesUsd": 95.431759,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2479.263563
     },
     {
@@ -4869,7 +4869,7 @@
       "balanceUsd": 945.48613,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 437.956542
     },
     {
@@ -4956,10 +4956,10 @@
     {
       "wallet": "C1opwtCmP5shK1nwsSjr4XhjLKpB3bXroHmGmtaWGxGv",
       "volumeUsd": 56360.68275,
-      "balanceUsd": 543.764511,
-      "pnlUsd": 62.880182,
+      "balanceUsd": 543.766224,
+      "pnlUsd": 62.800372,
       "feesUsd": 55.313347,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 224.220728
     },
     {
@@ -5046,10 +5046,10 @@
     {
       "wallet": "EibQ2VYpzj18qSdEBkmxWVzde7FzamTxVG9rZyY689Yj",
       "volumeUsd": 55040.360893,
-      "balanceUsd": 177256.616199,
-      "pnlUsd": -36888.283088,
+      "balanceUsd": 177256.11662,
+      "pnlUsd": -36904.017695,
       "feesUsd": 5203.082079,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -33769.106253
     },
     {
@@ -5058,7 +5058,7 @@
       "balanceUsd": 0,
       "pnlUsd": -87.630493,
       "feesUsd": 64.151028,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -33.448393
     },
     {
@@ -5082,10 +5082,10 @@
     {
       "wallet": "5bKp9gdjguyJrPgfnPT3gsqAWEVGYyXs4fjHM2dgLjt6",
       "volumeUsd": 54056.240997,
-      "balanceUsd": 1568.137907,
-      "pnlUsd": 29.588189,
+      "balanceUsd": 1568.202404,
+      "pnlUsd": 34.451800000000006,
       "feesUsd": 116.549628,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1413.0682729999999
     },
     {
@@ -5157,7 +5157,7 @@
       "balanceUsd": 422.906946,
       "pnlUsd": -308.043291,
       "feesUsd": 44.773442,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -74.176884
     },
     {
@@ -5208,10 +5208,10 @@
     {
       "wallet": "9FEduvVRdrqDzPdpG3Y6fJyuNUaMVHzRgjawBRyoAzET",
       "volumeUsd": 51660.574291,
-      "balanceUsd": 410.515013,
-      "pnlUsd": -100.455821,
+      "balanceUsd": 410.616289,
+      "pnlUsd": -107.867039,
       "feesUsd": 18.081203,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 92.913006
     },
     {
@@ -5265,7 +5265,7 @@
       "balanceUsd": 864.130129,
       "pnlUsd": 58.21759,
       "feesUsd": 38.376146,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 70.334605
     },
     {
@@ -5370,10 +5370,10 @@
     {
       "wallet": "HNcdq94mhEGwqiKgyUd8GPAJK2Xvcd9t1RyiT7499hRh",
       "volumeUsd": 49148.426913,
-      "balanceUsd": 8431.322164,
-      "pnlUsd": -787.943982,
+      "balanceUsd": 8431.220184,
+      "pnlUsd": -783.194949,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -473.54131499999994
     },
     {
@@ -5406,10 +5406,10 @@
     {
       "wallet": "Dg6KG5tGxbSx4eigguuHAkakvEponW6kgo6DGDob5oja",
       "volumeUsd": 47873.203387,
-      "balanceUsd": 4277.260753,
-      "pnlUsd": 874.5224049999999,
+      "balanceUsd": 4277.192678,
+      "pnlUsd": 877.732405,
       "feesUsd": 31.431079,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1349.275615
     },
     {
@@ -5445,7 +5445,7 @@
       "balanceUsd": 0,
       "pnlUsd": 7.019777,
       "feesUsd": 1312.575465,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1109.062142
     },
     {
@@ -5487,10 +5487,10 @@
     {
       "wallet": "GKPzAEKg3DJG6U8xVCaWxWwUkpu6CUMPrGm8Rw1PTJDr",
       "volumeUsd": 46621.215608,
-      "balanceUsd": 3253.347046,
-      "pnlUsd": 15588.032675999999,
+      "balanceUsd": 3253.335286,
+      "pnlUsd": 15583.724221,
       "feesUsd": 163.444729,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 15668.496222
     },
     {
@@ -5514,11 +5514,11 @@
     {
       "wallet": "4dCSigo9QpfV1X3ZcNqwrdq38LDJve5hmUEvJagCsg2a",
       "volumeUsd": 45309.582399,
-      "balanceUsd": 628.907246,
-      "pnlUsd": 256.815185,
+      "balanceUsd": 628.905357,
+      "pnlUsd": 263.37287299999997,
       "feesUsd": 6.010351,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
-      "peakPnlUsd": 256.815185
+      "updatedAt": "2026-10-18T08:37:02.830Z",
+      "peakPnlUsd": 263.37287299999997
     },
     {
       "wallet": "AdvWgLPqF4WK6HagFoUnjRsgkZKVyMStrg8TrTJdZerQ",
@@ -5616,7 +5616,7 @@
       "balanceUsd": 0.000998,
       "pnlUsd": -4486.636579,
       "feesUsd": 61.693208,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2681.193805
     },
     {
@@ -5634,7 +5634,7 @@
       "balanceUsd": 493.614879,
       "pnlUsd": 715.749919,
       "feesUsd": 21.565227,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1070.324184
     },
     {
@@ -5757,10 +5757,10 @@
     {
       "wallet": "hQRk7pejyaK1B852X3oJ1pm344wxUznoauVYhmFXTWw",
       "volumeUsd": 40686.315149,
-      "balanceUsd": 2316.075817,
-      "pnlUsd": -86.962555,
+      "balanceUsd": 2316.07338,
+      "pnlUsd": -96.18733399999999,
       "feesUsd": 61.448436,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 148.794339
     },
     {
@@ -5820,10 +5820,10 @@
     {
       "wallet": "J7rN9u2yA9YjD5kfMLowwZ9BgMSYXXSQbAWDph7AsGEr",
       "volumeUsd": 40173.900799,
-      "balanceUsd": 3966.08966,
-      "pnlUsd": -1567.1888179999999,
+      "balanceUsd": 3966.210301,
+      "pnlUsd": -1572.743003,
       "feesUsd": 26.989762,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -823.6333450000001
     },
     {
@@ -5955,10 +5955,10 @@
     {
       "wallet": "5hxA7zgwemc85VkjUmXErfEceCuruMsAEeBvTce1Xs8t",
       "volumeUsd": 37700.937156,
-      "balanceUsd": 83.419623,
-      "pnlUsd": -496.901621,
+      "balanceUsd": 83.413461,
+      "pnlUsd": -497.505571,
       "feesUsd": 11.946986,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 21.089422
     },
     {
@@ -6021,16 +6021,16 @@
       "balanceUsd": 1482.792188,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 133.835595
     },
     {
       "wallet": "CZwXirzJQtBrE62ZH8DSiNLHg2hH2neoqCXcdQxWV5Ta",
       "volumeUsd": 36673.723928,
-      "balanceUsd": 3522.311427,
-      "pnlUsd": 170.160526,
+      "balanceUsd": 3522.275965,
+      "pnlUsd": 177.63827700000002,
       "feesUsd": 19.750773,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 184.60265700000002
     },
     {
@@ -6351,10 +6351,10 @@
     {
       "wallet": "67J3czwqaWWSRJragEhp6N9wdaWsGhNoTV2CcPQK6dSK",
       "volumeUsd": 32755.050254999995,
-      "balanceUsd": 1074.831416,
-      "pnlUsd": 59.50426,
+      "balanceUsd": 1074.816518,
+      "pnlUsd": 60.303034,
       "feesUsd": 1.047297,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 66.00070000000001
     },
     {
@@ -6459,10 +6459,10 @@
     {
       "wallet": "5GoptTSrgUN8qdXy4QeNsQ1k88Sz8fPRmh6geuUfuBnU",
       "volumeUsd": 31689.88845,
-      "balanceUsd": 3109.63057,
-      "pnlUsd": -561.7781,
+      "balanceUsd": 3109.517494,
+      "pnlUsd": -544.356091,
       "feesUsd": 27.448769,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 201.020961
     },
     {
@@ -6543,7 +6543,7 @@
       "balanceUsd": 89.08804,
       "pnlUsd": 7.967596,
       "feesUsd": 17.995022,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 30.630649
     },
     {
@@ -6552,7 +6552,7 @@
       "balanceUsd": 0,
       "pnlUsd": -3552.774717,
       "feesUsd": 196.048366,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2513.55378
     },
     {
@@ -6756,19 +6756,19 @@
     {
       "wallet": "pPhhfSpWx8uoDwZM8kAHg4KMUL825goC4ejvbShrEJp",
       "volumeUsd": 28619.552165,
-      "balanceUsd": 177.644223,
-      "pnlUsd": -99.09039,
+      "balanceUsd": 177.62247,
+      "pnlUsd": -98.077414,
       "feesUsd": 430.955615,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -41.505734
     },
     {
       "wallet": "5Hfy9XaaQtV7zZdUX6oGbhqMqTLiwBhMEnU2s8ft1JUy",
       "volumeUsd": 28328.869558,
-      "balanceUsd": 1038.17591,
-      "pnlUsd": 184.93328199999996,
+      "balanceUsd": 1038.236281,
+      "pnlUsd": 169.83250800000002,
       "feesUsd": 51.505968,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 411.995161
     },
     {
@@ -6927,10 +6927,10 @@
     {
       "wallet": "5xLMpFRRhTx49DpcXzj6kJMc79agy9vYLszRReLfiX78",
       "volumeUsd": 27343.758404,
-      "balanceUsd": 4598.906922,
-      "pnlUsd": 82.40730499999995,
+      "balanceUsd": 4598.761717,
+      "pnlUsd": 99.53970500000003,
       "feesUsd": 21.911833,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1748.1940610000001
     },
     {
@@ -7044,10 +7044,10 @@
     {
       "wallet": "Dxx9JcptuSfmJibz9E4pJAYLz9VmunicEa9nWucszGZD",
       "volumeUsd": 26711.250872,
-      "balanceUsd": 1017.133749,
-      "pnlUsd": 157.76968600000004,
-      "feesUsd": 88.735538,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "balanceUsd": 1020.959157,
+      "pnlUsd": 163.50735199999997,
+      "feesUsd": 89.776179,
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 898.450164
     },
     {
@@ -7233,10 +7233,10 @@
     {
       "wallet": "GJsHeYbBfNNxSf4scPuwURsWQNNwRSj9jDrFQKt9ut8j",
       "volumeUsd": 25535.15592,
-      "balanceUsd": 4367.776685,
-      "pnlUsd": 124.83223300000002,
+      "balanceUsd": 4367.725695,
+      "pnlUsd": 127.17973300000001,
       "feesUsd": 5.980208,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 386.606677
     },
     {
@@ -7332,10 +7332,10 @@
     {
       "wallet": "F5ig8Tdp6WkBp9csmLXhsYmCeWnHKFbje9FbFYYnu5fx",
       "volumeUsd": 25197.656612,
-      "balanceUsd": 1831.415417,
-      "pnlUsd": -475.751562,
+      "balanceUsd": 1831.402159,
+      "pnlUsd": -475.141212,
       "feesUsd": 2.885949,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 103.969259
     },
     {
@@ -8259,10 +8259,10 @@
     {
       "wallet": "F8NPTitytZHaSjvVkM9D6GYZWtfBK343C5DLvEdB8G8B",
       "volumeUsd": 20397.652601,
-      "balanceUsd": 2180.559434,
-      "pnlUsd": -97.38974599999999,
+      "balanceUsd": 2180.596846,
+      "pnlUsd": -99.117752,
       "feesUsd": 7.643662,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -61.52364800000001
     },
     {
@@ -8727,10 +8727,10 @@
     {
       "wallet": "DRqEdngxukBBLHi5M2o7PRUSYHMQwAsNKqyXv3NPDYSi",
       "volumeUsd": 18105.715331,
-      "balanceUsd": 2782.937846,
-      "pnlUsd": -1200.030413,
+      "balanceUsd": 2783.320784,
+      "pnlUsd": -1179.870729,
       "feesUsd": 14.885188,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 47.776048
     },
     {
@@ -8757,7 +8757,7 @@
       "balanceUsd": 149.222728,
       "pnlUsd": -1.541995,
       "feesUsd": 18.377461,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 15.481263
     },
     {
@@ -9468,7 +9468,7 @@
       "balanceUsd": 0,
       "pnlUsd": -153.776205,
       "feesUsd": 4.96771,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 37.149078
     },
     {
@@ -10638,7 +10638,7 @@
       "balanceUsd": 0,
       "pnlUsd": -28.521303,
       "feesUsd": 3.950292,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 167.749765
     },
     {
@@ -10845,7 +10845,7 @@
       "balanceUsd": 409.63737,
       "pnlUsd": -34.354529,
       "feesUsd": 0.518312,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 30.571453
     },
     {
@@ -11853,7 +11853,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0.29227,
       "feesUsd": 0.6524,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.29227
     },
     {
@@ -11949,10 +11949,10 @@
     {
       "wallet": "D9RfyLUskEYjD3exfTFMV87pUzJfTbUuFdV8UnrUo3RL",
       "volumeUsd": 11397.23275,
-      "balanceUsd": 931.537354,
-      "pnlUsd": -358.843059,
+      "balanceUsd": 931.473603,
+      "pnlUsd": -356.609264,
       "feesUsd": 210.092579,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 590.8197839999999
     },
     {
@@ -11988,7 +11988,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -12525,10 +12525,10 @@
     {
       "wallet": "BCrFTASsNsoCGuJryMLX2QL8ANwXDdsXRKahX1Rspxn7",
       "volumeUsd": 9755.991037,
-      "balanceUsd": 1216.332971,
-      "pnlUsd": 709.279708,
+      "balanceUsd": 1216.278865,
+      "pnlUsd": 716.91229,
       "feesUsd": 8.449199,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 838.310172
     },
     {
@@ -12591,7 +12591,7 @@
       "balanceUsd": 49.1869,
       "pnlUsd": -1.617305,
       "feesUsd": 0.186769,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.149881
     },
     {
@@ -12798,7 +12798,7 @@
       "balanceUsd": 0.782429,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 89.39191100000001
     },
     {
@@ -12960,7 +12960,7 @@
       "balanceUsd": 1449.626546,
       "pnlUsd": 43.32862,
       "feesUsd": 4.635425,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 43.32862
     },
     {
@@ -12969,7 +12969,7 @@
       "balanceUsd": 676.553327,
       "pnlUsd": -77.99424,
       "feesUsd": 30.636904,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 320.227941
     },
     {
@@ -13011,10 +13011,10 @@
     {
       "wallet": "FoNgjCzyhQyQzKtKEfWEaiTNpj9y4ZadwDtwTKNAJCLs",
       "volumeUsd": 8170.920948,
-      "balanceUsd": 408.706759,
-      "pnlUsd": -77.99691999999999,
+      "balanceUsd": 408.654853,
+      "pnlUsd": -78.60991999999999,
       "feesUsd": 7.54495,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -49.446537
     },
     {
@@ -13236,10 +13236,10 @@
     {
       "wallet": "EN7VRvoPBnvgLUfYcNdmSGZk3VQzPZojwftEExn42Hgh",
       "volumeUsd": 7577.230111,
-      "balanceUsd": 105.130857,
-      "pnlUsd": -382.460576,
+      "balanceUsd": 105.110513,
+      "pnlUsd": -381.688755,
       "feesUsd": 6.816001,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -207.688279
     },
     {
@@ -13248,7 +13248,7 @@
       "balanceUsd": 90.656813,
       "pnlUsd": -25.739315,
       "feesUsd": 2.820637,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2.207428
     },
     {
@@ -13518,7 +13518,7 @@
       "balanceUsd": 364.903023,
       "pnlUsd": -30.07707,
       "feesUsd": 1.171998,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -30.07707
     },
     {
@@ -13536,7 +13536,7 @@
       "balanceUsd": 27.548425,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -13914,7 +13914,7 @@
       "balanceUsd": 0,
       "pnlUsd": 11.698001,
       "feesUsd": 0.008307,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 11.821424
     },
     {
@@ -14157,7 +14157,7 @@
       "balanceUsd": 0.000001,
       "pnlUsd": -1041.142808,
       "feesUsd": 9.047237,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -506.157676
     },
     {
@@ -14229,7 +14229,7 @@
       "balanceUsd": 16.439874,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 99.244914
     },
     {
@@ -14361,10 +14361,10 @@
     {
       "wallet": "GKXnDhY8yt2x3YgwzirVx4nmKc9hTLxBpfqWnxxEzJ6J",
       "volumeUsd": 5035.760741,
-      "balanceUsd": 5136.661009,
-      "pnlUsd": -2258.227918,
+      "balanceUsd": 5136.699788,
+      "pnlUsd": -2254.593225,
       "feesUsd": 19.92917,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1124.3688280000001
     },
     {
@@ -14778,7 +14778,7 @@
       "balanceUsd": 0,
       "pnlUsd": -581.887333,
       "feesUsd": 4.421542,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -316.806772
     },
     {
@@ -14895,7 +14895,7 @@
       "balanceUsd": 93.804385,
       "pnlUsd": 1.020801,
       "feesUsd": 0.036053,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1.020801
     },
     {
@@ -14910,19 +14910,19 @@
     {
       "wallet": "Bv1XVdmdmbjNN3Q1CesQgghvtRCYuVsoHYNHC3KuF4wg",
       "volumeUsd": 4154.712692,
-      "balanceUsd": 373.300206,
-      "pnlUsd": -115.45519800000001,
+      "balanceUsd": 373.2483,
+      "pnlUsd": -116.305198,
       "feesUsd": 6.947124,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -111.003198
     },
     {
       "wallet": "2JSDzoLw2zrd7hui6ztbr6944SyQLhB3hqtVRiFTHYHz",
       "volumeUsd": 4154.318,
-      "balanceUsd": 394.649359,
-      "pnlUsd": -92.86899,
+      "balanceUsd": 394.597453,
+      "pnlUsd": -93.48199,
       "feesUsd": 8.505469,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -88.17999
     },
     {
@@ -15396,10 +15396,10 @@
     {
       "wallet": "A1ypBprxkEEj94BTkm6LgsQ1eHpYhiYnaDUc8W5iT7Kv",
       "volumeUsd": 3282.819636,
-      "balanceUsd": 20.759549,
-      "pnlUsd": -1066.079809,
+      "balanceUsd": 20.756181,
+      "pnlUsd": -1065.931811,
       "feesUsd": 10.104196,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -787.924363
     },
     {
@@ -15990,10 +15990,10 @@
     {
       "wallet": "CXeZy39asf815NHWGDRaGtG6nvzLBpzNGxQAkBnHXUvA",
       "volumeUsd": 2344.206652,
-      "balanceUsd": 114.56955,
-      "pnlUsd": 7.951593000000001,
+      "balanceUsd": 114.573992,
+      "pnlUsd": 7.672807000000001,
       "feesUsd": 1.634664,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 11.741484
     },
     {
@@ -16083,7 +16083,7 @@
       "balanceUsd": 0,
       "pnlUsd": 214.926297,
       "feesUsd": 2.175323,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 256.277449
     },
     {
@@ -16092,7 +16092,7 @@
       "balanceUsd": 0,
       "pnlUsd": 214.164566,
       "feesUsd": 2.18697,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 253.770895
     },
     {
@@ -16197,10 +16197,10 @@
     {
       "wallet": "xDtk5WuoQPZa2K2hsbHpXuf9K38BLyLhXBA6fuyWxpU",
       "volumeUsd": 2101.593201,
-      "balanceUsd": 995.484676,
-      "pnlUsd": -180.78126400000002,
+      "balanceUsd": 995.468192,
+      "pnlUsd": -181.86568400000002,
       "feesUsd": 0.735558,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 18.781567
     },
     {
@@ -16323,10 +16323,10 @@
     {
       "wallet": "Aku8vrUv7XiU5Bpv9PXURkAsneC9jc3zSVmLstPhfCh6",
       "volumeUsd": 2010.033597,
-      "balanceUsd": 13185.767865,
-      "pnlUsd": 4.906921,
+      "balanceUsd": 13185.755355,
+      "pnlUsd": 4.702071,
       "feesUsd": 7.914048,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 15.867067
     },
     {
@@ -16557,10 +16557,10 @@
     {
       "wallet": "XXXX73RrSGdgK7tFpQzfWVKQx1z4TWMPNVCQaNg8EJ3",
       "volumeUsd": 1809.623819,
-      "balanceUsd": 305.827275,
+      "balanceUsd": 0,
       "pnlUsd": -4880.75314,
       "feesUsd": 15.427335,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -3751.955439
     },
     {
@@ -16956,7 +16956,7 @@
       "balanceUsd": 0,
       "pnlUsd": -0.398913,
       "feesUsd": 0.537445,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -17379,7 +17379,7 @@
       "balanceUsd": 159.800315,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -17502,10 +17502,10 @@
     {
       "wallet": "23Hkj5bjAU9a7dcDuZ7PkjFNnXn3fL2sy1a3SvNjPJnW",
       "volumeUsd": 1049.128574,
-      "balanceUsd": 2639.144208,
-      "pnlUsd": -327.292272,
+      "balanceUsd": 2639.126261,
+      "pnlUsd": -319.851731,
       "feesUsd": 469.603847,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 342.778528
     },
     {
@@ -18324,7 +18324,7 @@
       "balanceUsd": 4.425364,
       "pnlUsd": -0.429081,
       "feesUsd": 1.297718,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.429081
     },
     {
@@ -18501,10 +18501,10 @@
     {
       "wallet": "FCiNL4oqpu4hu2KVv1hUxegYUdvBiVHjA9fXhsY8t9yi",
       "volumeUsd": 693.03013,
-      "balanceUsd": 487.084836,
-      "pnlUsd": -68.46568,
+      "balanceUsd": 487.083592,
+      "pnlUsd": -68.423527,
       "feesUsd": 1.943747,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -46.499682
     },
     {
@@ -18942,10 +18942,10 @@
     {
       "wallet": "6buF4HcoM3MTYfciWNBKwsGGSFeudFHoBUE4vphuvCRK",
       "volumeUsd": 440.679999,
-      "balanceUsd": 8354.122042,
-      "pnlUsd": -177.670668,
+      "balanceUsd": 8354.146953,
+      "pnlUsd": -177.66776700000003,
       "feesUsd": 5.632507,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1.91308
     },
     {
@@ -19161,7 +19161,7 @@
       "balanceUsd": 44.319775,
       "pnlUsd": 12.839113,
       "feesUsd": 3.920621,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 17.643893000000002
     },
     {
@@ -19233,7 +19233,7 @@
       "balanceUsd": 0.681462,
       "pnlUsd": 2.645984,
       "feesUsd": 3.083052,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2.645984
     },
     {
@@ -19269,7 +19269,7 @@
       "balanceUsd": 5.130859,
       "pnlUsd": -1.193298,
       "feesUsd": 0.140426,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1.193298
     },
     {
@@ -19287,7 +19287,7 @@
       "balanceUsd": 72.715244,
       "pnlUsd": -15.267208,
       "feesUsd": 0.180779,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 9.534134
     },
     {
@@ -19377,7 +19377,7 @@
       "balanceUsd": 6.63536,
       "pnlUsd": -92.259302,
       "feesUsd": 0.235635,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.40747
     },
     {
@@ -19458,7 +19458,7 @@
       "balanceUsd": 31.542256,
       "pnlUsd": -35.886564,
       "feesUsd": 365.002533,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -32.988039
     },
     {
@@ -19953,7 +19953,7 @@
       "balanceUsd": 0.756443,
       "pnlUsd": 42.267463,
       "feesUsd": 430.580392,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 179.979749
     },
     {
@@ -20076,10 +20076,10 @@
     {
       "wallet": "vBvd9p7TD6XvSYqgJSpnCjgg8qxhranDtMfccpVgAi8",
       "volumeUsd": 31.52366,
-      "balanceUsd": 2090.828988,
-      "pnlUsd": -5906.742576,
+      "balanceUsd": 2090.84366,
+      "pnlUsd": -5906.556562,
       "feesUsd": 37.443873,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -5888.163745
     },
     {
@@ -20124,7 +20124,7 @@
       "balanceUsd": 10004.61185,
       "pnlUsd": 115940.93908,
       "feesUsd": 123.12915,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 115940.944949
     },
     {
@@ -20223,7 +20223,7 @@
       "balanceUsd": 0,
       "pnlUsd": 2403.201222,
       "feesUsd": 22818.172263,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2455.666929
     },
     {
@@ -20241,7 +20241,7 @@
       "balanceUsd": 8.893936,
       "pnlUsd": 2.177242,
       "feesUsd": 3.738563,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2.177242
     },
     {
@@ -20277,7 +20277,7 @@
       "balanceUsd": 14.865691,
       "pnlUsd": 6.820253,
       "feesUsd": 2.251491,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 13.306396
     },
     {
@@ -21105,7 +21105,7 @@
       "balanceUsd": 0,
       "pnlUsd": -19313.401943,
       "feesUsd": 321.20733,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -18797.737013
     },
     {
@@ -21114,7 +21114,7 @@
       "balanceUsd": 0,
       "pnlUsd": -1726.320688,
       "feesUsd": 21.229356,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1510.332223
     },
     {
@@ -21876,10 +21876,10 @@
     {
       "wallet": "9tWnvDBYSyciyCQXgXB3RmZ55D8KpFF2vZ7tAKyFvSbj",
       "volumeUsd": 0,
-      "balanceUsd": 270.317502,
-      "pnlUsd": -152.782133,
+      "balanceUsd": 270.357208,
+      "pnlUsd": -154.631175,
       "feesUsd": 13.602853,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 202.70753399999998
     },
     {
@@ -21888,7 +21888,7 @@
       "balanceUsd": 1050.473018,
       "pnlUsd": -279.338773,
       "feesUsd": 45.740782,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -232.29182
     },
     {
@@ -22110,19 +22110,19 @@
     {
       "wallet": "ERi28hdXZAaDfhTw6CdZTmXxishgKaorja6PLgJbe9RZ",
       "volumeUsd": 0,
-      "balanceUsd": 26618.132159,
-      "pnlUsd": -2562.4563630000002,
+      "balanceUsd": 26618.644483,
+      "pnlUsd": -2589.9265020000003,
       "feesUsd": 29.834598,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2036.7609069999999
     },
     {
       "wallet": "H1qZxwjcZrs4zJB1vU93VK3EHgq34gHDUQDKeaLD1Mmv",
       "volumeUsd": 0,
-      "balanceUsd": 23320.738122,
-      "pnlUsd": 6544.142253,
+      "balanceUsd": 23320.228224,
+      "pnlUsd": 6567.887268,
       "feesUsd": 59.313618,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 9282.056214
     },
     {
@@ -22131,7 +22131,7 @@
       "balanceUsd": 0,
       "pnlUsd": 10.525785,
       "feesUsd": 72.792941,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 270.482909
     },
     {
@@ -22644,16 +22644,16 @@
       "balanceUsd": 0,
       "pnlUsd": 4306.126275,
       "feesUsd": 101.893482,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 4907.352871
     },
     {
       "wallet": "eKqfKby8yU8a4VXTnvxKHJBCj8CXrkh9swbKHQX6BYF",
       "volumeUsd": 0,
-      "balanceUsd": 1552.360862,
-      "pnlUsd": 10.048469000000011,
+      "balanceUsd": 1552.422107,
+      "pnlUsd": 7.22879300000001,
       "feesUsd": 10.390605,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 68.62424600000001
     },
     {
@@ -22662,7 +22662,7 @@
       "balanceUsd": 0,
       "pnlUsd": 3.274671,
       "feesUsd": 8.496038,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 3.274671
     },
     {
@@ -22671,7 +22671,7 @@
       "balanceUsd": 0,
       "pnlUsd": -8730.887881,
       "feesUsd": 0.826589,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -6543.984307000001
     },
     {
@@ -22932,16 +22932,16 @@
       "balanceUsd": 2087.321513,
       "pnlUsd": -1141.036139,
       "feesUsd": 77.93682,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -240.251552
     },
     {
       "wallet": "2rFjPDDcQYLBx6sGLRhWxqMZTiKTWjJnMhD4xntZAW4d",
       "volumeUsd": 0,
-      "balanceUsd": 61.913331,
-      "pnlUsd": -649.796383,
+      "balanceUsd": 61.910589,
+      "pnlUsd": -650.266057,
       "feesUsd": 69.882578,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -95.41223299999999
     },
     {
@@ -22950,7 +22950,7 @@
       "balanceUsd": 0,
       "pnlUsd": 11.070714,
       "feesUsd": 38.067307,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 143.325133
     },
     {
@@ -22977,7 +22977,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0.227126,
       "feesUsd": 4.224181,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2.255935
     },
     {
@@ -23004,7 +23004,7 @@
       "balanceUsd": 113.708845,
       "pnlUsd": -4.021135,
       "feesUsd": 0.145621,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.807286
     },
     {
@@ -23013,7 +23013,7 @@
       "balanceUsd": 9.055057,
       "pnlUsd": 0.024958,
       "feesUsd": 0.070001,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.024958
     },
     {
@@ -23427,7 +23427,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0.575106,
       "feesUsd": 2.843942,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.575106
     },
     {
@@ -23517,16 +23517,16 @@
       "balanceUsd": 1512.539027,
       "pnlUsd": 12.41914,
       "feesUsd": 0.209906,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 12.41914
     },
     {
       "wallet": "61nydeBYcCRuixzbWfEKbskBTcV8tsNfwQMfYCnJNVJ1",
       "volumeUsd": 0,
-      "balanceUsd": 99.235628,
-      "pnlUsd": 1.225231,
+      "balanceUsd": 99.235022,
+      "pnlUsd": 1.253323,
       "feesUsd": 355.993598,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 4.4682189999999995
     },
     {
@@ -23688,7 +23688,7 @@
       "balanceUsd": 0,
       "pnlUsd": -97.953044,
       "feesUsd": 69.108621,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -80.97558599999999
     },
     {
@@ -23697,7 +23697,7 @@
       "balanceUsd": 0.002673,
       "pnlUsd": -7.589313,
       "feesUsd": 0.347317,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -7.589313
     },
     {
@@ -24003,7 +24003,7 @@
       "balanceUsd": 0,
       "pnlUsd": -3030.742029,
       "feesUsd": 54.46676,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2230.904925
     },
     {
@@ -24012,7 +24012,7 @@
       "balanceUsd": 38.022873,
       "pnlUsd": 75.830261,
       "feesUsd": 405.094224,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 75.830261
     },
     {
@@ -24030,7 +24030,7 @@
       "balanceUsd": 0,
       "pnlUsd": -0.644269,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -24237,7 +24237,7 @@
       "balanceUsd": 0.005759,
       "pnlUsd": -1090.54964,
       "feesUsd": 45.568936,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1090.54964
     },
     {
@@ -24273,7 +24273,7 @@
       "balanceUsd": 5014.709716,
       "pnlUsd": 25.737981,
       "feesUsd": 11.227674,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 41.309234000000004
     },
     {
@@ -24288,10 +24288,10 @@
     {
       "wallet": "6n3vYJ7wjoMcwbsyK254yDC215GHsX1q4whNpu2v226Z",
       "volumeUsd": 0,
-      "balanceUsd": 3468.041354,
-      "pnlUsd": 43.311431,
+      "balanceUsd": 3468.02331,
+      "pnlUsd": 44.89438999999999,
       "feesUsd": 1.657111,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 260.728582
     },
     {
@@ -24588,7 +24588,7 @@
       "balanceUsd": 0,
       "pnlUsd": -15405.403837,
       "feesUsd": 464.970398,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -8593.405486
     },
     {
@@ -24597,7 +24597,7 @@
       "balanceUsd": 4550.998203,
       "pnlUsd": 515.713046,
       "feesUsd": 14.217572,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 515.713046
     },
     {
@@ -24606,7 +24606,7 @@
       "balanceUsd": 0,
       "pnlUsd": -0.994259,
       "feesUsd": 8.305506,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.993877
     },
     {
@@ -24615,7 +24615,7 @@
       "balanceUsd": 502.559947,
       "pnlUsd": 2.559947,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2.559947
     },
     {
@@ -24630,10 +24630,10 @@
     {
       "wallet": "2CaXWWRLufxPotK9mRgWqLSdXLHJv1i6mjW58qyZKuDJ",
       "volumeUsd": 0,
-      "balanceUsd": 117.015952,
-      "pnlUsd": -15.270128,
+      "balanceUsd": 117.015335,
+      "pnlUsd": -15.241397,
       "feesUsd": 548.859573,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -11.990795
     },
     {
@@ -24642,16 +24642,16 @@
       "balanceUsd": 0,
       "pnlUsd": 35.071907,
       "feesUsd": 11.622317,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 35.12436
     },
     {
       "wallet": "9NRchpqLGzYUoKhdhsLWNsmgFeiseayupMKTssy1BnrB",
       "volumeUsd": 0,
-      "balanceUsd": 106.967232,
-      "pnlUsd": -15.985466,
+      "balanceUsd": 106.966633,
+      "pnlUsd": -15.95759,
       "feesUsd": 481.383258,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -12.861606
     },
     {
@@ -24921,7 +24921,7 @@
       "balanceUsd": 116.083249,
       "pnlUsd": -3302.460339,
       "feesUsd": 613.101025,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2952.24414
     },
     {
@@ -24930,16 +24930,16 @@
       "balanceUsd": 1109.68426,
       "pnlUsd": -35.680442,
       "feesUsd": 12.552597,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 11.861897
     },
     {
       "wallet": "7fzGkLCUE3yLR2tBpudi2WxuzCZw6WAeRb3NGk6LDgKZ",
       "volumeUsd": 0,
-      "balanceUsd": 4162.646047,
-      "pnlUsd": -890.148728,
+      "balanceUsd": 4162.825214,
+      "pnlUsd": -896.1985460000001,
       "feesUsd": 28.228487,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -659.263012
     },
     {
@@ -24948,7 +24948,7 @@
       "balanceUsd": 0,
       "pnlUsd": 70.41402,
       "feesUsd": 7.841395,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 70.41402
     },
     {
@@ -24957,7 +24957,7 @@
       "balanceUsd": 0,
       "pnlUsd": 5.466876,
       "feesUsd": 7.000272,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 5.466876
     },
     {
@@ -24966,16 +24966,16 @@
       "balanceUsd": 264.800588,
       "pnlUsd": -70.610531,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
       "wallet": "GUTZvDXHK6s9G5FdFqowSz9Ae7Y7FZ85KDRZ4P4eaFjL",
       "volumeUsd": 0,
-      "balanceUsd": 620.799829,
-      "pnlUsd": 120.79112300000003,
+      "balanceUsd": 620.854863,
+      "pnlUsd": 115.75313499999999,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 235.41237599999994
     },
     {
@@ -24993,7 +24993,7 @@
       "balanceUsd": 0,
       "pnlUsd": -30.777295,
       "feesUsd": 2.947751,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 62.348458
     },
     {
@@ -25170,10 +25170,10 @@
     {
       "wallet": "ndyfXWoVJGMomCXFsaXUyFQhVqQKWCqHe5rdrM5GDKW",
       "volumeUsd": 0,
-      "balanceUsd": 4649.91977,
-      "pnlUsd": 331.383368,
+      "balanceUsd": 4649.415536,
+      "pnlUsd": 363.768099,
       "feesUsd": 14.000884,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2613.541899
     },
     {
@@ -25224,10 +25224,10 @@
     {
       "wallet": "GGwRpyxLzUQq3HqGsTVVYVc9M8tSQWbTMr7YppzH1aNG",
       "volumeUsd": 0,
-      "balanceUsd": 8647.894567,
-      "pnlUsd": -15898.618035,
+      "balanceUsd": 8647.944166,
+      "pnlUsd": -15910.18851,
       "feesUsd": 1270.717135,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -15820.137408999999
     },
     {
@@ -25704,16 +25704,16 @@
       "balanceUsd": 0.22783,
       "pnlUsd": -116.710821,
       "feesUsd": 1508.136488,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -116.710821
     },
     {
       "wallet": "7AmEXgpFD93xJ57j3uFrhDBiHyMbNCjE6FvijtJd6Qt5",
       "volumeUsd": 0,
-      "balanceUsd": 43197.307996,
-      "pnlUsd": -8107.497496,
+      "balanceUsd": 43197.204754,
+      "pnlUsd": -8077.756889,
       "feesUsd": 69.73444,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1936.9362259999998
     },
     {
@@ -25755,10 +25755,10 @@
     {
       "wallet": "3E5fnRMEm9sTYEc2wESz7g1DajtS38yCaDZjJMr2AU2U",
       "volumeUsd": 0,
-      "balanceUsd": 4990.532419,
-      "pnlUsd": 906.589525,
+      "balanceUsd": 4990.521121,
+      "pnlUsd": 899.89526,
       "feesUsd": 6.998686,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1010.885301
     },
     {
@@ -26064,7 +26064,7 @@
       "balanceUsd": 0,
       "pnlUsd": -1871.411426,
       "feesUsd": 2.115217,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1871.411426
     },
     {
@@ -26118,7 +26118,7 @@
       "balanceUsd": 25.540673,
       "pnlUsd": -306.340475,
       "feesUsd": 365.13624,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -306.340475
     },
     {
@@ -26127,7 +26127,7 @@
       "balanceUsd": 0,
       "pnlUsd": 9066.507573,
       "feesUsd": 225.408,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 9066.507573
     },
     {
@@ -27063,7 +27063,7 @@
       "balanceUsd": 0,
       "pnlUsd": -2321.775001,
       "feesUsd": 191.889774,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2321.775001
     },
     {
@@ -27117,7 +27117,7 @@
       "balanceUsd": 0,
       "pnlUsd": 2.448946,
       "feesUsd": 5.593338,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2.448946
     },
     {
@@ -27198,7 +27198,7 @@
       "balanceUsd": 0,
       "pnlUsd": -66.319752,
       "feesUsd": 4.228741,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -66.319752
     },
     {
@@ -27216,7 +27216,7 @@
       "balanceUsd": 0,
       "pnlUsd": 143.847817,
       "feesUsd": 4.628371,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 143.847817
     },
     {
@@ -27243,7 +27243,7 @@
       "balanceUsd": 10297.472041,
       "pnlUsd": 311.603969,
       "feesUsd": 15.188248,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 311.603969
     },
     {
@@ -27771,10 +27771,10 @@
     {
       "wallet": "6qrwwGHncFsYgZXpxjx6RQXL7UHGfAczo9fdvVozqCrZ",
       "volumeUsd": 0,
-      "balanceUsd": 0.160493,
-      "pnlUsd": -14.702344,
+      "balanceUsd": 0.160503,
+      "pnlUsd": -14.702853,
       "feesUsd": 0.207199,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -14.152705000000001
     },
     {
@@ -27783,7 +27783,7 @@
       "balanceUsd": 0,
       "pnlUsd": 278.799913,
       "feesUsd": 691.997804,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 278.799913
     },
     {
@@ -27801,7 +27801,7 @@
       "balanceUsd": 0,
       "pnlUsd": 109.605875,
       "feesUsd": 49.932614,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 109.605875
     },
     {
@@ -27810,16 +27810,16 @@
       "balanceUsd": 10007.154157,
       "pnlUsd": 7.051497,
       "feesUsd": 0.174964,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 7.051497
     },
     {
       "wallet": "531euoNtZMvciBcKPBvYgFJoWnUvtu4PjasDhbTTXTGG",
       "volumeUsd": 0,
-      "balanceUsd": 61109.060187,
-      "pnlUsd": -1607.514772,
+      "balanceUsd": 61110.221283,
+      "pnlUsd": -1416.743561,
       "feesUsd": 25.830588,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -84.367233
     },
     {
@@ -27828,7 +27828,7 @@
       "balanceUsd": 772.04096,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -27837,16 +27837,16 @@
       "balanceUsd": 0,
       "pnlUsd": 561.53978,
       "feesUsd": 10.619,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 561.53978
     },
     {
       "wallet": "AqBLnETxKxGDP9STf8vKMWxmh9VBfHwkNhQzVzykuDEX",
       "volumeUsd": 0,
-      "balanceUsd": 1014.845858,
-      "pnlUsd": -3.654637,
+      "balanceUsd": 1014.864652,
+      "pnlUsd": -2.896997,
       "feesUsd": 0.524763,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 19.263973
     },
     {
@@ -27855,7 +27855,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0.182283,
       "feesUsd": 0.035053,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.182283
     },
     {
@@ -27873,7 +27873,7 @@
       "balanceUsd": 0,
       "pnlUsd": -258.373932,
       "feesUsd": 232.660614,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -258.373932
     },
     {
@@ -27882,7 +27882,7 @@
       "balanceUsd": 0,
       "pnlUsd": -161.070849,
       "feesUsd": 89.333824,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -161.070849
     },
     {
@@ -27891,7 +27891,7 @@
       "balanceUsd": 1995.294434,
       "pnlUsd": -1.151617,
       "feesUsd": 3.553949,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -1.151617
     },
     {
@@ -27909,25 +27909,25 @@
       "balanceUsd": 0,
       "pnlUsd": 8.718157,
       "feesUsd": 0.322757,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 8.718157
     },
     {
       "wallet": "3LqCfg6qsFUqz1QJdtzZTpvMHFMrirucCBDSBmcU7unW",
       "volumeUsd": 0,
-      "balanceUsd": 158.429341,
-      "pnlUsd": 14.765273,
+      "balanceUsd": 158.425894,
+      "pnlUsd": 14.92579,
       "feesUsd": 0.091346,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 32.811812
     },
     {
       "wallet": "88qmpoWskmx6n9p4WNdvi1pKN8ygcnX9azaWq1GJHro2",
       "volumeUsd": 0,
-      "balanceUsd": 6.270597,
-      "pnlUsd": -4.581348,
+      "balanceUsd": 6.269885,
+      "pnlUsd": -4.488401,
       "feesUsd": 0.034978,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 11.583965
     },
     {
@@ -27954,7 +27954,7 @@
       "balanceUsd": 0,
       "pnlUsd": -22.635076,
       "feesUsd": 75.417127,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -22.635076
     },
     {
@@ -27963,7 +27963,7 @@
       "balanceUsd": 9953.966604,
       "pnlUsd": -46.144059,
       "feesUsd": 9.548048,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -46.144059
     },
     {
@@ -27972,7 +27972,7 @@
       "balanceUsd": 551.823021,
       "pnlUsd": -0.925781,
       "feesUsd": 5.778098,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.925781
     },
     {
@@ -27981,7 +27981,7 @@
       "balanceUsd": 180.116947,
       "pnlUsd": -9.858575,
       "feesUsd": 10.043772,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -9.858575
     },
     {
@@ -27999,7 +27999,7 @@
       "balanceUsd": 0,
       "pnlUsd": 8.199528,
       "feesUsd": 0.541029,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 8.199528
     },
     {
@@ -28059,19 +28059,19 @@
     {
       "wallet": "2VS2CkH1FERcHuZwVx9xYGkgzVmC6eHq69jMGqcQFhsP",
       "volumeUsd": 0,
-      "balanceUsd": 5550.925362,
-      "pnlUsd": 2032.210813,
+      "balanceUsd": 5550.777718,
+      "pnlUsd": 2027.397207,
       "feesUsd": 41.799153,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2197.5796960000002
     },
     {
       "wallet": "EJHh7VSTZGJRRH49DkCVSiCLxa4ixJm2drMxBofRkSc7",
       "volumeUsd": 0,
-      "balanceUsd": 5578.317206,
-      "pnlUsd": -3117.1723380000003,
+      "balanceUsd": 5578.464849,
+      "pnlUsd": -3111.093422,
       "feesUsd": 42.258815,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -926.552715
     },
     {
@@ -28080,16 +28080,16 @@
       "balanceUsd": 0,
       "pnlUsd": -3304.670699,
       "feesUsd": 59.976955,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -3304.670699
     },
     {
       "wallet": "3aDPJiuydGDUcHZVVhGhyhnZ55QbBdxsmymVmhZBaa1f",
       "volumeUsd": 0,
-      "balanceUsd": 9129.738559,
-      "pnlUsd": -403.053706,
+      "balanceUsd": 9129.93205,
+      "pnlUsd": -370.58396799999997,
       "feesUsd": 15.673752,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -139.95117
     },
     {
@@ -28107,7 +28107,7 @@
       "balanceUsd": 0,
       "pnlUsd": -208.678208,
       "feesUsd": 14.710418,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -208.678208
     },
     {
@@ -28116,7 +28116,7 @@
       "balanceUsd": 0,
       "pnlUsd": -433.892074,
       "feesUsd": 2.010696,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -433.892074
     },
     {
@@ -28161,7 +28161,7 @@
       "balanceUsd": 0,
       "pnlUsd": 4978.049301,
       "feesUsd": 10.879825,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 4978.049301
     },
     {
@@ -28170,7 +28170,7 @@
       "balanceUsd": 0,
       "pnlUsd": 6482.583078,
       "feesUsd": 21.863735,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 6482.583078
     },
     {
@@ -28188,7 +28188,7 @@
       "balanceUsd": 0,
       "pnlUsd": -3840.210361,
       "feesUsd": 33.880144,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -3840.210361
     },
     {
@@ -28197,7 +28197,7 @@
       "balanceUsd": 0,
       "pnlUsd": 6380.885107,
       "feesUsd": 8.532235,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 6380.885107
     },
     {
@@ -28215,7 +28215,7 @@
       "balanceUsd": 0,
       "pnlUsd": 70.483892,
       "feesUsd": 4.995092,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 70.483892
     },
     {
@@ -28224,7 +28224,7 @@
       "balanceUsd": 0,
       "pnlUsd": 4.06916,
       "feesUsd": 30.447901,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 4.06916
     },
     {
@@ -28233,7 +28233,7 @@
       "balanceUsd": 0,
       "pnlUsd": 923.183438,
       "feesUsd": 7.66823,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 923.183438
     },
     {
@@ -28242,7 +28242,7 @@
       "balanceUsd": 1000.00075,
       "pnlUsd": 517.429408,
       "feesUsd": 7.929483,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 517.429408
     },
     {
@@ -28251,7 +28251,7 @@
       "balanceUsd": 34.785514,
       "pnlUsd": 2044.897382,
       "feesUsd": 0.085425,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2044.897382
     },
     {
@@ -28260,7 +28260,7 @@
       "balanceUsd": 0,
       "pnlUsd": 12.843334,
       "feesUsd": 6.918505,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 12.843334
     },
     {
@@ -28269,7 +28269,7 @@
       "balanceUsd": 0,
       "pnlUsd": 1343.192421,
       "feesUsd": 4.508483,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1343.192421
     },
     {
@@ -28287,7 +28287,7 @@
       "balanceUsd": 0,
       "pnlUsd": -106.318843,
       "feesUsd": 23.044345,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -106.318843
     },
     {
@@ -28296,7 +28296,7 @@
       "balanceUsd": 104.955287,
       "pnlUsd": -93.859016,
       "feesUsd": 0.685697,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -93.859016
     },
     {
@@ -28305,7 +28305,7 @@
       "balanceUsd": 1125.517526,
       "pnlUsd": 0.042759,
       "feesUsd": 0.034683,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.042759
     },
     {
@@ -28314,7 +28314,7 @@
       "balanceUsd": 0,
       "pnlUsd": 1.439523,
       "feesUsd": 0.277699,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1.439523
     },
     {
@@ -28350,7 +28350,7 @@
       "balanceUsd": 0,
       "pnlUsd": 7538.775826,
       "feesUsd": 32.731812,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 7538.775826
     },
     {
@@ -28359,7 +28359,7 @@
       "balanceUsd": 0,
       "pnlUsd": 482.044391,
       "feesUsd": 11.50214,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 482.044391
     },
     {
@@ -28368,7 +28368,7 @@
       "balanceUsd": 50.001848,
       "pnlUsd": 702.670498,
       "feesUsd": 40.720823,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 702.670498
     },
     {
@@ -28377,7 +28377,7 @@
       "balanceUsd": 0,
       "pnlUsd": 55.467041,
       "feesUsd": 20.929937,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 55.467041
     },
     {
@@ -28386,7 +28386,7 @@
       "balanceUsd": 0,
       "pnlUsd": -54.616891,
       "feesUsd": 21.019304,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -54.616891
     },
     {
@@ -28395,7 +28395,7 @@
       "balanceUsd": 0,
       "pnlUsd": 2550.257279,
       "feesUsd": 9.793859,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2550.257279
     },
     {
@@ -28413,7 +28413,7 @@
       "balanceUsd": 0,
       "pnlUsd": -469.984436,
       "feesUsd": 10.511979,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -469.984436
     },
     {
@@ -28440,7 +28440,7 @@
       "balanceUsd": 0,
       "pnlUsd": 49.238406,
       "feesUsd": 1.68367,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 49.238406
     },
     {
@@ -28455,10 +28455,10 @@
     {
       "wallet": "4BsEPmfSVA7WGGBGvwnE1F36xowGXLJHaAUagsfwBAii",
       "volumeUsd": 0,
-      "balanceUsd": 941.352827,
-      "pnlUsd": -126.253611,
+      "balanceUsd": 941.297793,
+      "pnlUsd": -119.058115,
       "feesUsd": 3.157216,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 548.172004
     },
     {
@@ -28476,7 +28476,7 @@
       "balanceUsd": 0,
       "pnlUsd": -26.615737,
       "feesUsd": 0.629475,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -26.615737
     },
     {
@@ -28485,7 +28485,7 @@
       "balanceUsd": 0,
       "pnlUsd": -2010.863671,
       "feesUsd": 2.611187,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -2010.863671
     },
     {
@@ -28494,7 +28494,7 @@
       "balanceUsd": 504.712171,
       "pnlUsd": 7.434593,
       "feesUsd": 2.423422,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 7.434593
     },
     {
@@ -28503,7 +28503,7 @@
       "balanceUsd": 0.200181,
       "pnlUsd": -0.155336,
       "feesUsd": 2.205583,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.155336
     },
     {
@@ -28512,7 +28512,7 @@
       "balanceUsd": 99.359211,
       "pnlUsd": -0.644402,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.644402
     },
     {
@@ -28521,7 +28521,7 @@
       "balanceUsd": 0.353716,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28530,7 +28530,7 @@
       "balanceUsd": 827.707512,
       "pnlUsd": 37.737013,
       "feesUsd": 2.460863,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 37.737013
     },
     {
@@ -28539,7 +28539,7 @@
       "balanceUsd": 0,
       "pnlUsd": 20.903214,
       "feesUsd": 0.175172,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 20.903214
     },
     {
@@ -28548,7 +28548,7 @@
       "balanceUsd": 92.077518,
       "pnlUsd": -8.879343,
       "feesUsd": 0.085485,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -8.879343
     },
     {
@@ -28557,7 +28557,7 @@
       "balanceUsd": 21001.145325,
       "pnlUsd": 2.023125,
       "feesUsd": 19.09005,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 2.023125
     },
     {
@@ -28566,7 +28566,7 @@
       "balanceUsd": 0,
       "pnlUsd": -30.812356,
       "feesUsd": 10.495186,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -30.812356
     },
     {
@@ -28575,7 +28575,7 @@
       "balanceUsd": 0,
       "pnlUsd": -0.142634,
       "feesUsd": 0.055418,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.142634
     },
     {
@@ -28584,16 +28584,16 @@
       "balanceUsd": 0,
       "pnlUsd": 0.772406,
       "feesUsd": 1.331007,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.772406
     },
     {
       "wallet": "H2p7XBYKcuZmGN5MMAtTKj6YRqB3mrWxnFdZbgB2Lsc5",
       "volumeUsd": 0,
-      "balanceUsd": 5473.713274,
-      "pnlUsd": -10.626917,
+      "balanceUsd": 5473.689867,
+      "pnlUsd": -13.820554000000001,
       "feesUsd": 1.750127,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 375.084372
     },
     {
@@ -28611,7 +28611,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0.000438,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.000438
     },
     {
@@ -28620,7 +28620,7 @@
       "balanceUsd": 0,
       "pnlUsd": 0.257116,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.257116
     },
     {
@@ -28629,7 +28629,7 @@
       "balanceUsd": 4.436916,
       "pnlUsd": 0.013669,
       "feesUsd": 0.106121,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.013669
     },
     {
@@ -28638,7 +28638,7 @@
       "balanceUsd": 0,
       "pnlUsd": -0.01435,
       "feesUsd": 0.035691,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -0.01435
     },
     {
@@ -28647,16 +28647,16 @@
       "balanceUsd": 53106.784347,
       "pnlUsd": 0.008032,
       "feesUsd": 0.035685,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0.008032
     },
     {
       "wallet": "GVwD2P3XT2GZM7hL43dkzpH2jw2D57nQF7mZAmBWZJcF",
       "volumeUsd": 0,
-      "balanceUsd": 1848.715109,
-      "pnlUsd": -15.197671999999999,
+      "balanceUsd": 1848.712836,
+      "pnlUsd": -15.180314000000001,
       "feesUsd": 0.11035,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 39.379123
     },
     {
@@ -28665,7 +28665,7 @@
       "balanceUsd": 0,
       "pnlUsd": -7.917117,
       "feesUsd": 0.024021,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -7.917117
     },
     {
@@ -28674,7 +28674,7 @@
       "balanceUsd": 900000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28683,7 +28683,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28692,7 +28692,7 @@
       "balanceUsd": 990.0022,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28701,7 +28701,7 @@
       "balanceUsd": 300,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28710,7 +28710,7 @@
       "balanceUsd": 200,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28719,7 +28719,7 @@
       "balanceUsd": 268075.962683,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28728,7 +28728,7 @@
       "balanceUsd": 101,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28737,7 +28737,7 @@
       "balanceUsd": 250958.68337,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28746,7 +28746,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28755,7 +28755,7 @@
       "balanceUsd": 0.0029,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28764,7 +28764,7 @@
       "balanceUsd": 14548.218881,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28773,7 +28773,7 @@
       "balanceUsd": 100000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28782,7 +28782,7 @@
       "balanceUsd": 1,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28791,7 +28791,7 @@
       "balanceUsd": 951.815572,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28800,7 +28800,7 @@
       "balanceUsd": 10.702,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28809,7 +28809,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -28818,7 +28818,7 @@
       "balanceUsd": 57,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -29052,7 +29052,7 @@
       "balanceUsd": 100,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -29061,7 +29061,7 @@
       "balanceUsd": 50,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -29295,7 +29295,7 @@
       "balanceUsd": 221.676878,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -29547,7 +29547,7 @@
       "balanceUsd": 10.558414,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31716,7 +31716,7 @@
       "balanceUsd": 200.312644,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31725,7 +31725,7 @@
       "balanceUsd": 20328.845859,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31734,7 +31734,7 @@
       "balanceUsd": 50,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31743,7 +31743,7 @@
       "balanceUsd": 10450,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31752,7 +31752,7 @@
       "balanceUsd": 0.01,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31761,7 +31761,7 @@
       "balanceUsd": 144.447776,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31770,7 +31770,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31806,7 +31806,7 @@
       "balanceUsd": 101,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31815,7 +31815,7 @@
       "balanceUsd": 300.133646,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31824,7 +31824,7 @@
       "balanceUsd": 10.00217,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31833,7 +31833,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31842,7 +31842,7 @@
       "balanceUsd": 400.70211,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31851,7 +31851,7 @@
       "balanceUsd": 9.997588,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31860,7 +31860,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31869,7 +31869,7 @@
       "balanceUsd": 103.889692,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31878,7 +31878,7 @@
       "balanceUsd": 112.129701,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31887,7 +31887,7 @@
       "balanceUsd": 10000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31896,7 +31896,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31914,7 +31914,7 @@
       "balanceUsd": 127.001073,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31923,7 +31923,7 @@
       "balanceUsd": 100172.755752,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31932,7 +31932,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31941,7 +31941,7 @@
       "balanceUsd": 109.9987,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31950,7 +31950,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31959,7 +31959,7 @@
       "balanceUsd": 109.9987,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31968,7 +31968,7 @@
       "balanceUsd": 1500,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31977,7 +31977,7 @@
       "balanceUsd": 100.72,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31986,7 +31986,7 @@
       "balanceUsd": 100,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -31995,7 +31995,7 @@
       "balanceUsd": 25,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32004,7 +32004,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32013,7 +32013,7 @@
       "balanceUsd": 10000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32022,7 +32022,7 @@
       "balanceUsd": 11,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32031,7 +32031,7 @@
       "balanceUsd": 9.995802,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32040,7 +32040,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32049,7 +32049,7 @@
       "balanceUsd": 10.0011,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32058,7 +32058,7 @@
       "balanceUsd": 200,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32067,7 +32067,7 @@
       "balanceUsd": 17112.486509,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32076,7 +32076,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32085,7 +32085,7 @@
       "balanceUsd": 250.74909,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32094,7 +32094,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32103,7 +32103,7 @@
       "balanceUsd": 9.99574,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32112,7 +32112,7 @@
       "balanceUsd": 100.872977,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32121,7 +32121,7 @@
       "balanceUsd": 7.015326,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32130,7 +32130,7 @@
       "balanceUsd": 218.175446,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32139,7 +32139,7 @@
       "balanceUsd": 14996.559626,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32148,7 +32148,7 @@
       "balanceUsd": 65.584812,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32157,7 +32157,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32166,7 +32166,7 @@
       "balanceUsd": 0.01,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32175,7 +32175,7 @@
       "balanceUsd": 15570.920809,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32184,7 +32184,7 @@
       "balanceUsd": 19995.861454,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32193,7 +32193,7 @@
       "balanceUsd": 150.961572,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32202,7 +32202,7 @@
       "balanceUsd": 1008.697961,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32211,7 +32211,7 @@
       "balanceUsd": 301.5,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32220,7 +32220,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32229,7 +32229,7 @@
       "balanceUsd": 11000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32238,7 +32238,7 @@
       "balanceUsd": 18000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32247,7 +32247,7 @@
       "balanceUsd": 499.512978,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32256,7 +32256,7 @@
       "balanceUsd": 4.717851,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32265,7 +32265,7 @@
       "balanceUsd": 150,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32274,7 +32274,7 @@
       "balanceUsd": 95.238949,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32283,7 +32283,7 @@
       "balanceUsd": 275,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32292,7 +32292,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32301,7 +32301,7 @@
       "balanceUsd": 200,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32310,7 +32310,7 @@
       "balanceUsd": 0.01,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32319,7 +32319,7 @@
       "balanceUsd": 1108.193792,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32328,7 +32328,7 @@
       "balanceUsd": 10.003635,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32337,7 +32337,7 @@
       "balanceUsd": 300,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32346,7 +32346,7 @@
       "balanceUsd": 8700,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32355,7 +32355,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32364,7 +32364,7 @@
       "balanceUsd": 2000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32373,7 +32373,7 @@
       "balanceUsd": 1500,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32382,7 +32382,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32391,7 +32391,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32400,7 +32400,7 @@
       "balanceUsd": 1098.347675,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32409,7 +32409,7 @@
       "balanceUsd": 10.572593,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32418,7 +32418,7 @@
       "balanceUsd": 12.95606,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32427,7 +32427,7 @@
       "balanceUsd": 10.103359,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32436,7 +32436,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32445,7 +32445,7 @@
       "balanceUsd": 531.876855,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32454,7 +32454,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32463,7 +32463,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32472,7 +32472,7 @@
       "balanceUsd": 25,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32481,7 +32481,7 @@
       "balanceUsd": 395.993919,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32490,7 +32490,7 @@
       "balanceUsd": 9000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32499,7 +32499,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32508,7 +32508,7 @@
       "balanceUsd": 7000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32517,7 +32517,7 @@
       "balanceUsd": 387.595804,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32526,7 +32526,7 @@
       "balanceUsd": 0.0153,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32535,7 +32535,7 @@
       "balanceUsd": 155.241932,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32544,7 +32544,7 @@
       "balanceUsd": 6101.65,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32553,7 +32553,7 @@
       "balanceUsd": 118.146453,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32562,7 +32562,7 @@
       "balanceUsd": 6977.695051,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32571,7 +32571,7 @@
       "balanceUsd": 18731.296776,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32580,7 +32580,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32589,7 +32589,7 @@
       "balanceUsd": 9.998065,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32598,7 +32598,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32607,7 +32607,7 @@
       "balanceUsd": 5640.09283,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32616,7 +32616,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32625,7 +32625,7 @@
       "balanceUsd": 13.7,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32634,7 +32634,7 @@
       "balanceUsd": 246.155982,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32643,7 +32643,7 @@
       "balanceUsd": 2000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32652,7 +32652,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32661,7 +32661,7 @@
       "balanceUsd": 10,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32670,7 +32670,7 @@
       "balanceUsd": 1000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32679,7 +32679,7 @@
       "balanceUsd": 9542,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32688,7 +32688,7 @@
       "balanceUsd": 10000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32697,7 +32697,7 @@
       "balanceUsd": 16226.500898,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32706,7 +32706,7 @@
       "balanceUsd": 101.203574,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32715,7 +32715,7 @@
       "balanceUsd": 5000,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32724,7 +32724,7 @@
       "balanceUsd": 51.640039,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32733,7 +32733,7 @@
       "balanceUsd": 110,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32742,7 +32742,7 @@
       "balanceUsd": 20.000715,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32751,7 +32751,7 @@
       "balanceUsd": 170.703,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -32769,7 +32769,7 @@
       "balanceUsd": 100,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -33201,7 +33201,7 @@
       "balanceUsd": 20.000959,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -33210,7 +33210,7 @@
       "balanceUsd": 20,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -33219,7 +33219,7 @@
       "balanceUsd": 20,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -33228,7 +33228,7 @@
       "balanceUsd": 15,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -33813,7 +33813,7 @@
       "balanceUsd": 8.353365,
       "pnlUsd": -41.564649,
       "feesUsd": 0.081986,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": -41.564649
     },
     {
@@ -33840,7 +33840,7 @@
       "balanceUsd": 0,
       "pnlUsd": 1.19178,
       "feesUsd": 7.552237,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 1.19178
     },
     {
@@ -35145,7 +35145,7 @@
       "balanceUsd": 105.75,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     },
     {
@@ -58707,7 +58707,7 @@
       "balanceUsd": 49.796996,
       "pnlUsd": 0,
       "feesUsd": 0,
-      "updatedAt": "2026-10-18T07:37:02.515Z",
+      "updatedAt": "2026-10-18T08:37:02.830Z",
       "peakPnlUsd": 0
     }
   ]
