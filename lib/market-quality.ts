@@ -46,6 +46,9 @@ export interface MarketQualityPayload {
 }
 
 const cache = new Map<string, { at: number; data: MarketQualityPayload }>();
+/** A market being read right now: the on-screen poll and the every-market
+ *  round often ask for the same one together, and share the one read. */
+const inFlight = new Map<string, Promise<MarketQualityPayload>>();
 
 let marketsCache: { at: number; data: ExchangeMarketInfo[] } | null = null;
 
@@ -124,10 +127,24 @@ export async function buildMarketQualityPayload(
   // the default market rather than nothing.
   if (!info && !(markets.length === 0 && symbol === DEFAULT_MARKET)) return null;
 
+  const hit = cache.get(symbol);
+  if (hit && Date.now() - hit.at < MARKET_QUALITY_TTL_MS) return hit.data;
+
+  let pending = inFlight.get(symbol);
+  if (!pending) {
+    pending = readMarket(symbol, info, markets).finally(() => inFlight.delete(symbol));
+    inFlight.set(symbol, pending);
+  }
+  return pending;
+}
+
+async function readMarket(
+  symbol: string,
+  info: ExchangeMarketInfo | undefined,
+  markets: ExchangeMarketInfo[],
+): Promise<MarketQualityPayload> {
   const now = Date.now();
   const hit = cache.get(symbol);
-  if (hit && now - hit.at < MARKET_QUALITY_TTL_MS) return hit.data;
-
   const [bookR, tickerR] = await Promise.allSettled([fetchL2Book(symbol), fetchTicker(symbol)]);
   const book = bookR.status === "fulfilled" ? bookR.value : null;
   const ticker = tickerR.status === "fulfilled" ? tickerR.value : null;

@@ -58,40 +58,58 @@ export interface ExchangeCandle {
  * 429 failed the whole sum. Every call here shares this one queue.
  */
 const EXCHANGE_MAX_IN_FLIGHT = 6;
+/** Slots past that cap only an urgent call may take, so a live book poll
+ *  never waits on a klines fan-out that only feeds a 30s volume figure.
+ *  The total still stays under the ten where the 429s start. */
+const EXCHANGE_URGENT_RESERVE = 2;
 let exchangeInFlight = 0;
-const exchangeQueue: Array<() => void> = [];
+const exchangeQueue: Array<{ resolve: () => void; urgent: boolean }> = [];
 
-async function withExchangeSlot<T>(task: () => Promise<T>): Promise<T> {
-  if (exchangeInFlight >= EXCHANGE_MAX_IN_FLIGHT) {
-    await new Promise<void>((resolve) => exchangeQueue.push(resolve));
-  } else {
+function exchangeSlotFree(urgent: boolean): boolean {
+  return exchangeInFlight < EXCHANGE_MAX_IN_FLIGHT + (urgent ? EXCHANGE_URGENT_RESERVE : 0);
+}
+
+async function withExchangeSlot<T>(task: () => Promise<T>, urgent = false): Promise<T> {
+  if (exchangeSlotFree(urgent)) {
     exchangeInFlight += 1;
+  } else {
+    await new Promise<void>((resolve) => {
+      // An urgent call waits behind the urgent ones already waiting, ahead
+      // of everything else.
+      const at = urgent ? exchangeQueue.findIndex((w) => !w.urgent) : -1;
+      exchangeQueue.splice(at === -1 ? exchangeQueue.length : at, 0, { resolve, urgent });
+    });
   }
   try {
     return await task();
   } finally {
-    // Hand the slot straight to the next waiter; only free it when none wait.
-    const next = exchangeQueue.shift();
-    if (next) next();
-    else exchangeInFlight -= 1;
+    exchangeInFlight -= 1;
+    // Start waiters in order while the head of the queue has a slot; the
+    // waiter's slot is counted here, before it resumes.
+    while (exchangeQueue.length && exchangeSlotFree(exchangeQueue[0].urgent)) {
+      exchangeInFlight += 1;
+      exchangeQueue.shift()!.resolve();
+    }
   }
 }
 
 async function exchangeFetch(
   path: string,
-  options: { revalidate?: number; noStore?: boolean } = {},
+  options: { revalidate?: number; noStore?: boolean; urgent?: boolean } = {},
 ): Promise<Response> {
-  const { revalidate = 15, noStore = false } = options;
+  const { revalidate = 15, noStore = false, urgent = false } = options;
   const url = `${EXCHANGE_API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
-  return withExchangeSlot(() =>
-    fetchWithRetry(
-      url,
-      {
-        headers: { Accept: "application/json", "User-Agent": USER_AGENT },
-        ...(noStore ? { cache: "no-store" as const } : { next: { revalidate } }),
-      },
-      { maxRetries: 3, timeoutMs: EXCHANGE_TIMEOUT_MS, baseBackoffMs: 500, maxBackoffMs: 4_000 },
-    ),
+  return withExchangeSlot(
+    () =>
+      fetchWithRetry(
+        url,
+        {
+          headers: { Accept: "application/json", "User-Agent": USER_AGENT },
+          ...(noStore ? { cache: "no-store" as const } : { next: { revalidate } }),
+        },
+        { maxRetries: 3, timeoutMs: EXCHANGE_TIMEOUT_MS, baseBackoffMs: 500, maxBackoffMs: 4_000 },
+      ),
+    urgent,
   );
 }
 
@@ -145,7 +163,7 @@ export async function fetchL2Book(
   symbol: string,
 ): Promise<{ bids: BookLevel[]; asks: BookLevel[]; timestamp: number } | null> {
   const params = new URLSearchParams({ coin: symbol, type: "l2book" });
-  const res = await exchangeFetch(`/l2book?${params.toString()}`, { noStore: true });
+  const res = await exchangeFetch(`/l2book?${params.toString()}`, { noStore: true, urgent: true });
   if (!res.ok) return null;
   const data = (await res.json()) as { levels?: [BookLevel[], BookLevel[]]; timestamp?: number };
   if (!Array.isArray(data.levels) || data.levels.length < 2) return null;
@@ -162,7 +180,7 @@ export interface ExchangeTicker {
 }
 
 export async function fetchTicker(symbol: string): Promise<ExchangeTicker | null> {
-  const res = await exchangeFetch(`/ticker/${encodeURIComponent(symbol)}`, { noStore: true });
+  const res = await exchangeFetch(`/ticker/${encodeURIComponent(symbol)}`, { noStore: true, urgent: true });
   if (!res.ok) return null;
   return (await res.json()) as ExchangeTicker;
 }

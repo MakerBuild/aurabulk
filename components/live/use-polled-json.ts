@@ -11,7 +11,17 @@ import { holdBoot } from "@/lib/boot-gate";
  */
 export function usePolledJson<T>(
   url: string,
-  { intervalMs, minGapMs }: { intervalMs: number; minGapMs: number },
+  {
+    intervalMs,
+    minGapMs,
+    holdsBoot = true,
+  }: {
+    intervalMs: number;
+    minGapMs: number;
+    /** False for a background poll the page can open without: the splash
+     *  then never waits on it. */
+    holdsBoot?: boolean;
+  },
   onData: (data: T) => void
 ) {
   const onDataRef = useRef(onData);
@@ -42,7 +52,7 @@ export function usePolledJson<T>(
 
     // The first reading holds the boot splash, so the page opens on live
     // figures rather than swapping them in mid-animation.
-    void holdBoot(refresh());
+    void (holdsBoot ? holdBoot(refresh()) : refresh());
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === "visible") void refresh();
     }, intervalMs);
@@ -58,5 +68,5 @@ export function usePolledJson<T>(
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [url, intervalMs, minGapMs]);
+  }, [url, intervalMs, minGapMs, holdsBoot]);
 }

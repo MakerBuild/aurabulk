@@ -27,8 +27,10 @@ import { cn } from "@/lib/utils";
  *  a live book rather than a flicker. Matches the server cache below it. */
 const POLL = { intervalMs: 2_000, minGapMs: 1_500 };
 /** The other markets, kept warm for a ticker switch: slow, since the one on
- *  screen replaces its reading with a fresh one within a poll anyway. */
-const ALL_POLL = { intervalMs: 15_000, minGapMs: 10_000 };
+ *  screen replaces its reading with a fresh one within a poll anyway. It
+ *  takes seconds (every market's book, a couple at a time), so the splash
+ *  waits only on the market on screen, never on this. */
+const ALL_POLL = { intervalMs: 15_000, minGapMs: 10_000, holdsBoot: false };
 const EMPTY_BOOK: Book = { bids: [], asks: [] };
 /** Where the viewer's choice of liquidity levels is kept between visits. */
 const LEVELS_KEY = "stats:liquidity-levels";
