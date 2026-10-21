@@ -20,6 +20,7 @@ import { formatSignedDelta, usdBoard } from "@/components/overview/spark-format"
 import { DayBars, PoolCurve } from "@/components/challenger/WeekCharts";
 import { Standings, type StandingsData } from "@/components/challenger/Standings";
 import { FootStats, type FootStat } from "@/components/challenger/FootStats";
+import { LeagueCarousel } from "@/components/challenger/LeagueCarousel";
 
 const WEEK_MS = 7 * 86_400_000;
 /** The API reads the exchange's fee total behind a 15s cache; polling
@@ -388,6 +389,80 @@ export function ChallengerOverview({
     gold: byRank.get("Gold")?.traders ?? 0,
   });
 
+  const leagueCards = leagues.map((league, i) => {
+    const prize = league.rank in prizes ? prizes[league.rank as keyof typeof prizes] : null;
+    const rows = [
+      { label: "Traders", value: count(league.traders) },
+      { label: "Min AURA", value: count(league.minAura) },
+      // No per trader figure: the pool is split pro rata by Trading
+      // AURA, not evenly, so an average would promise what nobody gets.
+      { label: "Prize pool", value: prize == null ? "No cash" : loading ? "—" : usd2(prize), prize: true },
+    ];
+    return (
+      <PanelCard
+        key={league.rank}
+        glossy={i === 0}
+        glossDelay={-7}
+        className={cn("py-5 text-center", i === 0 && "border-[rgb(var(--t-accent-rgb)/0.35)]")}
+      >
+        {/* Own column: a glossy card wraps its children in one more box,
+            so centring on the card itself would shrink that box. */}
+        <div className="flex w-full flex-col items-center gap-2">
+          {/* Decorative: the league's name sits right under it. The glint
+              is masked to the badge's own shape, so the light only ever
+              crosses the metal, and each card catches it a beat after
+              the one before, like sun moving along a row of badges. */}
+          {/* Swells a little more at the centre of the phone carousel,
+              which sets --focus; elsewhere it is unset and stays put. */}
+          <span className="relative size-14 shrink-0 [scale:calc(1+0.18*var(--focus,0))]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/ranks/${league.rank.toLowerCase()}.webp`}
+              alt=""
+              width={56}
+              height={56}
+              className="size-14 object-contain"
+            />
+            <span
+              className="badge-glint"
+              style={{
+                maskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
+                WebkitMaskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
+                animationDelay: `${i * 0.35}s`,
+              }}
+              aria-hidden
+            />
+          </span>
+          <p
+            className={cn(
+              "m-0 text-[14px] font-semibold uppercase tracking-[0.08em]",
+              i === 0 ? "text-accent" : "text-text-primary"
+            )}
+          >
+            {league.rank}
+          </p>
+          <p className="font-data m-0 text-[11px] leading-none text-text-muted">{positions(league)}</p>
+          <dl className="m-0 mt-2 flex w-full flex-col gap-2 border-t border-[var(--color-line)] pt-3">
+            {rows.map((row) => (
+              <div key={row.label} className="flex items-baseline justify-between gap-2">
+                <dt className="font-label whitespace-nowrap text-text-dim">{row.label}</dt>
+                <dd
+                  className={cn(
+                    "font-data m-0 tabular-nums",
+                    row.prize && prize != null ? "text-accent" : "text-text-secondary",
+                    prize == null && row.label !== "Traders" && row.label !== "Min AURA" && "text-text-muted"
+                  )}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </PanelCard>
+    );
+  });
+
   return (
     <>
       {/* Equal halves: at full width each sits over three league cards. */}
@@ -478,79 +553,12 @@ export function ChallengerOverview({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        {leagues.map((league, i) => {
-          const prize = league.rank in prizes ? prizes[league.rank as keyof typeof prizes] : null;
-          const rows = [
-            { label: "Traders", value: count(league.traders) },
-            { label: "Min AURA", value: count(league.minAura) },
-            // No per trader figure: the pool is split pro rata by Trading
-            // AURA, not evenly, so an average would promise what nobody gets.
-            { label: "Prize pool", value: prize == null ? "No cash" : loading ? "—" : usd2(prize), prize: true },
-          ];
-          return (
-            <PanelCard
-              key={league.rank}
-              glossy={i === 0}
-              glossDelay={-7}
-              className={cn("py-5 text-center", i === 0 && "border-[rgb(var(--t-accent-rgb)/0.35)]")}
-            >
-              {/* Own column: a glossy card wraps its children in one more box,
-                  so centring on the card itself would shrink that box. */}
-              <div className="flex w-full flex-col items-center gap-2">
-                {/* Decorative: the league's name sits right under it. The glint
-                    is masked to the badge's own shape, so the light only ever
-                    crosses the metal, and each card catches it a beat after
-                    the one before, like sun moving along a row of badges. */}
-                <span className="relative size-14 shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/ranks/${league.rank.toLowerCase()}.webp`}
-                    alt=""
-                    width={56}
-                    height={56}
-                    className="size-14 object-contain"
-                  />
-                  <span
-                    className="badge-glint"
-                    style={{
-                      maskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
-                      WebkitMaskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
-                      animationDelay: `${i * 0.35}s`,
-                    }}
-                    aria-hidden
-                  />
-                </span>
-                <p
-                  className={cn(
-                    "m-0 text-[14px] font-semibold uppercase tracking-[0.08em]",
-                    i === 0 ? "text-accent" : "text-text-primary"
-                  )}
-                >
-                  {league.rank}
-                </p>
-                <p className="font-data m-0 text-[11px] leading-none text-text-muted">{positions(league)}</p>
-                <dl className="m-0 mt-2 flex w-full flex-col gap-2 border-t border-[var(--color-line)] pt-3">
-                  {rows.map((row) => (
-                    <div key={row.label} className="flex items-baseline justify-between gap-2">
-                      <dt className="font-label whitespace-nowrap text-text-dim">{row.label}</dt>
-                      <dd
-                        className={cn(
-                          "font-data m-0 tabular-nums",
-                          row.prize && prize != null ? "text-accent" : "text-text-secondary",
-                          prize == null && row.label !== "Traders" && row.label !== "Min AURA" && "text-text-muted"
-                        )}
-                      >
-                        {row.value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            </PanelCard>
-          );
-        })}
-      </div>
+      {/* A grid from tablets up; on a phone, a carousel instead of a column
+          of six cards to scroll past. */}
+      <div className="hidden gap-4 md:grid md:grid-cols-3 xl:grid-cols-6">{leagueCards}</div>
+      <LeagueCarousel label="Leagues" className="-mx-4 sm:-mx-7 md:hidden">
+        {leagueCards}
+      </LeagueCarousel>
 
       <Standings data={standings} prizes={prizes} loading={loading} />
     </>

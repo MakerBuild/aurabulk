@@ -1021,26 +1021,13 @@ body:has(.boot-splash:not(.is-ready)) .curve-pop {
   text-shadow: none;
 }
 
-@keyframes scroll-to-top-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-.scroll-to-top-float {
-  animation: scroll-to-top-float 2.8s ease-in-out infinite;
-}
-
 /* The Challenger Series leaderboard's expand chevrons: three strokes that
    light one after another from the top and fade out again, like waves
    running up a beach. Opacity alone: a transform on an SVG path is not
    composited and snaps to whole pixels, which made the strokes judder, and a
    resting opacity above zero left the unlit strokes showing as a grey smear.
-   Not gated on reduced motion, for the reason under the float. */
+   Not gated on reduced motion: Windows "Animation effects: off" maps onto
+   that query and would freeze it on desktop. */
 @keyframes chevron-wave {
   0%,
   100% {
@@ -1108,18 +1095,16 @@ body:has(.boot-splash:not(.is-ready)) .curve-pop {
   animation: badge-glint 5s ease-in-out infinite;
 }
 
-.scroll-to-top-btn:hover {
-  border-color: rgb(var(--t-accent-rgb) / 0.55);
-  color: var(--t-accent);
+/* In the phone carousel only the centred card's badge catches the light.
+   Taking it out of the others also restarts it on each card as it comes to
+   the centre, so the badge shines as soon as it arrives: without the grid's
+   one-after-another delay, which the card carries inline. */
+.carousel-slide[aria-hidden] .badge-glint {
+  display: none;
 }
 
-/* The float is deliberately not gated on prefers-reduced-motion: Windows
-   "Animation effects: off" maps onto that query and would freeze it on
-   desktop, the same reason the live lamp and the switch underline run. */
-@media (prefers-reduced-motion: reduce) {
-  .scroll-to-top-btn {
-    transition: none;
-  }
+.carousel-slide .badge-glint {
+  animation-delay: 0s !important;
 }
 
 /* Rounded to the cards' own 10px and drawn in the same hairline they are, so

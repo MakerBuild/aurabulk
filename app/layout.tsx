@@ -7,7 +7,6 @@ import { LiveFinancialProvider } from "@/components/live/LiveFinancialProvider";
 import { LiveExchangeProvider } from "@/components/live/LiveExchangeProvider";
 import { LIVE_FINANCIAL_SEED } from "@/lib/live-financial-seed";
 import { buildLiveExchangePayload } from "@/lib/live-exchange-payload";
-import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { HashScrollOnLoad } from "@/components/layout/HashScrollOnLoad";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
@@ -98,7 +97,6 @@ export default async function RootLayout({
               <HashScrollOnLoad />
               <SiteNav />
               <main>{children}</main>
-              <ScrollToTop />
             </LiveExchangeProvider>
           </LiveFinancialProvider>
         </ThemeProvider>
