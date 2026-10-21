@@ -3,8 +3,14 @@
  *
  * The indexer's Aura leaderboard takes `trading_only=true`, which ranks the
  * wallets with trading volume by Aura from trading and attaches each one's
- * league — one or two pages cover everyone. Wallets it does not list, or
- * lists without a league, are Unranked.
+ * league; one or two pages cover everyone. `league_source=frozen` asks for
+ * the leagues as BULK settled them at the last snapshot, which is what the
+ * BULK app shows and pays on: the default, `live`, is a running preview that
+ * still counts the market makers the rules leave out. Wallets it does not
+ * list, or lists without a league, are Unranked.
+ *
+ * Ranks run on Trading Aura since launch, not one week's: a trader who skips
+ * a week keeps the league their earlier weeks earned (confirmed by BULK).
  *
  *   npm run record:leagues
  */
@@ -33,7 +39,7 @@ async function main() {
 
   for (let page = 1; ; page += 1) {
     const data = await upstreamJson<TradingLeaderboardPage>(
-      `/v1/aura/leaderboard?trading_only=true&page=${page}&page_size=${PAGE_SIZE}`,
+      `/v1/aura/leaderboard?trading_only=true&league_source=frozen&page=${page}&page_size=${PAGE_SIZE}`,
       { noStore: true, timeoutMs: 30_000 },
     );
     if (!data?.rows) throw new Error(`trading leaderboard page ${page} came back empty`);

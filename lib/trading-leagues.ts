@@ -9,11 +9,14 @@ export interface TradingLeagueRow {
   rank: RankName;
   /** Position among qualified wallets, 1 = most trading Aura. */
   position: number | null;
+  /** Trading Aura since launch, as BULK's leaderboard shows it: leagues are
+   *  ranked by it, and each league's pool is split by it. */
   tradingAura: number;
 }
 
 /**
- * Every wallet's official trading rank, recorded by
+ * Every wallet's official trading rank, as BULK settled it at the last weekly
+ * snapshot (the indexer's frozen leagues, market makers left out), recorded by
  * scripts/record-trading-leagues.ts with the weekly refresh rather than
  * fetched per request.
  */

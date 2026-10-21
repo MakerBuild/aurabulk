@@ -40,8 +40,9 @@ export interface DepositTier {
   auraPct: number;
   /** Aura per wallet in the tier. */
   avgAura: number;
-  /** Compact min–max Aura among wallets in the tier. */
-  auraRange: string;
+  /** Trading Aura it takes to be in the tier, e.g. "≥ 21k": its last
+   *  wallet's figure. A dash for Unranked and for an empty tier. */
+  auraEntry: string;
   color: string;
 }
 
@@ -70,13 +71,12 @@ function compactAura(value: number): string {
   return Math.round(value).toLocaleString("en-US");
 }
 
-/** The rank's actual trading-Aura span, e.g. "30-221"; one figure when the
- * rank holds a single value, a dash when it is empty. */
-function auraRangeLabel(bucket: DepositSizeBucket): string {
-  if (!(bucket.count > 0)) return "—";
-  const min = compactAura(bucket.auraMin);
-  const max = compactAura(bucket.auraMax);
-  return min === max ? max : `${min}-${max}`;
+/** What it takes to make the rank: the lowest trading Aura among its
+ * wallets, e.g. "≥ 21k". Unranked has no bar to clear, and an empty rank no
+ * wallet to read it from; both show a dash. */
+function auraEntryLabel(name: string, bucket: DepositSizeBucket): string {
+  if (name === "Unranked" || !(bucket.count > 0)) return "—";
+  return `≥ ${compactAura(bucket.auraMin)}`;
 }
 
 /**
@@ -205,7 +205,7 @@ export function buildOverviewPanels(input: {
       id: name.toLowerCase(),
       label: name,
       ...bucket,
-      rangeLabel: auraRangeLabel(bucket),
+      entryLabel: auraEntryLabel(name, bucket),
       color: chartPrimaryRamp(i, RANK_NAMES.length),
     };
   });
@@ -233,7 +233,7 @@ export function buildOverviewPanels(input: {
     avgHeld: t.count > 0 ? t.held / t.count : 0,
     auraPct: (t.aura / auraBase) * 100,
     avgAura: t.count > 0 ? t.aura / t.count : 0,
-    auraRange: t.rangeLabel,
+    auraEntry: t.entryLabel,
   }));
 
   // Same rule for the deposit-size bars and the OG share: both are cut from

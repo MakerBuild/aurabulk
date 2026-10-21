@@ -202,6 +202,17 @@ async function buildCampaignWeek(now: number): Promise<VolumeHistoryPayload> {
   return { range: "W", interval: RANGE_INTERVAL.W, buckets: week };
 }
 
+/** This campaign week hour by hour, from the Saturday snapshot to now: the
+ *  Challenger Series prize pool and Gauntlet charts draw from it. */
+export function buildCampaignWeekHourly(): Promise<VolumeBucket[]> {
+  return staleWhileRevalidate("W:1h", async () => {
+    const now = Date.now();
+    const weekStart = getNextSnapshotTimestamp(now) - WEEK_DAYS * DAY_MS;
+    const { buckets } = await buildBuckets("W", "1h", weekStart, now);
+    return buckets.filter((b) => b.t >= weekStart);
+  });
+}
+
 const YEAR_MONTHS = 12;
 
 /** Y is one bar per UTC calendar month, this one and the eleven before it.

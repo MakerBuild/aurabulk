@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
       { source: "/aura/distribution", destination: "/aura", permanent: true },
       // The page was launched as Stats; links shared under that name still land.
       { source: "/stats", destination: "/execution", permanent: true },
+      // Trade was a placeholder; the slot now holds the Challenger Series.
+      { source: "/trade", destination: "/challenger-series", permanent: true },
     ];
   },
   // Keep the last page around so Overview ↔ Aura ↔ Tools feel instant.

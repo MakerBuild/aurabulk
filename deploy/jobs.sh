@@ -5,6 +5,7 @@
 #
 #   jobs.sh levels   hourly  open interest + active traders, OI history
 #   jobs.sh volume   hourly  14d wallet trading volume
+#   jobs.sh fees     hourly  exchange fee totals (weekly prize pool baseline)
 #   jobs.sh tvl      daily   leaderboard financials, TVL totals, metrics
 #   jobs.sh aura     weekly  full Aura leaderboard, trading ranks, metrics
 #   jobs.sh watch    check whether upstream's Aura snapshot moved; run `aura` if so
@@ -83,6 +84,11 @@ volume() {
   commit_and_push "chore: record wallet trading volume" data/volume-leaderboard.json
 }
 
+fees() {
+  npm run -s record:fees
+  commit_and_push "chore: record exchange fee totals" data/fee-history.json
+}
+
 tvl() {
   npm run -s fetch -- --no-snapshot
   npm run -s fetch:totals
@@ -119,11 +125,12 @@ watch() {
 case "${1:-}" in
   levels) with_lock levels 0 levels ;;
   volume) with_lock volume 0 volume ;;
+  fees) with_lock fees 0 fees ;;
   tvl) with_lock leaderboard 3600 tvl ;;
   aura) with_lock leaderboard 3600 aura ;;
   watch) with_lock watch 0 watch ;;
   *)
-    echo "usage: jobs.sh levels|volume|tvl|aura|watch" >&2
+    echo "usage: jobs.sh levels|volume|fees|tvl|aura|watch" >&2
     exit 2
     ;;
 esac

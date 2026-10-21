@@ -19,7 +19,8 @@
     "generate:recap": "node scripts/generate-recap-png.mjs",
     "import": "tsx scripts/import-leaderboard.ts",
     "enrich-referrers": "tsx scripts/enrich-referrer-deposits.ts",
-    "record:leagues": "tsx scripts/record-trading-leagues.ts"
+    "record:leagues": "tsx scripts/record-trading-leagues.ts",
+    "record:fees": "tsx scripts/record-fee-history.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

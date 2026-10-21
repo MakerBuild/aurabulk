@@ -23,6 +23,13 @@ git fetch -q origin main
 git pull -q --rebase --autostash origin main
 flock -u 9
 
+# The schedule lives in the repo too. setup.sh installs it once; a pull that
+# changes it (a new job) is installed here, or the job would never run.
+if ! diff -q <(crontab -l 2>/dev/null) deploy/crontab >/dev/null; then
+  crontab deploy/crontab
+  echo "[$(date -u +%FT%TZ)] crontab updated"
+fi
+
 HEAD_SHA=$(git rev-parse --short=12 HEAD)
 DEPLOYED_SHA=$(basename "$(readlink -f "$ROOT/current" 2>/dev/null || echo none)")
 

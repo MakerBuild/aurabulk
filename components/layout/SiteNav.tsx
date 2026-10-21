@@ -29,7 +29,7 @@ const NAV: NavItem[] = [
   { href: "/execution", label: "Execution" },
   { href: "/tools", label: "Tools" },
   { href: "/leaderboards", label: "Leaderboards" },
-  { href: "/trade", label: "Trade" },
+  { href: "/challenger-series", label: "Challenger Series" },
 ];
 
 /** A section is active for its own route and anything nested beneath it. */
@@ -127,6 +127,8 @@ export function SiteNav() {
                       active ? "text-accent" : "text-text-muted hover:text-text-primary"
                     )}
                     data-active={active || undefined}
+                    // The season's own page carries a standing gold ring.
+                    data-spotlight={item.href === "/challenger-series" || undefined}
                   >
                     {item.label}
                   </Link>

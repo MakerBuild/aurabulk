@@ -235,7 +235,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
       return {
         ...t,
         name,
-        range: t.auraRange,
+        entry: t.auraEntry,
         countHeight: countScale(t.count),
         valueHeight: auraScale(t.aura),
       };
@@ -509,7 +509,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 <span className="text-right">Share</span>
               </>
             )}
-            {!narrow && <span className="text-right">Aura</span>}
+            {!narrow && <span className="text-right">Entry</span>}
             {!narrow && <span className="text-right">Total Aura</span>}
             {!narrow && <span className="text-right">Avg</span>}
           </div>
@@ -581,7 +581,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
                 )}
                 {!narrow && (
                   <span className={cn(CELL, "text-right")} style={{ color }}>
-                    {row.range}
+                    {row.entry}
                   </span>
                 )}
                 {!narrow && (

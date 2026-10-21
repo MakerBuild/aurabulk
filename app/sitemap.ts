@@ -8,7 +8,7 @@ const ROUTES: { path: string; priority: number }[] = [
   { path: "/execution", priority: 0.7 },
   { path: "/leaderboards", priority: 0.8 },
   { path: "/tools", priority: 0.6 },
-  { path: "/trade", priority: 0.4 },
+  { path: "/challenger-series", priority: 0.6 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -718,9 +718,74 @@ body {
   animation: spark-reveal 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* The Challenger Series AURA curve's entrance: the line draws itself along
+   the climb while the fill rises from the baseline under it. The line's path
+   is set to pathLength 1, so one dash covers it whatever its real length. */
+@keyframes curve-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes curve-rise {
+  from {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.curve-draw {
+  stroke-dasharray: 1;
+  animation: curve-draw 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.curve-rise {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: curve-rise 1200ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
+}
+
+/* The curve's #25 and #26 markers land once the line has drawn past them. */
+@keyframes curve-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.curve-pop {
+  animation: curve-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 1100ms both;
+}
+
+/* The curve's Challenger line flows slowly toward the top of the board: one
+   dash and gap (5 + 4) per beat, so the loop is seamless. */
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -9;
+  }
+}
+
+.dash-flow {
+  animation: dash-flow 900ms linear infinite;
+}
+
 /* Hold entrance animations until the boot splash lifts, so they play where
    they can be seen rather than underneath it. */
-body:has(.boot-splash:not(.is-ready)) .spark-reveal {
+body:has(.boot-splash:not(.is-ready)) .spark-reveal,
+body:has(.boot-splash:not(.is-ready)) .curve-draw,
+body:has(.boot-splash:not(.is-ready)) .curve-rise,
+body:has(.boot-splash:not(.is-ready)) .curve-pop {
   animation-play-state: paused;
 }
 
@@ -874,6 +939,55 @@ body:has(.boot-splash:not(.is-ready)) .spark-reveal {
   background: var(--color-accent);
 }
 
+/* The Challenger Series nav item has two short gold glints running round it
+   on opposite sides, half a turn apart, like light catching a rim. Only the
+   glints show: the rest of the ring is fully clear, so no outline stands
+   round the item. The ring is a conic
+   gradient cut down to its 1px border by the mask; the glint's start angle
+   turns through a registered property so it can animate. On ::before, as the
+   active underline holds ::after. Not gated on reduced motion, for the
+   reason above. */
+@property --nav-spin {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes nav-spin {
+  to {
+    --nav-spin: 360deg;
+  }
+}
+
+.site-nav-link[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  inset: -1px -10px;
+  border-radius: 9999px;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--nav-spin),
+    rgb(var(--t-accent-rgb) / 0) 0deg,
+    rgb(var(--t-accent-rgb) / 0) 100deg,
+    rgb(var(--t-accent-rgb) / 0.5) 140deg,
+    rgb(var(--t-accent-rgb) / 1) 165deg,
+    rgb(var(--t-accent-rgb) / 0) 180deg,
+    rgb(var(--t-accent-rgb) / 0) 280deg,
+    rgb(var(--t-accent-rgb) / 0.5) 320deg,
+    rgb(var(--t-accent-rgb) / 1) 345deg,
+    rgb(var(--t-accent-rgb) / 0) 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+  animation: nav-spin 2.4s linear infinite;
+}
+
 /* Outlined neutral control. */
 .ghost-pill {
   border: 1px solid var(--color-line-strong);
@@ -919,6 +1033,79 @@ body:has(.boot-splash:not(.is-ready)) .spark-reveal {
 
 .scroll-to-top-float {
   animation: scroll-to-top-float 2.8s ease-in-out infinite;
+}
+
+/* The Challenger Series leaderboard's expand chevrons: three strokes that
+   light one after another from the top and fade out again, like waves
+   running up a beach. Opacity alone: a transform on an SVG path is not
+   composited and snaps to whole pixels, which made the strokes judder, and a
+   resting opacity above zero left the unlit strokes showing as a grey smear.
+   Not gated on reduced motion, for the reason under the float. */
+@keyframes chevron-wave {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 0;
+  }
+}
+
+.chevron-wave path {
+  opacity: 0;
+  will-change: opacity;
+  animation: chevron-wave 1.35s ease-in-out infinite;
+}
+
+.chevron-wave path:nth-child(2) {
+  animation-delay: 0.19s;
+}
+
+.chevron-wave path:nth-child(3) {
+  animation-delay: 0.38s;
+}
+
+/* League badges on the Challenger Series page catch the light now and then,
+   like stamped metal: a bright diagonal band crosses the badge in about a
+   second, then the badge rests for the remaining four. The layer is masked to
+   the badge image (set inline), so the band never shows on the transparent
+   corners around it. Not gated on reduced motion, as the float below. */
+@keyframes badge-glint {
+  0% {
+    background-position: 160% 0;
+  }
+  22%,
+  100% {
+    background-position: -60% 0;
+  }
+}
+
+.badge-glint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-image: linear-gradient(
+    115deg,
+    transparent 38%,
+    rgb(255 255 255 / 0.35) 45%,
+    rgb(255 255 255 / 0.9) 50%,
+    rgb(255 255 255 / 0.35) 55%,
+    transparent 62%
+  );
+  background-size: 260% 100%;
+  background-repeat: no-repeat;
+  background-position: 160% 0;
+  mix-blend-mode: screen;
+  animation: badge-glint 5s ease-in-out infinite;
 }
 
 .scroll-to-top-btn:hover {

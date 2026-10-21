@@ -131,6 +131,47 @@ export async function fetchExchangeMetrics(
   return (await res.json()) as ExchangeMetrics;
 }
 
+/** Exchange-wide fee totals since launch, as `/feeState` reports them. */
+export interface FeeTotals {
+  /** When the exchange read them, ms. */
+  at: number;
+  settledFills: number;
+  /** Fees taken from takers, positive. */
+  takerFeesUsd: number;
+  /** Rebates paid to makers, positive. */
+  makerRebatesUsd: number;
+  /** Taker fees less maker rebates: BULK's net revenue. */
+  netRevenueUsd: number;
+}
+
+interface FeeStatePayload {
+  stamp?: number;
+  settledFills?: number;
+  totalMakerFees?: number;
+  totalTakerFees?: number;
+  totalProtocolSettlement?: number;
+}
+
+/** Running fee totals. Each fill moves them, so callers keep the cache short.
+ *  Upstream signs them from the protocol's side of the book: taker fees come
+ *  back negative, maker rebates positive. */
+export async function fetchFeeTotals(revalidate = 10): Promise<FeeTotals | null> {
+  const res = await exchangeFetch("/feeState", { revalidate });
+  if (!res.ok) return null;
+  const data = (await res.json()) as FeeStatePayload;
+  const netRevenueUsd = Number(data.totalProtocolSettlement);
+  if (!Number.isFinite(netRevenueUsd) || netRevenueUsd <= 0) return null;
+  // `stamp` is nanoseconds.
+  const stampMs = Number(data.stamp) / 1e6;
+  return {
+    at: Number.isFinite(stampMs) && stampMs > 0 ? Math.round(stampMs) : Date.now(),
+    settledFills: Number(data.settledFills) || 0,
+    takerFeesUsd: Math.abs(Number(data.totalTakerFees) || 0),
+    makerRebatesUsd: Math.abs(Number(data.totalMakerFees) || 0),
+    netRevenueUsd,
+  };
+}
+
 export async function fetchKlines(
   symbol: string,
   interval: string,

@@ -11,6 +11,10 @@ D=/opt/aurabulk/repo/deploy
 7 * * * *          $D/jobs.sh levels   >> $LOGS/levels.log 2>&1
 37 * * * *         $D/jobs.sh volume   >> $LOGS/volume.log 2>&1
 
+# Fee totals on the hour, so a reading lands on the Saturday 12:00 snapshot
+# that each week's Challenger Series prize pool is counted from.
+0 * * * *          $D/jobs.sh fees     >> $LOGS/fees.log 2>&1
+
 # Leaderboard financials and TVL totals, daily.
 0 0 * * *          $D/jobs.sh tvl      >> $LOGS/tvl.log 2>&1
 

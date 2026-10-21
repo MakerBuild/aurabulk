@@ -67,7 +67,7 @@ export function PageHeading({
           </h1>
         </div>
         {/* Tab strip only when the page actually has switches (Tools /
-            Leaderboards). An empty reserve left Aura / Trade with a dead
+            Leaderboards). An empty reserve left plain headings with a dead
             band under the title and made those headers look inflated. */}
         {children ? (
           <div className="relative mt-7 -mb-8 flex min-h-[30px] items-end justify-center">
