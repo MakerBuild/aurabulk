@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import "lenis/dist/lenis.css";
 import "./globals.css";
 import { BootSplash } from "@/components/layout/BootSplash";
 import { SiteNav } from "@/components/layout/SiteNav";
@@ -8,6 +9,7 @@ import { LiveExchangeProvider } from "@/components/live/LiveExchangeProvider";
 import { LIVE_FINANCIAL_SEED } from "@/lib/live-financial-seed";
 import { buildLiveExchangePayload } from "@/lib/live-exchange-payload";
 import { HashScrollOnLoad } from "@/components/layout/HashScrollOnLoad";
+import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
@@ -95,6 +97,7 @@ export default async function RootLayout({
           <LiveFinancialProvider initial={LIVE_FINANCIAL_SEED}>
             <LiveExchangeProvider initial={exchange}>
               <HashScrollOnLoad />
+              <SmoothScroll />
               <SiteNav />
               <main>{children}</main>
             </LiveExchangeProvider>
