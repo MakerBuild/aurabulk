@@ -322,9 +322,16 @@ export function DayBars({
               ) : (
                 <div
                   className={cn(
-                    "rounded-t-[3px] transition-[height,opacity,background-color] duration-300",
+                    "rounded-t-[3px] duration-300",
                     i === today || i === active ? "bg-accent" : "bg-[rgb(var(--t-accent-rgb)/0.35)]",
                     active != null && active !== i && "opacity-50",
+                    // Today is still filling, so it breathes on the site's
+                    // gold beat, and rests while another day is being read.
+                    // No opacity transition on it: one cancels the pulse in
+                    // Chromium.
+                    i === today
+                      ? cn("transition-[height,background-color]", (active == null || active === i) && "apr-week-pulse")
+                      : "transition-[height,opacity,background-color]",
                   )}
                   style={{ height: `${Math.max(3, (usd / top) * (plotH - PAD_TOP))}px` }}
                 />
