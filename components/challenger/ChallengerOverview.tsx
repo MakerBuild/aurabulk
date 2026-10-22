@@ -17,7 +17,7 @@ import type { RankName } from "@/lib/ranks";
 import type { WeeklyRevenuePayload } from "@/lib/weekly-revenue";
 import { cn } from "@/lib/utils";
 import { formatSignedDelta, usdBoard } from "@/components/overview/spark-format";
-import { DayBars, PoolCurve } from "@/components/challenger/WeekCharts";
+import { DayBars, PoolCurve, weekDays } from "@/components/challenger/WeekCharts";
 import { Standings, type StandingsData } from "@/components/challenger/Standings";
 import { FootStats, type FootStat } from "@/components/challenger/FootStats";
 import { LeagueCarousel } from "@/components/challenger/LeagueCarousel";
@@ -331,10 +331,11 @@ function weekSeries(anchor: WeeklyRevenuePayload, now: number, livePoolUsd: numb
   }
   points.push({ t: end, usd: livePoolUsd });
 
-  const days = Array.from({ length: 7 }, () => 0);
+  const slots = weekDays(weekStart);
+  const days = slots.map(() => 0);
   for (const hour of hours) {
-    const day = Math.floor((hour.t - weekStart) / 86_400_000);
-    if (day >= 0 && day < 7) days[day] += hour.volumeUsd;
+    const day = slots.findIndex((d) => hour.t >= d.start && hour.t < d.end);
+    if (day >= 0) days[day] += hour.volumeUsd;
   }
 
   const elapsed = Math.max(HOUR_MS, end - weekStart);

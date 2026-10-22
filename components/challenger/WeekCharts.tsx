@@ -5,6 +5,7 @@ import { CHART_GOLD } from "@/lib/overview-metrics";
 import { formatUtcTime } from "@/components/overview/spark-format";
 import { cn } from "@/lib/utils";
 
+const HOUR_MS = 3_600_000;
 const DAY_MS = 86_400_000;
 const WEEK_MS = 7 * DAY_MS;
 /** The least a plot is drawn at. It takes whatever height its card gives
@@ -17,8 +18,53 @@ const PAD_TOP = 6;
 const CURVE_TOP = 12;
 const CURVE_RIGHT = 6;
 
-/** Campaign days open at the Saturday 12:00 snapshot. */
-const DAY_LABELS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const;
+/** One calendar day (UTC) of the campaign week. */
+export interface WeekDay {
+  start: number;
+  end: number;
+  label: string;
+  /** Set on a day the week only holds part of: it opens, or closes, mid-day. */
+  part: "from" | "to" | null;
+}
+
+/**
+ * The campaign week cut into calendar days at UTC midnight, so today reads
+ * as today. The week runs Saturday 12:00 to Saturday 12:00 UTC, so it opens
+ * and closes on half a Saturday: eight days, the two halves drawn half as
+ * wide. Cutting at the snapshot instead made "Wed" run on to Thursday noon.
+ */
+export function weekDays(weekStart: number): WeekDay[] {
+  const weekEnd = weekStart + WEEK_MS;
+  const days: WeekDay[] = [];
+  for (let start = weekStart; start < weekEnd; ) {
+    const end = Math.min(weekEnd, Math.floor(start / DAY_MS) * DAY_MS + DAY_MS);
+    days.push({
+      start,
+      end,
+      label: new Date(start).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" }),
+      part: start % DAY_MS ? "from" : end % DAY_MS ? "to" : null,
+    });
+    start = end;
+  }
+  return days;
+}
+
+/** The day holding `t`; before the week, its first, after it, its last. */
+function dayIndex(days: WeekDay[], t: number): number {
+  const i = days.findIndex((d) => t < d.end);
+  return i < 0 ? days.length - 1 : i;
+}
+
+/** Columns as wide as each day is long, so a half day takes half a slot. */
+function dayColumns(days: WeekDay[]): string {
+  return days.map((d) => `${(d.end - d.start) / HOUR_MS}fr`).join(" ");
+}
+
+/** `Sat · from 12:00` on a half day, plain `Sun` on a whole one. */
+function dayName(day: WeekDay): string {
+  if (!day.part) return day.label;
+  return `${day.label} · ${day.part} ${formatUtcTime(day.part === "from" ? day.start : day.end)}`;
+}
 
 /** The plot is drawn in real pixels, not a stretched viewBox, so the dot
  *  stays round and the dashes keep their length at any card width. */
@@ -69,27 +115,23 @@ export function TipLine({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Sat to Fri under a plot, the current day picked out. */
-function DayAxis({ today, active }: { today: number; active?: number | null }) {
+/** The week's days under a plot, the current day picked out. */
+function DayAxis({ days, today, active }: { days: WeekDay[]; today: number; active?: number | null }) {
   return (
-    <div className="mt-1.5 grid grid-cols-7">
-      {DAY_LABELS.map((day, i) => (
+    <div className="mt-1.5 grid" style={{ gridTemplateColumns: dayColumns(days) }}>
+      {days.map((day, i) => (
         <span
-          key={day}
+          key={day.start}
           className={cn(
             "font-data text-center !text-[10px] leading-none transition-colors",
             i === active ? "text-text-primary" : i === today ? "text-accent" : "text-text-muted",
           )}
         >
-          {day}
+          {day.label}
         </span>
       ))}
     </div>
   );
-}
-
-function dayIndex(weekStart: number, t: number): number {
-  return Math.min(6, Math.max(0, Math.floor((t - weekStart) / DAY_MS)));
 }
 
 /** Gold wash plus the diamond mesh the Overview sparks fill with. */
@@ -144,6 +186,7 @@ export function PoolCurve({
   const gradId = useId();
   const meshId = useId();
   const [hoverT, setHoverT] = useState<number | null>(null);
+  const days = weekDays(weekStart);
   const last = points[points.length - 1];
   const top = Math.max(projectedUsd, last?.usd ?? 0) || 1;
   const plotW = Math.max(0, width - CURVE_RIGHT);
@@ -192,11 +235,11 @@ export function PoolCurve({
           <svg width={width} height={plotH} className="spark-reveal absolute inset-0" aria-hidden>
             <SparkFill gradId={gradId} meshId={meshId} />
             {/* Day boundaries, so the curve reads against the axis below. */}
-            {Array.from({ length: 6 }, (_, i) => (
+            {days.slice(1).map((day) => (
               <line
-                key={i}
-                x1={((i + 1) / 7) * plotW}
-                x2={((i + 1) / 7) * plotW}
+                key={day.start}
+                x1={x(day.start)}
+                x2={x(day.start)}
                 y1={0}
                 y2={plotH}
                 stroke="var(--color-line)"
@@ -261,14 +304,14 @@ export function PoolCurve({
           </Tip>
         )}
       </div>
-      <DayAxis today={dayIndex(weekStart, now)} active={hover ? dayIndex(weekStart, hover.t) : null} />
+      <DayAxis days={days} today={dayIndex(days, now)} active={hover ? dayIndex(days, hover.t) : null} />
     </div>
   );
 }
 
 /**
  * Taker volume for each day of the week: past days settled, today still
- * filling, days ahead drawn as empty slots so the week keeps all seven.
+ * filling, days ahead drawn as empty slots so the week keeps all its days.
  * Hovering a day reads its volume and its share of the week.
  */
 export function DayBars({
@@ -279,29 +322,30 @@ export function DayBars({
 }: {
   weekStart: number;
   now: number;
-  /** Seven values, Saturday first; days ahead are 0. */
+  /** One value per day of weekDays(weekStart), oldest first; days ahead are 0. */
   days: number[];
   format: (n: number) => string;
 }) {
   const [ref, { width, height }] = useBox<HTMLDivElement>();
   const plotH = Math.max(PLOT_H, height);
   const [active, setActive] = useState<number | null>(null);
-  const today = dayIndex(weekStart, now);
+  const slots = weekDays(weekStart);
+  const today = dayIndex(slots, now);
   const top = Math.max(...days) || 1;
   const total = days.reduce((sum, v) => sum + v, 0);
 
   function pickDay(event: React.PointerEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
-    const share = (event.clientX - rect.left) / Math.max(1, rect.width);
-    setActive(Math.min(6, Math.max(0, Math.floor(share * 7))));
+    const share = Math.min(1, Math.max(0, (event.clientX - rect.left) / Math.max(1, rect.width)));
+    setActive(dayIndex(slots, weekStart + share * WEEK_MS));
   }
 
   return (
     <div className="flex h-full flex-col">
       <div
         ref={ref}
-        className="relative grid cursor-pointer touch-none grid-cols-7 items-end gap-1.5 border-b border-[var(--color-line-strong)] sm:gap-2"
-        style={{ minHeight: PLOT_H }}
+        className="relative grid cursor-pointer touch-none items-end gap-1.5 border-b border-[var(--color-line-strong)] sm:gap-2"
+        style={{ minHeight: PLOT_H, gridTemplateColumns: dayColumns(slots) }}
         // The day comes from the pointer's x over the whole plot, so the gaps
         // between bars and a finger dragging across them both pick a day.
         onPointerMove={pickDay}
@@ -311,7 +355,7 @@ export function DayBars({
         {days.map((usd, i) => {
           const ahead = i > today;
           return (
-            <div key={DAY_LABELS[i]} className="flex h-full flex-col justify-end">
+            <div key={slots[i].start} className="flex h-full flex-col justify-end">
               {ahead ? (
                 <div
                   className={cn(
@@ -340,19 +384,19 @@ export function DayBars({
           );
         })}
         {active != null && width > 0 && (
-          <Tip x={((active + 0.5) / 7) * width} width={width}>
+          <Tip x={((slots[active].start + slots[active].end) / 2 - weekStart) / WEEK_MS * width} width={width}>
             {active > today ? (
-              <TipLine label={DAY_LABELS[active]} value="Not started" />
+              <TipLine label={dayName(slots[active])} value="Not started" />
             ) : (
               <TipLine
-                label={`${DAY_LABELS[active]}${active === today ? " · so far" : ""} · ${total > 0 ? Math.round((days[active] / total) * 100) : 0}% of week`}
+                label={`${dayName(slots[active])}${active === today ? " · so far" : ""} · ${total > 0 ? Math.round((days[active] / total) * 100) : 0}% of week`}
                 value={format(days[active])}
               />
             )}
           </Tip>
         )}
       </div>
-      <DayAxis today={today} active={active} />
+      <DayAxis days={slots} today={today} active={active} />
     </div>
   );
 }
