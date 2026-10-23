@@ -17,8 +17,12 @@ export const metadata: Metadata = {
 
 const WEEK_MS = 7 * 86_400_000;
 
-/** Diamonds the race card draws under the Challenger line: #26 to #35. */
-const BUBBLE_DIAMONDS = 10;
+/** Runners the race card draws either side of a league line: the last
+ *  eleven in (#15 to #25 at the Challenger line) and the first ten out. */
+const RACE_ABOVE = 11;
+const RACE_BELOW = 10;
+/** How far down each league the leaderboard goes. */
+const BOARD_ROWS = 25;
 
 interface Tier {
   rank: RankName;
@@ -48,24 +52,30 @@ function buildTiers(rows: TradingLeagueRow[]): Tier[] {
 export default function ChallengerSeriesPage() {
   const file = readTradingLeaguesFile();
   const tiers = buildTiers(file.rows);
-  const byRank = new Map(tiers.map((tier) => [tier.rank, tier]));
   const shares = payoutShareByWallet(file);
-  // The leaderboard's head, in BULK's order: the Challengers, and the first
-  // Diamonds under the line for the bubble card.
-  const head = [
-    ...(byRank.get("Challenger")?.rows ?? []),
-    ...(byRank.get("Diamond")?.rows ?? []).slice(0, BUBBLE_DIAMONDS),
-  ];
+  const toStanding = (row: TradingLeagueRow, i: number): StandingRow => ({
+    wallet: row.wallet,
+    position: row.position ?? i + 1,
+    tradingAura: row.tradingAura,
+    rank: row.rank,
+    share: shares.get(row.wallet) ?? null,
+  });
+  // The race at each line between two leagues, keyed by the league above it:
+  // its last few in, then the first few of the league below, in BULK's order.
+  const races: StandingsData["races"] = {};
+  tiers.slice(0, -1).forEach((tier, i) => {
+    const below = tiers[i + 1];
+    races[tier.rank as keyof StandingsData["races"]] = [
+      ...tier.rows.slice(-RACE_ABOVE),
+      ...below.rows.slice(0, RACE_BELOW),
+    ].map(toStanding);
+  });
   const standings: StandingsData = {
-    top: head.map(
-      (row, i): StandingRow => ({
-        wallet: row.wallet,
-        position: row.position ?? i + 1,
-        tradingAura: row.tradingAura,
-        rank: row.rank,
-        share: shares.get(row.wallet) ?? null,
-      }),
-    ),
+    races,
+    // Each league's own head, for the leaderboard the league cards switch.
+    boards: Object.fromEntries(
+      tiers.map((tier) => [tier.rank, tier.rows.slice(0, BOARD_ROWS).map(toStanding)]),
+    ) as StandingsData["boards"],
     // BULK settles its leagues at the Saturday snapshot before the recording.
     asOf: getNextSnapshotTimestamp(Date.parse(file.updatedAt) || Date.now()) - WEEK_MS,
   };

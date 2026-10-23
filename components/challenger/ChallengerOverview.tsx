@@ -390,7 +390,18 @@ export function ChallengerOverview({
     gold: byRank.get("Gold")?.traders ?? 0,
   });
 
+  // The league the leaderboard shows, and which way its rows slide to it, as
+  // Execution's markets do (SwapValue): a league to the left of the current
+  // one comes in from the right, one to the right comes in from the left.
+  const [board, setBoard] = useState<{ rank: LeagueSummary["rank"]; dir: 1 | -1 }>({ rank: "Challenger", dir: 1 });
+  const order = leagues.map((league) => league.rank);
+  const pickBoard = (rank: LeagueSummary["rank"]) =>
+    setBoard((prev) =>
+      prev.rank === rank ? prev : { rank, dir: order.indexOf(rank) < order.indexOf(prev.rank) ? 1 : -1 }
+    );
+
   const leagueCards = leagues.map((league, i) => {
+    const selected = league.rank === board.rank;
     const prize = league.rank in prizes ? prizes[league.rank as keyof typeof prizes] : null;
     const rows = [
       { label: "Traders", value: count(league.traders) },
@@ -400,67 +411,78 @@ export function ChallengerOverview({
       { label: "Prize pool", value: prize == null ? "No cash" : loading ? "—" : usd2(prize), prize: true },
     ];
     return (
-      <PanelCard
+      // The whole card picks the league for the leaderboard below.
+      <button
         key={league.rank}
-        glossy={i === 0}
-        glossDelay={-7}
-        className={cn("py-5 text-center", i === 0 && "border-[rgb(var(--t-accent-rgb)/0.35)]")}
+        type="button"
+        onClick={() => pickBoard(league.rank)}
+        aria-pressed={selected}
+        className="flex min-w-0 cursor-pointer rounded-[10px] border-0 bg-transparent p-0 text-inherit *:flex-1"
       >
-        {/* Own column: a glossy card wraps its children in one more box,
-            so centring on the card itself would shrink that box. */}
-        <div className="flex w-full flex-col items-center gap-2">
-          {/* Decorative: the league's name sits right under it. The glint
-              is masked to the badge's own shape, so the light only ever
-              crosses the metal, and each card catches it a beat after
-              the one before, like sun moving along a row of badges. */}
-          {/* Swells a little more at the centre of the phone carousel,
-              which sets --focus; elsewhere it is unset and stays put. */}
-          <span className="relative size-14 shrink-0 [scale:calc(1+0.18*var(--focus,0))]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/ranks/${league.rank.toLowerCase()}.webp`}
-              alt=""
-              width={56}
-              height={56}
-              className="size-14 object-contain"
-            />
-            <span
-              className="badge-glint"
-              style={{
-                maskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
-                WebkitMaskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
-                animationDelay: `${i * 0.35}s`,
-              }}
-              aria-hidden
-            />
-          </span>
-          <p
-            className={cn(
-              "m-0 text-[14px] font-semibold uppercase tracking-[0.08em]",
-              i === 0 ? "text-accent" : "text-text-primary"
-            )}
-          >
-            {league.rank}
-          </p>
-          <p className="font-data m-0 text-[11px] leading-none text-text-muted">{positions(league)}</p>
-          <dl className="m-0 mt-2 flex w-full flex-col gap-2 border-t border-[var(--color-line)] pt-3">
-            {rows.map((row) => (
-              <div key={row.label} className="flex items-baseline justify-between gap-2">
-                <dt className="font-label whitespace-nowrap text-text-dim">{row.label}</dt>
-                <dd
-                  className={cn(
-                    "font-data m-0 tabular-nums",
-                    row.prize && prize != null ? "text-accent" : "text-text-secondary",
-                    prize == null && row.label !== "Traders" && row.label !== "Min AURA" && "text-text-muted"
-                  )}
-                >
-                  {row.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </PanelCard>
+        <PanelCard
+          glossy={i === 0}
+          glossDelay={-7}
+          className={cn(
+            "py-5 text-center transition-colors duration-300",
+            selected && "border-[rgb(var(--t-accent-rgb)/0.35)]"
+          )}
+        >
+          {/* Own column: a glossy card wraps its children in one more box,
+              so centring on the card itself would shrink that box. */}
+          <div className="flex w-full flex-col items-center gap-2">
+            {/* Decorative: the league's name sits right under it. The glint
+                is masked to the badge's own shape, so the light only ever
+                crosses the metal, and each card catches it a beat after
+                the one before, like sun moving along a row of badges. */}
+            {/* Swells a little more at the centre of the phone carousel,
+                which sets --focus; elsewhere it is unset and stays put. */}
+            <span className="relative size-14 shrink-0 [scale:calc(1+0.18*var(--focus,0))]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/ranks/${league.rank.toLowerCase()}.webp`}
+                alt=""
+                width={56}
+                height={56}
+                className="size-14 object-contain"
+              />
+              <span
+                className="badge-glint"
+                style={{
+                  maskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
+                  WebkitMaskImage: `url(/ranks/${league.rank.toLowerCase()}.webp)`,
+                  animationDelay: `${i * 0.35}s`,
+                }}
+                aria-hidden
+              />
+            </span>
+            <p
+              className={cn(
+                "m-0 text-[14px] font-semibold uppercase tracking-[0.08em]",
+                selected ? "text-accent" : "text-text-primary"
+              )}
+            >
+              {league.rank}
+            </p>
+            <p className="font-data m-0 text-[11px] leading-none text-text-muted">{positions(league)}</p>
+            <dl className="m-0 mt-2 flex w-full flex-col gap-2 border-t border-[var(--color-line)] pt-3">
+              {rows.map((row) => (
+                <div key={row.label} className="flex items-baseline justify-between gap-2">
+                  <dt className="font-label whitespace-nowrap text-text-dim">{row.label}</dt>
+                  <dd
+                    className={cn(
+                      "font-data m-0 tabular-nums",
+                      row.prize && prize != null ? "text-accent" : "text-text-secondary",
+                      prize == null && row.label !== "Traders" && row.label !== "Min AURA" && "text-text-muted"
+                    )}
+                  >
+                    {row.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </PanelCard>
+      </button>
     );
   });
 
@@ -561,7 +583,7 @@ export function ChallengerOverview({
         {leagueCards}
       </LeagueCarousel>
 
-      <Standings data={standings} pool={shownPool} loading={loading} />
+      <Standings data={standings} board={board.rank} direction={board.dir} pool={shownPool} loading={loading} />
     </>
   );
 }

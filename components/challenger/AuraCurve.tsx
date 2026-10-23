@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { SparkFill, Tip, TipLine } from "@/components/challenger/WeekCharts";
+import { SwapValue } from "@/components/ui/SwapValue";
 import { CHART_GOLD } from "@/lib/overview-metrics";
 import { cn, truncateWallet } from "@/lib/utils";
 
@@ -17,13 +18,19 @@ const PAD_RIGHT = 8;
 const PAD_TOP = 14;
 const PAD_BOTTOM = 22;
 
-/** League colours, taken from the badges: each side of the line wears the
- *  league its traders are in. */
-const CHALLENGER = "#8b5cf6";
-const DIAMOND = "#22b8a0";
+/** Each side of the line wears its league's colour, the site's rank tokens
+ *  (taken from the badges, set per theme). */
+const leagueColor = (league: string) => `var(--t-rank-${league.toLowerCase()})`;
 
 const aura = (n: number) => Math.round(n).toLocaleString("en-US");
-const auraTick = (n: number) => `${+(n / 1000).toFixed(n % 1000 ? 1 : 0)}K`;
+/** `20K`, `5.4K` up top; under 1,000 the plain figure, which a K would
+ *  round to the same `0.6K` on every line of a low league. */
+const auraTick = (n: number) =>
+  n >= 1000
+    ? `${(n / 1000).toLocaleString("en-US", { maximumFractionDigits: 2 })}K`
+    : n.toLocaleString("en-US", { maximumFractionDigits: 1 });
+/** The zone names glide along with the line as it moves, on SwapValue's curve. */
+const LABEL_GLIDE = "left 340ms cubic-bezier(0.22, 1, 0.36, 1), right 340ms cubic-bezier(0.22, 1, 0.36, 1)";
 
 /** The box's size in px, read on mount and kept on resize. Read straight
  *  away too: the observer's first report waits for a painted frame. */
@@ -55,13 +62,27 @@ function auraTicks(lo: number, hi: number): number[] {
 }
 
 /**
- * Trading AURA down the ranks either side of the Challenger line, drawn as
- * the Overview sparks are: gold wash and mesh under a white line. The
- * Challengers' stretch is lit, the Diamonds' after the cut is dimmed, and the
- * line itself runs across at 25th place's AURA, so the reader sees where the
- * cut falls and how steep the climb is either side of it.
+ * Trading AURA down the ranks either side of the line between two leagues,
+ * drawn as the Overview sparks are: a wash and mesh under a white line. The
+ * upper league's stretch is lit, the lower one's past the cut is dimmed, and
+ * the cut stands at the last one in, so the reader sees where it falls and
+ * how steep the climb is either side of it.
  */
-export function AuraCurve({ points, line }: { points: CurvePoint[]; line: number }) {
+export function AuraCurve({
+  points,
+  line,
+  upper,
+  lower,
+}: {
+  points: CurvePoint[];
+  /** Trading AURA of the upper league's last trader. */
+  line: number;
+  /** The leagues either side of the line, upper to the right. */
+  upper: string;
+  lower: string;
+}) {
+  const inColor = leagueColor(upper);
+  const outColor = leagueColor(lower);
   const [ref, { w, h }] = useSize();
   const gradIn = useId();
   const meshIn = useId();
@@ -85,7 +106,7 @@ export function AuraCurve({ points, line }: { points: CurvePoint[]; line: number
   // top of the board.
   const x = (rank: number) => PAD_LEFT + ((last - rank) / Math.max(1, last - first)) * plotW;
   const y = (value: number) => PAD_TOP + (1 - (value - lo) / (hi - lo)) * plotH;
-  // The cut falls between 25th and 26th place.
+  // The cut falls between the last one in and the first one out.
   const lastIn = points.filter((p) => p.tradingAura >= line).reduce((m, p) => Math.max(m, p.position), first);
   const cutX = x(lastIn + 0.5);
 
@@ -115,21 +136,16 @@ export function AuraCurve({ points, line }: { points: CurvePoint[]; line: number
       onPointerDown={pick}
       onPointerLeave={() => setHover(null)}
     >
+      {/* Three layers: the axis behind, the curve in the middle, the cut and
+          the hover on top. Only the curve is revealed, and by moving two
+          boxes rather than redrawing the SVG: a window slides open from the
+          left while the curve inside slides back by as much, so it holds still
+          and comes into view left to right. Both are transforms, which the
+          compositor runs without repainting the fill's mesh every frame; the
+          old dash draw and scaled rise repainted it and stuttered. */}
       {w > 0 && h > 0 && sorted.length > 1 && (
-        <svg width={w} height={h} className="absolute inset-0" aria-hidden>
-          <SparkFill gradId={gradIn} meshId={meshIn} color={CHALLENGER} />
-          <SparkFill gradId={gradOut} meshId={meshOut} color={DIAMOND} />
-          <defs>
-            {/* Challengers stand right of the cut, Diamonds left of it. */}
-            <clipPath id={clipIn}>
-              <rect x={cutX} y={0} width={Math.max(0, w - cutX)} height={h} />
-            </clipPath>
-            <clipPath id={clipOut}>
-              <rect x={0} y={0} width={cutX} height={h} />
-            </clipPath>
-          </defs>
-
-          {/* AURA gridlines and their labels. */}
+        // Keyed by the line: switching leagues fades the new axis in.
+        <svg key={`axis-${upper}`} width={w} height={h} className="curve-fade absolute inset-0" aria-hidden>
           {auraTicks(lo, hi).map((t) => (
             <g key={t}>
               <line x1={PAD_LEFT} x2={w - PAD_RIGHT} y1={y(t)} y2={y(t)} stroke="var(--color-line)" />
@@ -138,32 +154,45 @@ export function AuraCurve({ points, line }: { points: CurvePoint[]; line: number
               </text>
             </g>
           ))}
+        </svg>
+      )}
 
-          {/* Lit where the Challengers stand, dimmed past the cut. The fill
-              rises from the baseline while the line draws over it. */}
-          <g className="curve-rise">
-            <g clipPath={`url(#${clipIn})`}>
-              <path d={area} fill={`url(#${gradIn})`} />
-              <path d={area} fill={`url(#${meshIn})`} />
-            </g>
-            <g clipPath={`url(#${clipOut})`} opacity={0.75}>
-              <path d={area} fill={`url(#${gradOut})`} />
-              <path d={area} fill={`url(#${meshOut})`} />
-            </g>
-          </g>
-          <path
-            d={line_}
-            pathLength={1}
-            fill="none"
-            stroke="var(--t-spark-line)"
-            strokeWidth="1.75"
-            strokeLinejoin="round"
-            className="curve-draw"
-          />
+      {w > 0 && h > 0 && sorted.length > 1 && (
+        // Keyed by the line, so each league's curve is revealed afresh.
+        <div key={`curve-${upper}`} className="curve-reveal pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="curve-reveal-inner absolute inset-0">
+            <svg width={w} height={h} className="absolute inset-0" aria-hidden>
+              <SparkFill gradId={gradIn} meshId={meshIn} color={inColor} />
+              <SparkFill gradId={gradOut} meshId={meshOut} color={outColor} />
+              <defs>
+                {/* The upper league stands right of the cut, the lower left of it. */}
+                <clipPath id={clipIn}>
+                  <rect x={cutX} y={0} width={Math.max(0, w - cutX)} height={h} />
+                </clipPath>
+                <clipPath id={clipOut}>
+                  <rect x={0} y={0} width={cutX} height={h} />
+                </clipPath>
+              </defs>
+              {/* Lit where the upper league stands, dimmed past the cut. */}
+              <g clipPath={`url(#${clipIn})`}>
+                <path d={area} fill={`url(#${gradIn})`} />
+                <path d={area} fill={`url(#${meshIn})`} />
+              </g>
+              <g clipPath={`url(#${clipOut})`} opacity={0.75}>
+                <path d={area} fill={`url(#${gradOut})`} />
+                <path d={area} fill={`url(#${meshOut})`} />
+              </g>
+              <path d={line_} fill="none" stroke="var(--t-spark-line)" strokeWidth="1.75" strokeLinejoin="round" />
+            </svg>
+          </div>
+        </div>
+      )}
 
-          {/* The Challenger line: the cut between 25th and 26th place, standing
-              up through the chart and flowing upward. Drawn from the baseline
-              so the dashes run toward the top. */}
+      {w > 0 && h > 0 && sorted.length > 1 && (
+        <svg width={w} height={h} className="absolute inset-0" aria-hidden>
+          {/* The league line: the cut between the last one in and the first one
+              out, standing up through the chart and flowing upward. Drawn from
+              the baseline so the dashes run toward the top. */}
           <line
             x1={cutX}
             x2={cutX}
@@ -184,8 +213,8 @@ export function AuraCurve({ points, line }: { points: CurvePoint[]; line: number
               // The end labels hang inward so neither is cut by the card.
               textAnchor={x(rank) > w - PAD_RIGHT - 14 ? "end" : x(rank) < PAD_LEFT + 14 ? "start" : "middle"}
               className="font-mono text-[10px]"
-              // The first one out takes the Diamond colour, the rest stay muted.
-              fill={rank === lastIn + 1 ? DIAMOND : "var(--t-text-muted)"}
+              // The first one out takes the lower league's colour, the rest stay muted.
+              fill={rank === lastIn + 1 ? outColor : "var(--t-text-muted)"}
             >
               #{rank}
             </text>
@@ -200,22 +229,27 @@ export function AuraCurve({ points, line }: { points: CurvePoint[]; line: number
         </svg>
       )}
 
-      {/* The zones named where they meet, at the top of the line: Diamonds
-          to its left, Challengers to its right. That reads as the line's key
+      {/* The zones named where they meet, at the top of the line: the lower
+          league to its left, the upper to its right. That reads as the line's key
           and explains the dim and lit fills, with no legend to look up. */}
       {w > 0 && (
         <>
           <span
             className="font-label pointer-events-none absolute whitespace-nowrap"
-            style={{ right: w - cutX + 8, top: 0, color: DIAMOND }}
+            style={{ right: w - cutX + 8, top: 0, transition: LABEL_GLIDE }}
           >
-            Diamonds ◂
+            {/* The colour rides inside, so the outgoing name leaves in its own. */}
+            <SwapValue>
+              <span style={{ color: outColor }}>{lower} ◂</span>
+            </SwapValue>
           </span>
           <span
             className="font-label pointer-events-none absolute whitespace-nowrap"
-            style={{ left: cutX + 8, top: 0, color: CHALLENGER }}
+            style={{ left: cutX + 8, top: 0, transition: LABEL_GLIDE }}
           >
-            ▸ Challengers
+            <SwapValue>
+              <span style={{ color: inColor }}>▸ {upper}</span>
+            </SwapValue>
           </span>
         </>
       )}
@@ -241,14 +275,14 @@ export function AuraCurve({ points, line }: { points: CurvePoint[]; line: number
                     "absolute inline-flex size-full animate-ping rounded-full",
                     inside ? "opacity-60" : "border opacity-50",
                   )}
-                  style={inside ? { backgroundColor: CHALLENGER } : { borderColor: DIAMOND }}
+                  style={inside ? { backgroundColor: inColor } : { borderColor: outColor }}
                 />
                 <span
                   className={cn(
                     "relative inline-flex size-2.5 rounded-full",
                     !inside && "border-[1.5px] bg-[var(--color-bg-primary)]",
                   )}
-                  style={inside ? { backgroundColor: CHALLENGER } : { borderColor: DIAMOND }}
+                  style={inside ? { backgroundColor: inColor } : { borderColor: outColor }}
                 />
               </span>
             );

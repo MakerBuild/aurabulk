@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { CopyableWallet } from "@/components/ui/CopyableWallet";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { SwapProvider, SwapValue } from "@/components/ui/SwapValue";
 import { WalletSearchField } from "@/components/ui/WalletSearchField";
 import { AuraCurve } from "@/components/challenger/AuraCurve";
 import { FootStats } from "@/components/challenger/FootStats";
@@ -11,6 +12,7 @@ import type { RankName } from "@/lib/ranks";
 import { cn, truncateWallet } from "@/lib/utils";
 
 type PaidLeague = "Challenger" | "Diamond" | "Platinum" | "Gold";
+type League = Exclude<RankName, "Unranked">;
 
 export interface StandingRow {
   wallet: string;
@@ -27,9 +29,11 @@ export interface StandingRow {
 
 /** What the standings cards need, from BULK's settled leagues. */
 export interface StandingsData {
-  /** The leaderboard's head, best first: Challengers, then the Diamonds the
-   *  bubble card needs below the line. */
-  top: StandingRow[];
+  /** The race at each line between two leagues, keyed by the league above
+   *  it, best first: its last few in, then the first few of the one below. */
+  races: Partial<Record<League, StandingRow[]>>;
+  /** Each league's head, best first, for the leaderboard. */
+  boards: Record<League, StandingRow[]>;
   /** The snapshot BULK settled these leagues at, ms. */
   asOf: number;
 }
@@ -37,8 +41,8 @@ export interface StandingsData {
 /** A searched wallet: one BULK does not rank has no place. */
 type FoundRow = Omit<StandingRow, "position"> & { position: number | null };
 
-/** Leaderboard rows closed, and opened: the board stops at the Challengers.
- *  Closed, twelve rows fill the card to the race card's height beside it. */
+/** Leaderboard rows closed, and opened: each league's top 25. Closed,
+ *  twelve rows fill the card to the race card's height beside it. */
 const FIRST_ROWS = 12;
 const ALL_ROWS = 25;
 /** The open and close slide, the same as Market assumptions on Tools. */
@@ -48,13 +52,22 @@ const SLIDE_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 /** Room under the last row, opened, for the toggle to sit in. */
 const TOGGLE_ROOM = 40;
 
-/** Ranks either side of the Challenger line on the curve: #15 to #35. */
-const ABOVE_LINE = 11;
-const BELOW_LINE = 10;
-/** What counts as close to the line, in Trading AURA. */
-const NEAR_LINE = 500;
+/** Leagues best first, as the cards sit left to right. */
+const LEAGUES: League[] = ["Challenger", "Diamond", "Platinum", "Gold", "Silver", "Bronze"];
+/** What counts as close to a line: about 2.5% of what it takes to get in,
+ *  500 AURA at the Challenger line, rounded to a 1, 2 or 5 step. */
+const NEAR_SHARE = 0.025;
+
+function nearBand(line: number): number {
+  const raw = Math.max(1, line * NEAR_SHARE);
+  const magnitude = 10 ** Math.floor(Math.log10(raw));
+  return [1, 2, 5, 10].map((m) => m * magnitude).reduce((best, s) => (Math.abs(s - raw) < Math.abs(best - raw) ? s : best));
+}
 
 const aura = (n: number) => Math.round(n).toLocaleString("en-US");
+/** A chaser's gap to the line, signed. The lower leagues are packed tight
+ *  enough that the first one out can tie the last one in: that reads 0. */
+const gap = (n: number) => (Math.round(n) > 0 ? `−${aura(n)}` : "0");
 const usd2 = (n: number) =>
   `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -113,16 +126,22 @@ function LeagueCell({ rank }: { rank: RankName }) {
 const BOARD_COLS =
   "grid grid-cols-[2rem_minmax(0,1fr)_4.25rem_1rem_4.5rem] items-center gap-2 px-4 sm:grid-cols-[2.75rem_minmax(0,1fr)_6rem_6.5rem_6rem] sm:gap-3 sm:px-5";
 /**
- * The standings as BULK ranks them: the official leaderboard with what each
- * place takes of its league's pool, and the race either side of the
- * Challenger line.
+ * The standings as BULK ranks them: the official leaderboard of the league
+ * picked from the cards above, with what each place takes of the pool, and
+ * the race either side of the Challenger line.
  */
 export function Standings({
   data,
+  board,
+  direction,
   pool,
   loading,
 }: {
   data: StandingsData;
+  /** The league the leaderboard shows. */
+  board: League;
+  /** Which way its rows slide in on a switch (SwapValue). */
+  direction: 1 | -1;
   /** The week's whole prize pool, as the card above shows it. */
   pool: number;
   loading: boolean;
@@ -138,10 +157,16 @@ export function Standings({
   const boxRef = useRef<HTMLDivElement>(null);
   const [heights, setHeights] = useState<{ closed: number; open: number } | null>(null);
 
-  const { top } = data;
-  const challengers = top.filter((row) => row.rank === "Challenger");
-  const diamonds = top.filter((row) => row.rank === "Diamond");
-  const cutoff = challengers[challengers.length - 1]?.tradingAura ?? 0;
+  const rows = data.boards[board] ?? [];
+  // The race card follows the leaderboard: the line under the league shown,
+  // what it takes to get in. Bronze has no league under it, so it shows the
+  // line above it, the climb into Silver.
+  const upper = board === "Bronze" ? "Silver" : board;
+  const lower = LEAGUES[LEAGUES.indexOf(upper) + 1];
+  const race = data.races[upper] ?? [];
+  const ahead = race.filter((row) => row.rank === upper);
+  const behind = race.filter((row) => row.rank === lower);
+  const cutoff = ahead[ahead.length - 1]?.tradingAura ?? 0;
   const asOf = new Date(data.asOf).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
   const payout = (row: { rank: RankName; share: number | null }) => {
@@ -170,37 +195,43 @@ export function Standings({
   }
 
   // Pinned above the list, as BULK's own leaderboard shows a searched wallet.
-  const boardRow = (row: FoundRow, pinned = false, hidden = false) => (
-    <li
-      key={`${pinned ? "pin-" : ""}${row.wallet}`}
-      inert={hidden || undefined}
-      aria-hidden={hidden || undefined}
-      className={cn(
-        BOARD_COLS,
-        "group py-[7px] transition-colors hover:bg-[rgb(var(--t-accent-rgb)/0.05)]",
-        pinned && "bg-[rgb(var(--t-accent-rgb)/0.08)]",
-      )}
-    >
-      <span className="font-data text-text-muted">{row.position ?? "—"}</span>
-      <span className="font-data min-w-0 truncate text-text-secondary">
-        <CopyableWallet wallet={row.wallet} display={truncateWallet(row.wallet, 4)} />
-      </span>
-      <span className="font-data text-right text-text-primary">{row.tradingAura > 0 ? aura(row.tradingAura) : "—"}</span>
-      <LeagueCell rank={row.rank} />
-      <span className={cn("font-data text-right", isPaid(row.rank) ? "text-accent" : "text-text-muted")}>
-        {row.rank === "Unranked" ? "—" : payout(row)}
-      </span>
-    </li>
-  );
+  // A league's own rows are keyed by place, not wallet, so on a switch each
+  // row stays put and only what is in it slides over, as Execution's values
+  // do; `swap` wraps each cell for that. The pinned row holds still.
+  const boardRow = (row: FoundRow, key: string, { pinned = false, hidden = false, swap = false } = {}) => {
+    const cell = (content: React.ReactNode, innerClassName?: string) =>
+      swap ? <SwapValue innerClassName={innerClassName}>{content}</SwapValue> : content;
+    return (
+      <li
+        key={key}
+        inert={hidden || undefined}
+        aria-hidden={hidden || undefined}
+        className={cn(
+          BOARD_COLS,
+          "group py-[7px] transition-colors hover:bg-[rgb(var(--t-accent-rgb)/0.05)]",
+          pinned && "bg-[rgb(var(--t-accent-rgb)/0.08)]",
+        )}
+      >
+        <span className="font-data text-text-muted">{cell(row.position ?? "—")}</span>
+        <span className="font-data min-w-0 truncate text-text-secondary">
+          {cell(<CopyableWallet wallet={row.wallet} display={truncateWallet(row.wallet, 4)} />)}
+        </span>
+        <span className="font-data text-right text-text-primary">
+          {cell(row.tradingAura > 0 ? aura(row.tradingAura) : "—")}
+        </span>
+        {cell(<LeagueCell rank={row.rank} />, "flex min-w-0")}
+        <span className={cn("font-data text-right", isPaid(row.rank) ? "text-accent" : "text-text-muted")}>
+          {cell(row.rank === "Unranked" ? "—" : payout(row))}
+        </span>
+      </li>
+    );
+  };
 
-  // The race around the line: the last Challengers and the first Diamonds,
-  // as the same rows the leaderboard draws, the last column their gap to it.
-  const ahead = challengers.slice(-ABOVE_LINE);
-  const behind = diamonds.slice(0, BELOW_LINE);
   const chaser = behind[0];
 
   // How many runners sit within a close margin of the line, either way.
-  const near = [...ahead, ...behind].filter((row) => Math.abs(row.tradingAura - cutoff) <= NEAR_LINE).length;
+  const band = nearBand(cutoff);
+  const near = race.filter((row) => Math.abs(row.tradingAura - cutoff) <= band).length;
 
   // Re-measured whenever the list changes size: a search pins a row on top.
   useLayoutEffect(() => {
@@ -217,7 +248,7 @@ export function Standings({
     const observer = new ResizeObserver(measure);
     observer.observe(list);
     return () => observer.disconnect();
-  }, [found]);
+  }, [found, board]);
 
   /**
    * Opening carries the reader down with the list, the way closing carries
@@ -260,7 +291,7 @@ export function Standings({
         setOpen((v) => !v);
       }}
       aria-expanded={open}
-      aria-label={open ? `Show the top ${FIRST_ROWS} only` : `Show the top ${Math.min(ALL_ROWS, top.length)}`}
+      aria-label={open ? `Show the top ${FIRST_ROWS} only` : `Show the top ${Math.min(ALL_ROWS, rows.length)}`}
       className="pointer-events-auto flex h-9 w-20 items-center justify-center border-0 bg-transparent p-0 text-accent transition-colors hover:text-text-primary"
     >
       <WaveChevrons up={open} />
@@ -319,10 +350,14 @@ export function Standings({
           }}
         >
           <ol ref={listRef} className="m-0 list-none p-0 text-[12px]">
-            {found && boardRow(found, true)}
-            {top.slice(0, ALL_ROWS).map((row, i) => boardRow(row, false, !open && i >= FIRST_ROWS))}
+            {found && boardRow(found, `pin-${found.wallet}`, { pinned: true })}
+            <SwapProvider swapKey={board} direction={direction} pending={false}>
+              {rows
+                .slice(0, ALL_ROWS)
+                .map((row, i) => boardRow(row, `place-${i}`, { hidden: !open && i >= FIRST_ROWS, swap: true }))}
+            </SwapProvider>
           </ol>
-          {top.length > FIRST_ROWS && (
+          {rows.length > FIRST_ROWS && (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-16 items-end justify-center">
               <div
                 className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg-primary)] via-[var(--color-bg-primary)]/85 to-transparent"
@@ -335,37 +370,60 @@ export function Standings({
         </div>
       </PanelCard>
 
-      <PanelCard className="px-0 py-4 sm:px-0 sm:py-4">
-        {/* No visible title: the chart names its own zones at the line. The
-            heading stays for screen readers, who get no picture to go on. */}
-        <h2 className="sr-only">Race for Challenger</h2>
-        <div className="flex min-h-0 flex-1 flex-col px-4 sm:px-5">
-          <AuraCurve
-            line={cutoff}
-            points={[...ahead, ...behind].map((row) => ({
-              wallet: row.wallet,
-              position: row.position,
-              tradingAura: row.tradingAura,
-            }))}
-          />
-        </div>
-        {/* The race in three figures, the same footer every card closes on:
-            what it takes to get in, who is nearest to it, how tight it is. */}
-        <div className="mx-4 mt-4 sm:mx-5">
-          <FootStats
-            stats={[
-              { label: "To enter Challenger", value: aura(cutoff), unit: "AURA" },
-              {
-                label: chaser ? `Closest chaser · #${chaser.position}` : "Closest chaser",
-                value: chaser ? `−${aura(Math.max(0, cutoff - chaser.tradingAura))}` : "—",
-                unit: chaser ? "AURA" : undefined,
-                tone: "accent",
-              },
-              { label: `Within ${NEAR_LINE} AURA`, value: String(near), unit: "traders" },
-            ]}
-          />
-        </div>
-      </PanelCard>
+      {/* The race card follows the line: its zone names and figures slide
+          over the same way the leaderboard's rows do. Bronze and Silver share
+          one line, so switching between them moves nothing. */}
+      <SwapProvider swapKey={upper} direction={direction} pending={false}>
+        <PanelCard className="px-0 py-4 sm:px-0 sm:py-4">
+          {/* No visible title: the chart names its own zones at the line. The
+              heading stays for screen readers, who get no picture to go on. */}
+          <h2 className="sr-only">Race for {upper}</h2>
+          <div className="flex min-h-0 flex-1 flex-col px-4 sm:px-5">
+            {/* Stays mounted across leagues, keeping its measured size, so a
+                switch never flashes an empty card; it reveals the new curve itself. */}
+            <AuraCurve
+              upper={upper}
+              lower={lower}
+              line={cutoff}
+              points={race.map((row) => ({
+                wallet: row.wallet,
+                position: row.position,
+                tradingAura: row.tradingAura,
+              }))}
+            />
+          </div>
+          {/* The race in three figures, the same footer every card closes on:
+              what it takes to get in, who is nearest to it, how tight it is. */}
+          <div className="mx-4 mt-4 sm:mx-5">
+            <FootStats
+              swap
+              stats={[
+                // Only what changes with the league slides; the wording holds still.
+                { label: <>To enter <SwapValue>{upper}</SwapValue></>, value: aura(cutoff), unit: "AURA" },
+                {
+                  label: (
+                    <>
+                      Closest chaser{chaser && <> · <SwapValue>#{chaser.position}</SwapValue></>}
+                    </>
+                  ),
+                  value: chaser ? gap(cutoff - chaser.tradingAura) : "—",
+                  unit: chaser ? "AURA" : undefined,
+                  tone: "accent",
+                },
+                {
+                  label: (
+                    <>
+                      Within <SwapValue>{aura(band)}</SwapValue> AURA
+                    </>
+                  ),
+                  value: String(near),
+                  unit: "traders",
+                },
+              ]}
+            />
+          </div>
+        </PanelCard>
+      </SwapProvider>
     </div>
   );
 }

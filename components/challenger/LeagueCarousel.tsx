@@ -59,6 +59,7 @@ export function LeagueCarousel({
   const pos = useRef(0);
   const target = useRef(0);
   const frame = useRef(0);
+  const swiped = useRef(false);
   const drag = useRef<{
     id: number;
     x: number;
@@ -110,6 +111,7 @@ export function LeagueCarousel({
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
+    swiped.current = false;
     cancelAnimationFrame(frame.current);
     target.current = pos.current;
     drag.current = { id: e.pointerId, x: e.clientX, from: pos.current, moved: false, samples: [{ t: e.timeStamp, x: e.clientX }] };
@@ -146,6 +148,7 @@ export function LeagueCarousel({
       settle();
       return;
     }
+    swiped.current = true;
     const first = d.samples[0];
     const span = e.timeStamp - first.t;
     const speed = span > 0 ? (e.clientX - first.x) / span : 0;
@@ -178,6 +181,13 @@ export function LeagueCarousel({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
+      // A swipe ends over a card too; only a tap should press it.
+      onClickCapture={(e) => {
+        if (!swiped.current) return;
+        swiped.current = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       className={cn(
         "grid cursor-grab touch-pan-y select-none overflow-hidden py-1 outline-none active:cursor-grabbing",
         "[mask-image:linear-gradient(90deg,transparent,#000_20%,#000_80%,transparent)]",

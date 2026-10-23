@@ -231,58 +231,64 @@ export function PoolCurve({
         onPointerDown={pick}
         onPointerLeave={() => setHoverT(null)}
       >
+        {/* Revealed left to right as the race curve is (curve-reveal): two
+            opposite transforms, so no frame repaints the mesh. */}
         {width > 0 && last && (
-          <svg width={width} height={plotH} className="spark-reveal absolute inset-0" aria-hidden>
-            <SparkFill gradId={gradId} meshId={meshId} />
-            {/* Day boundaries, so the curve reads against the axis below. */}
-            {days.slice(1).map((day) => (
-              <line
-                key={day.start}
-                x1={x(day.start)}
-                x2={x(day.start)}
-                y1={0}
-                y2={plotH}
-                stroke="var(--color-line)"
-                strokeDasharray="2 4"
-              />
-            ))}
-            <line x1={0} x2={width} y1={plotH - 0.5} y2={plotH - 0.5} stroke="var(--color-line-strong)" />
-            <path d={area} fill={`url(#${gradId})`} />
-            <path d={area} fill={`url(#${meshId})`} />
-            <path d={line} fill="none" stroke="var(--t-spark-line)" strokeWidth="1.75" strokeLinejoin="round" />
-            <line
-              x1={x(last.t)}
-              y1={y(last.usd)}
-              x2={plotW}
-              y2={y(projectedUsd)}
-              stroke={CHART_GOLD}
-              strokeWidth={projected ? 2 : 1.5}
-              strokeDasharray="4 4"
-              strokeOpacity={projected ? 1 : 0.8}
-              className="transition-[stroke-width,stroke-opacity] duration-300"
-            />
-            <circle
-              cx={plotW}
-              cy={y(projectedUsd)}
-              r={projected ? 3.5 : 3}
-              fill={projected ? CHART_GOLD : "var(--color-bg-primary)"}
-              stroke={CHART_GOLD}
-              strokeWidth="1.5"
-            />
-            {hover && (
-              <>
-                <line x1={x(hover.t)} x2={x(hover.t)} y1={0} y2={plotH} stroke="var(--color-line-strong)" />
+          <div className="curve-reveal pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="curve-reveal-inner absolute inset-0">
+              <svg width={width} height={plotH} className="absolute inset-0" aria-hidden>
+                <SparkFill gradId={gradId} meshId={meshId} />
+                {/* Day boundaries, so the curve reads against the axis below. */}
+                {days.slice(1).map((day) => (
+                  <line
+                    key={day.start}
+                    x1={x(day.start)}
+                    x2={x(day.start)}
+                    y1={0}
+                    y2={plotH}
+                    stroke="var(--color-line)"
+                    strokeDasharray="2 4"
+                  />
+                ))}
+                <line x1={0} x2={width} y1={plotH - 0.5} y2={plotH - 0.5} stroke="var(--color-line-strong)" />
+                <path d={area} fill={`url(#${gradId})`} />
+                <path d={area} fill={`url(#${meshId})`} />
+                <path d={line} fill="none" stroke="var(--t-spark-line)" strokeWidth="1.75" strokeLinejoin="round" />
+                <line
+                  x1={x(last.t)}
+                  y1={y(last.usd)}
+                  x2={plotW}
+                  y2={y(projectedUsd)}
+                  stroke={CHART_GOLD}
+                  strokeWidth={projected ? 2 : 1.5}
+                  strokeDasharray="4 4"
+                  strokeOpacity={projected ? 1 : 0.8}
+                  className="transition-[stroke-width,stroke-opacity] duration-300"
+                />
                 <circle
-                  cx={x(hover.t)}
-                  cy={y(hover.usd)}
-                  r="3.5"
-                  fill={hover.projected ? "var(--color-bg-primary)" : CHART_GOLD}
+                  cx={plotW}
+                  cy={y(projectedUsd)}
+                  r={projected ? 3.5 : 3}
+                  fill={projected ? CHART_GOLD : "var(--color-bg-primary)"}
                   stroke={CHART_GOLD}
                   strokeWidth="1.5"
                 />
-              </>
-            )}
-          </svg>
+                {hover && (
+                  <>
+                    <line x1={x(hover.t)} x2={x(hover.t)} y1={0} y2={plotH} stroke="var(--color-line-strong)" />
+                    <circle
+                      cx={x(hover.t)}
+                      cy={y(hover.usd)}
+                      r="3.5"
+                      fill={hover.projected ? "var(--color-bg-primary)" : CHART_GOLD}
+                      stroke={CHART_GOLD}
+                      strokeWidth="1.5"
+                    />
+                  </>
+                )}
+              </svg>
+            </div>
+          </div>
         )}
         {width > 0 && last && !hover && (
           // HTML, not SVG, so the pulse can use the site's ping animation.
