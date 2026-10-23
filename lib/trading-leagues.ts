@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { writeFileAtomic } from "@/lib/atomic-write";
+import { payoutShares } from "@/lib/challenger-series";
 import type { RankName } from "@/lib/ranks";
 
 /** One ranked wallet, as the trading leaderboard reported it. */
@@ -57,6 +58,15 @@ export function readTradingLeaguesFile(): TradingLeaguesFile {
 
 export function writeTradingLeaguesFile(file: TradingLeaguesFile): void {
   writeFileAtomic(FILE, `${JSON.stringify(file)}\n`);
+}
+
+let sharesCache: { file: TradingLeaguesFile; shares: Map<string, number> } | null = null;
+
+/** Each paid wallet's share of the week's prize pool (payoutShares), worked
+ *  out once per recording: the league search reads it on every lookup. */
+export function payoutShareByWallet(file = readTradingLeaguesFile()): Map<string, number> {
+  if (sharesCache?.file !== file) sharesCache = { file, shares: payoutShares(file.rows) };
+  return sharesCache.shares;
 }
 
 /** Each qualified wallet's rank, by address. */

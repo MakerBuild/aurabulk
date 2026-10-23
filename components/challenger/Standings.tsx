@@ -20,6 +20,9 @@ export interface StandingRow {
    *  ranked by it, and each league's pool is split by it. */
   tradingAura: number;
   rank: RankName;
+  /** Share of the week's prize pool this wallet takes (payoutShares); null
+   *  in a league that wins no cash. */
+  share: number | null;
 }
 
 /** What the standings cards need, from BULK's settled leagues. */
@@ -27,8 +30,6 @@ export interface StandingsData {
   /** The leaderboard's head, best first: Challengers, then the Diamonds the
    *  bubble card needs below the line. */
   top: StandingRow[];
-  /** Trading AURA summed over each paid league: the pro rata divisor. */
-  leagueAura: Record<PaidLeague, number>;
   /** The snapshot BULK settled these leagues at, ms. */
   asOf: number;
 }
@@ -118,11 +119,12 @@ const BOARD_COLS =
  */
 export function Standings({
   data,
-  prizes,
+  pool,
   loading,
 }: {
   data: StandingsData;
-  prizes: Record<PaidLeague, number>;
+  /** The week's whole prize pool, as the card above shows it. */
+  pool: number;
   loading: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -136,16 +138,15 @@ export function Standings({
   const boxRef = useRef<HTMLDivElement>(null);
   const [heights, setHeights] = useState<{ closed: number; open: number } | null>(null);
 
-  const { top, leagueAura } = data;
+  const { top } = data;
   const challengers = top.filter((row) => row.rank === "Challenger");
   const diamonds = top.filter((row) => row.rank === "Diamond");
   const cutoff = challengers[challengers.length - 1]?.tradingAura ?? 0;
   const asOf = new Date(data.asOf).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
-  const payout = (row: { rank: RankName; tradingAura: number }) => {
+  const payout = (row: { rank: RankName; share: number | null }) => {
     if (!isPaid(row.rank)) return "No cash";
-    const divisor = leagueAura[row.rank];
-    return loading || divisor <= 0 ? "—" : usd2((prizes[row.rank] * row.tradingAura) / divisor);
+    return loading || row.share == null ? "—" : usd2(row.share * pool);
   };
 
   async function search() {
@@ -299,7 +300,7 @@ export function Standings({
           <span className="font-label flex items-center justify-end gap-1 whitespace-nowrap text-text-dim">
             <span className="sm:hidden">Payout</span>
             <span className="hidden sm:inline">Est. payout</span>
-            <InfoTooltip text="This week's pool for the league, split pro rata by Trading AURA." panelClassName="w-56" />
+            <InfoTooltip text="Your league's share of this week's pool, split by Trading AURA. Each league pays at least 20% more than the top of the one below." panelClassName="w-60" />
           </span>
         </div>
         {/* The box slides between the closed cut and the full list, as

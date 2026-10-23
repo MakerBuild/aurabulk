@@ -4,7 +4,7 @@ import { ChallengerOverview, type LeagueSummary } from "@/components/challenger/
 import type { StandingRow, StandingsData } from "@/components/challenger/Standings";
 import { getNextSnapshotTimestamp } from "@/lib/projected-snapshot-tvl";
 import { RANK_NAMES, type RankName } from "@/lib/ranks";
-import { readTradingLeaguesFile, type TradingLeagueRow } from "@/lib/trading-leagues";
+import { payoutShareByWallet, readTradingLeaguesFile, type TradingLeagueRow } from "@/lib/trading-leagues";
 
 export const dynamic = "force-static";
 export const revalidate = 3600;
@@ -49,8 +49,7 @@ export default function ChallengerSeriesPage() {
   const file = readTradingLeaguesFile();
   const tiers = buildTiers(file.rows);
   const byRank = new Map(tiers.map((tier) => [tier.rank, tier]));
-  const leagueAura = (rank: RankName) =>
-    (byRank.get(rank)?.rows ?? []).reduce((sum, row) => sum + row.tradingAura, 0);
+  const shares = payoutShareByWallet(file);
   // The leaderboard's head, in BULK's order: the Challengers, and the first
   // Diamonds under the line for the bubble card.
   const head = [
@@ -64,14 +63,9 @@ export default function ChallengerSeriesPage() {
         position: row.position ?? i + 1,
         tradingAura: row.tradingAura,
         rank: row.rank,
+        share: shares.get(row.wallet) ?? null,
       }),
     ),
-    leagueAura: {
-      Challenger: leagueAura("Challenger"),
-      Diamond: leagueAura("Diamond"),
-      Platinum: leagueAura("Platinum"),
-      Gold: leagueAura("Gold"),
-    },
     // BULK settles its leagues at the Saturday snapshot before the recording.
     asOf: getNextSnapshotTimestamp(Date.parse(file.updatedAt) || Date.now()) - WEEK_MS,
   };

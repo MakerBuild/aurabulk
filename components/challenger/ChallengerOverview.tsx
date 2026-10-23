@@ -395,8 +395,8 @@ export function ChallengerOverview({
     const rows = [
       { label: "Traders", value: count(league.traders) },
       { label: "Min AURA", value: count(league.minAura) },
-      // No per trader figure: the pool is split pro rata by Trading
-      // AURA, not evenly, so an average would promise what nobody gets.
+      // No per trader figure: the pool is split by Trading AURA, not
+      // evenly, so an average would promise what nobody gets.
       { label: "Prize pool", value: prize == null ? "No cash" : loading ? "—" : usd2(prize), prize: true },
     ];
     return (
@@ -561,7 +561,7 @@ export function ChallengerOverview({
         {leagueCards}
       </LeagueCarousel>
 
-      <Standings data={standings} prizes={prizes} loading={loading} />
+      <Standings data={standings} pool={shownPool} loading={loading} />
     </>
   );
 }

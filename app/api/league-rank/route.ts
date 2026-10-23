@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readTradingLeaguesFile } from "@/lib/trading-leagues";
+import { payoutShareByWallet, readTradingLeaguesFile } from "@/lib/trading-leagues";
 
 const SOLANA_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
@@ -16,11 +16,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Not a wallet address" }, { status: 400 });
   }
   // Exact match: base58 addresses are case-sensitive.
-  const row = readTradingLeaguesFile().rows.find((r) => r.wallet === wallet);
+  const file = readTradingLeaguesFile();
+  const row = file.rows.find((r) => r.wallet === wallet);
   return NextResponse.json(
     row
-      ? { wallet, position: row.position, tradingAura: row.tradingAura, rank: row.rank }
-      : { wallet, position: null, tradingAura: 0, rank: "Unranked" },
+      ? {
+          wallet,
+          position: row.position,
+          tradingAura: row.tradingAura,
+          rank: row.rank,
+          share: payoutShareByWallet(file).get(wallet) ?? null,
+        }
+      : { wallet, position: null, tradingAura: 0, rank: "Unranked", share: null },
     { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } },
   );
 }
