@@ -37,7 +37,9 @@ function place(offset: number) {
  * An endless ribbon of cards for narrow screens: one centred, its neighbours
  * peeking in small and faded at either edge. Swipe or flick it, tap a
  * neighbour to bring it in, or use the arrow keys. Past the last card it runs
- * straight on into the first.
+ * straight on into the first. `onPick` hears which card it is heading for the
+ * moment a swipe lets go, not once it has come to rest, so what the card
+ * drives can answer straight away.
  *
  * Frames are written straight to the cards, out of React, so a drag keeps up
  * with the finger; React only draws the resting position.
@@ -46,10 +48,14 @@ export function LeagueCarousel({
   children,
   label,
   className,
+  onPick,
 }: {
   children: React.ReactNode;
   label: string;
   className?: string;
+  /** The card the ribbon is now heading for, and which way it went to get
+   *  there: 1 on to the next card, −1 back to the one before. */
+  onPick?: (index: number, step: 1 | -1) => void;
 }) {
   const slides = Children.toArray(children);
   const n = slides.length;
@@ -60,6 +66,9 @@ export function LeagueCarousel({
   const target = useRef(0);
   const frame = useRef(0);
   const swiped = useRef(false);
+  // The card last reported to onPick, so a tap on the one already centred
+  // or a settle back to where it started reports nothing.
+  const picked = useRef(0);
   const drag = useRef<{
     id: number;
     x: number;
@@ -102,10 +111,19 @@ export function LeagueCarousel({
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
-  const go = (by: number) => {
-    target.current = Math.round(target.current) + by;
+  // Head for a card: report it, then glide there.
+  const aim = (next: number) => {
+    target.current = next;
+    const index = ((next % n) + n) % n;
+    if (index !== picked.current) {
+      const step = wrap(index - picked.current, n) > 0 ? 1 : -1;
+      picked.current = index;
+      onPick?.(index, step);
+    }
     settle();
   };
+
+  const go = (by: number) => aim(Math.round(target.current) + by);
 
   const stepPx = () => (cards.current[0]?.offsetWidth ?? 1) * STEP;
 
@@ -144,8 +162,7 @@ export function LeagueCarousel({
       // A tap on a neighbour brings it to the centre.
       const slide = (e.target as HTMLElement).closest<HTMLElement>("[data-slide]");
       const i = slide ? Number(slide.dataset.slide) : NaN;
-      target.current = Math.round(pos.current + (Number.isNaN(i) ? 0 : wrap(i - pos.current, n)));
-      settle();
+      aim(Math.round(pos.current + (Number.isNaN(i) ? 0 : wrap(i - pos.current, n))));
       return;
     }
     swiped.current = true;
@@ -155,14 +172,12 @@ export function LeagueCarousel({
     const flung = pos.current - (speed * FLING_MS) / stepPx();
     // A flick goes one card on past where the finger let go, never a spin.
     const near = Math.round(pos.current);
-    target.current = Math.min(near + 1, Math.max(near - 1, Math.round(flung)));
-    settle();
+    aim(Math.min(near + 1, Math.max(near - 1, Math.round(flung))));
   };
 
   const onPointerCancel = () => {
     drag.current = null;
-    target.current = Math.round(pos.current);
-    settle();
+    aim(Math.round(pos.current));
   };
 
   return (

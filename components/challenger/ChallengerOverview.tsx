@@ -395,9 +395,9 @@ export function ChallengerOverview({
   // one comes in from the right, one to the right comes in from the left.
   const [board, setBoard] = useState<{ rank: LeagueSummary["rank"]; dir: 1 | -1 }>({ rank: "Challenger", dir: 1 });
   const order = leagues.map((league) => league.rank);
-  const pickBoard = (rank: LeagueSummary["rank"]) =>
+  const pickBoard = (rank: LeagueSummary["rank"], dir?: 1 | -1) =>
     setBoard((prev) =>
-      prev.rank === rank ? prev : { rank, dir: order.indexOf(rank) < order.indexOf(prev.rank) ? 1 : -1 }
+      prev.rank === rank ? prev : { rank, dir: dir ?? (order.indexOf(rank) < order.indexOf(prev.rank) ? 1 : -1) }
     );
 
   const leagueCards = leagues.map((league, i) => {
@@ -579,7 +579,14 @@ export function ChallengerOverview({
       {/* A grid from tablets up; on a phone, a carousel instead of a column
           of six cards to scroll past. */}
       <div className="hidden gap-4 md:grid md:grid-cols-3 xl:grid-cols-6">{leagueCards}</div>
-      <LeagueCarousel label="Leagues" className="-mx-4 sm:-mx-7 md:hidden">
+      {/* On a phone the league follows the ribbon: a swipe picks the card it
+          comes to, no tap needed. It slides the way the ribbon went, so going
+          on past Bronze into Challenger still reads as moving forward. */}
+      <LeagueCarousel
+        label="Leagues"
+        className="-mx-4 sm:-mx-7 md:hidden"
+        onPick={(index, step) => pickBoard(order[index], step > 0 ? -1 : 1)}
+      >
         {leagueCards}
       </LeagueCarousel>
 
