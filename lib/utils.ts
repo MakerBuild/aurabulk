@@ -46,6 +46,9 @@ export function categoryLabel(key: string): string {
   // shown as BulkSOL like every other protocol reward, and is the one
   // remainder that must not be stripped further — the filter below drops
   // that word as noise, which would leave nothing to show.
+  // The Challenger Series Gauntlet, shown in its week like any other row.
+  if (/^challenger_week_\d+_gauntlet$/i.test(key)) return "Gauntlet";
+
   const mainnetPrefixMatch = key.match(/^mainnet_week\d+_(.+)$/i);
   if (mainnetPrefixMatch) {
     const rest = mainnetPrefixMatch[1];

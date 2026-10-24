@@ -24,6 +24,11 @@ const WEEK_RE = /^week(\d+)$/;
 // same sequence instead of letting them fall into the "Other" catch-all.
 const MAINNET_WEEK_RE = /^mainnet_week(\d+)(?:_.+)?$/;
 const MAINNET_WEEK_OFFSET = 14;
+// The Challenger Series pays its weekly Gauntlet as "challenger_week_N_gauntlet",
+// counting its own weeks from 1: challenger_week_1 landed with mainnet_week7,
+// campaign week 21 (Oct 17 to 24, 2026, the Taker Volume Gauntlet).
+const CHALLENGER_WEEK_RE = /^challenger_week_(\d+)(?:_.+)?$/;
+const CHALLENGER_WEEK_OFFSET = 20;
 
 /**
  * Campaign week a "mainnet_weekN" key belongs to, or null for anything else.
@@ -32,7 +37,9 @@ const MAINNET_WEEK_OFFSET = 14;
  */
 function mainnetCampaignWeek(key: string): number | null {
   const match = key.match(MAINNET_WEEK_RE);
-  return match ? Number(match[1]) + MAINNET_WEEK_OFFSET : null;
+  if (match) return Number(match[1]) + MAINNET_WEEK_OFFSET;
+  const challenger = key.match(CHALLENGER_WEEK_RE);
+  return challenger ? Number(challenger[1]) + CHALLENGER_WEEK_OFFSET : null;
 }
 
 /** Map raw upstream category keys to Retro / Week N / Other buckets. */
@@ -166,6 +173,8 @@ export function auraSourceKey(key: string): AuraSourceKey {
   if (key.startsWith("retro_")) return "retro";
   if (/^mainnet_week\d+_protocol(?:_.+)?$/.test(key)) return "bulksol";
   if (MAINNET_WEEK_RE.test(key)) return "mainnet-trading";
+  // The Gauntlet is trading AURA too: BULK counts it toward the league.
+  if (CHALLENGER_WEEK_RE.test(key)) return "mainnet-trading";
   if (/^(?:predeposit_)?(?:referral_)?week\d+$/.test(key)) return "pre-deposits";
   if (/^week\d+_(?:protocol_.+|.*exponent.*correction)$/.test(key)) return "bulksol";
   return "other";
