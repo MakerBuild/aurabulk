@@ -7,7 +7,7 @@ import type { FeeTotals } from "@/lib/bulk-exchange";
  * Hourly readings of the exchange's running fee totals, recorded by
  * scripts/record-fee-history.ts. `/feeState` only reports totals since
  * launch, so a week's net revenue is the latest total less the one read at
- * that week's Saturday 12:00 UTC snapshot, and that reading has to be ours.
+ * the Saturday 13:00 UTC the week opened at, and that reading has to be ours.
  */
 export interface FeeHistoryFile {
   updatedAt: string;
@@ -43,9 +43,9 @@ const EXACT_WINDOW_MS = 15 * 60_000;
 const MAX_BRIDGE_MS = 3 * 3_600_000;
 
 /**
- * Net revenue at `t` from our own readings: the reading taken at the
- * snapshot when there is one (the recorder runs on the hour, so Saturday
- * 12:00 is one), else a straight line between the readings either side of
+ * Net revenue at `t` from our own readings: the reading taken then when
+ * there is one (the recorder runs on the hour, so Saturday 13:00 is one),
+ * else a straight line between the readings either side of
  * it. Null when we have neither, as for a week that began before recording.
  */
 export function netRevenueAt(points: FeeTotals[], t: number): number | null {

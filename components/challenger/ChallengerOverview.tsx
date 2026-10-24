@@ -11,8 +11,8 @@ import {
   SEASON_WEEKS,
   prizePoolUsd,
   seasonWeek,
+  challengerWeekStart,
 } from "@/lib/challenger-series";
-import { getNextSnapshotTimestamp } from "@/lib/projected-snapshot-tvl";
 import type { RankName } from "@/lib/ranks";
 import type { WeeklyRevenuePayload } from "@/lib/weekly-revenue";
 import { cn } from "@/lib/utils";
@@ -82,7 +82,7 @@ function useLiveWeekRevenue(): {
     };
   }, []);
 
-  const weekStart = getNextSnapshotTimestamp(now) - WEEK_MS;
+  const weekStart = challengerWeekStart(now);
   if (!anchor || anchor.weekStart !== weekStart) {
     return { weekStart, netRevenueUsd: null, source: null, now, anchor: null };
   }
@@ -148,6 +148,24 @@ function WeekCard({
       </div>
       <div className="mt-4">
         <FootStats stats={stats} aside={footAside} />
+      </div>
+    </PanelCard>
+  );
+}
+
+/** Holds the Gauntlet's half until BULK announces the week's one: the same
+ *  card and heading, so the pair stays side by side rather than the pool
+ *  stretching across alone. */
+function GauntletSoon() {
+  return (
+    <PanelCard className="h-full px-4 py-4 sm:px-5 sm:py-4">
+      <div className="mb-4 flex h-4 items-center leading-none">
+        <h2 className="font-label volume-mode-on m-0 truncate">This week&apos;s Gauntlet</h2>
+      </div>
+      <div className="flex min-h-[120px] flex-1 items-center justify-center">
+        <p className="font-figure m-0 text-center text-[22px] font-semibold leading-tight tracking-[-0.02em] text-text-secondary sm:text-[24px]">
+          New Gauntlet is coming soon
+        </p>
       </div>
     </PanelCard>
   );
@@ -241,21 +259,10 @@ function PoolModeToggle({ mode, onChange }: { mode: PoolMode; onChange: (mode: P
 
 const noSubscribe = () => () => {};
 
-/** BULK reveals the week's leagues and pool an hour after the Saturday 12:00
- *  UTC snapshot, at 13:00, as its own countdown runs. */
-const REVEAL_DELAY_MS = 3_600_000;
-
-/** The next reveal after `now`: this week's, until it has passed. The week
- *  itself turns over at 12:00, so for that first hour it is the reveal of the
- *  week that just closed, not one a week away. */
-function nextReveal(weekStart: number, now: number): number {
-  const closing = weekStart + REVEAL_DELAY_MS;
-  return now < closing ? closing : weekStart + WEEK_MS + REVEAL_DELAY_MS;
-}
-
 /**
- * Time left to the next reveal, 13:00 UTC on Saturday: one box per unit, as
- * the BULK app counts down its own.
+ * Time left in the week, to Saturday 13:00 UTC, when BULK reveals the leagues
+ * and the pool and the next week opens: one box per unit, as the BULK app
+ * counts down its own.
  */
 function RevealCountdown({ target, now }: { target: number; now: number }) {
   // The server's clock and the browser's never agree to the second, so the
@@ -276,7 +283,7 @@ function RevealCountdown({ target, now }: { target: number; now: number }) {
     <div className="flex items-center gap-2 sm:gap-3">
       <div className="hidden items-center gap-1.5 sm:flex">
         <span className="font-label whitespace-nowrap text-text-dim">Next reveal</span>
-        <InfoTooltip text="Leagues settle at Saturday's 12:00 UTC snapshot. BULK reveals them and the pool at 13:00 UTC." panelClassName="w-60" />
+        <InfoTooltip text="The week closes at 13:00 UTC on Saturday, when BULK reveals the leagues and the pool." panelClassName="w-60" />
       </div>
       <div className="flex gap-1 sm:gap-1.5" role="timer" aria-label="Time until the weekly reveal">
         {units.map((unit) => (
@@ -502,14 +509,13 @@ export function ChallengerOverview({
       {/* Equal halves: at full width each sits over three league cards. */}
       <div className="grid gap-4 lg:grid-cols-2">
         <WeekCard
-          className={gauntlet ? undefined : "lg:col-span-2"}
           label={
             <>
               <PoolModeToggle mode={mode} onChange={setMode} />
               <InfoTooltip
                 text={
                   projected
-                    ? "The pool at Saturday's 12:00 UTC snapshot if trading keeps this week's pace."
+                    ? "The pool when the week closes on Saturday at 13:00 UTC, if trading keeps this week's pace."
                     : source === "estimated"
                       ? "12.5% of BULK's net revenue after maker rebates. Estimated from volume this week, exact from next week."
                       : "12.5% of BULK's net revenue after maker rebates, counted live from BULK's fee totals."
@@ -551,9 +557,9 @@ export function ChallengerOverview({
                 }
               : { label: "Net revenue", value: netRevenueUsd == null ? "—" : usd0(netRevenueUsd) },
           ]}
-          footAside={<RevealCountdown target={nextReveal(weekStart, now)} now={now} />}
+          footAside={<RevealCountdown target={weekStart + WEEK_MS} now={now} />}
         />
-        {gauntlet && (
+        {gauntlet ? (
           <WeekCard
             label={<h2 className="font-label volume-mode-on m-0 truncate">This week&apos;s Gauntlet</h2>}
             // The Gauntlet is what the card is about, so its name takes the
@@ -586,6 +592,8 @@ export function ChallengerOverview({
               },
             ]}
           />
+        ) : (
+          <GauntletSoon />
         )}
       </div>
 

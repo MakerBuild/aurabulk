@@ -2,14 +2,29 @@
  * The Challenger Series, Season 1: BULK's seasonal ranked league.
  * https://docs.bulk.trade/llms.txt → "The Challenger Series"
  *
- * Weeks run Saturday to Saturday on the same 12:00 UTC snapshot as the Aura
- * campaign. Kept free of Node imports: the live prize pool reads it.
+ * Weeks run Saturday 13:00 to Saturday 13:00 UTC: an hour after the Aura
+ * campaign's 12:00 snapshot, when BULK reveals the leagues and the pool and
+ * the next week opens. Kept free of Node imports: the live prize pool reads it.
  */
 
 const WEEK_MS = 7 * 86_400_000;
 
-/** Week 1 opened on the Saturday snapshot of October 10, 2026. */
-export const SEASON_START_MS = Date.UTC(2026, 9, 10, 12);
+/** The hour (UTC) on Saturday a Challenger Series week opens and closes. */
+export const WEEK_START_HOUR_UTC = 13;
+
+/** Week 1 opened on Saturday, October 10, 2026. */
+export const SEASON_START_MS = Date.UTC(2026, 9, 10, WEEK_START_HOUR_UTC);
+
+/** The Saturday 13:00 UTC the week holding `nowMs` opened at. Not the Aura
+ *  campaign's snapshot week: between 12:00 and 13:00 the closing week is
+ *  still this one. */
+export function challengerWeekStart(nowMs: number): number {
+  const day = new Date(nowMs);
+  const sinceSaturday = (day.getUTCDay() + 1) % 7;
+  const start =
+    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() - sinceSaturday, WEEK_START_HOUR_UTC);
+  return start > nowMs ? start - WEEK_MS : start;
+}
 export const SEASON_WEEKS = 8;
 
 /** Share of BULK's net revenue (trading fees less maker rebates) paid into

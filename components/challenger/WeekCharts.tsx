@@ -29,7 +29,7 @@ export interface WeekDay {
 
 /**
  * The campaign week cut into calendar days at UTC midnight, so today reads
- * as today. The week runs Saturday 12:00 to Saturday 12:00 UTC, so it opens
+ * as today. The week runs Saturday 13:00 to Saturday 13:00 UTC, so it opens
  * and closes on half a Saturday: eight days, the two halves drawn half as
  * wide. Cutting at the snapshot instead made "Wed" run on to Thursday noon.
  */
@@ -60,7 +60,7 @@ function dayColumns(days: WeekDay[]): string {
   return days.map((d) => `${(d.end - d.start) / HOUR_MS}fr`).join(" ");
 }
 
-/** `Sat · from 12:00` on a half day, plain `Sun` on a whole one. */
+/** `Sat · from 13:00` on a part day, plain `Sun` on a whole one. */
 function dayName(day: WeekDay): string {
   if (!day.part) return day.label;
   return `${day.label} · ${day.part} ${formatUtcTime(day.part === "from" ? day.start : day.end)}`;

@@ -1,8 +1,8 @@
 /**
  * Append the exchange's running fee totals to data/fee-history.json.
- * Hourly cron on the hour, so one reading lands on every Saturday 12:00 UTC
- * snapshot: the baseline the week's net revenue (and its 12.5% Challenger
- * Series prize pool) is counted from. BULK has no fee history API.
+ * Hourly cron on the hour, so one reading lands on every Saturday 13:00 UTC,
+ * when a Challenger Series week opens: the baseline the week's net revenue
+ * (and its 12.5% prize pool) is counted from. BULK has no fee history API.
  *
  *   npm run record:fees
  */

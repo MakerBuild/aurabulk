@@ -202,13 +202,12 @@ async function buildCampaignWeek(now: number): Promise<VolumeHistoryPayload> {
   return { range: "W", interval: RANGE_INTERVAL.W, buckets: week };
 }
 
-/** This campaign week hour by hour, from the Saturday snapshot to now: the
- *  Challenger Series prize pool and Gauntlet charts draw from it. */
-export function buildCampaignWeekHourly(): Promise<VolumeBucket[]> {
-  return staleWhileRevalidate("W:1h", async () => {
-    const now = Date.now();
-    const weekStart = getNextSnapshotTimestamp(now) - WEEK_DAYS * DAY_MS;
-    const { buckets } = await buildBuckets("W", "1h", weekStart, now);
+/** A week hour by hour, from `weekStart` to now: the Challenger Series
+ *  prize pool and Gauntlet charts draw from it. Their week opens at 13:00,
+ *  not the Aura snapshot, so the caller says where it starts. */
+export function buildWeekHourly(weekStart: number): Promise<VolumeBucket[]> {
+  return staleWhileRevalidate(`W:1h:${weekStart}`, async () => {
+    const { buckets } = await buildBuckets("W", "1h", weekStart, Date.now());
     return buckets.filter((b) => b.t >= weekStart);
   });
 }
