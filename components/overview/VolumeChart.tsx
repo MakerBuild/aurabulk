@@ -32,6 +32,11 @@ import { loadVolume, peekVolume } from "@/lib/volume-history-client";
 import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
 import { formatUtcDay, formatUtcMonth, formatUtcTime } from "@/components/overview/spark-format";
 
+/** A range switch replays a short entrance; see `switched` below. */
+const SWITCH_ENTRANCE_MS = 350;
+/** How often the ranges are refreshed in the background. */
+const KEEP_FRESH_MS = 120_000;
+
 const COIN_META: Record<VolumeCoin, { label: string; color: string }> = {
   btc: { label: "BTC", color: chartPrimaryRamp(0, 4) },
   eth: { label: "ETH", color: chartPrimaryRamp(1, 4) },
@@ -75,6 +80,15 @@ function niceStep(rough: number): number {
 export function VolumeChart() {
   const bootReady = useBootReady();
   const [range, setRange] = useState<VolumeRange>("1D");
+  // The first draw plays the full entrance; a switch after it replays a
+  // short one, so a range already in hand is back in a blink rather than a
+  // line drawing itself across for a second and a half.
+  const [switched, setSwitched] = useState(false);
+  const pickRange = (next: VolumeRange) => {
+    setSwitched(true);
+    setRange(next);
+  };
+  const entranceMs = switched ? SWITCH_ENTRANCE_MS : undefined;
   const [enabled, setEnabled] = useState<Record<VolumeCoin, boolean>>({
     btc: true,
     eth: true,
@@ -109,15 +123,34 @@ export function VolumeChart() {
     };
   }, [range]);
 
-  // Once the page is up, fetch the other ranges in the background so the
-  // first switch to any of them is instant too.
+  // As soon as the first range is in, fetch the others in the background so
+  // the first switch to any of them is instant too, and keep them fresh
+  // while the page is open: a range let go stale refetched on the switch,
+  // and one whose first fetch failed showed "Loading volume…" for the whole
+  // trip. Not tied to the boot splash, which can outlast the first fetch.
   useEffect(() => {
-    if (!bootReady) return;
-    const timer = window.setTimeout(() => {
+    let cancelled = false;
+    const warm = () => {
+      if (cancelled) return;
+      if (document.visibilityState !== "visible") return;
       for (const r of VOLUME_RANGES) void loadVolume(`range=${r}`).catch(() => {});
-    }, 1500);
-    return () => window.clearTimeout(timer);
-  }, [bootReady]);
+      // The Total Volume card's hourly series, so it is fresh when the
+      // Overview is opened again.
+      void loadVolume("range=ALL&interval=1h").catch(() => {});
+    };
+    let first = 0;
+    void loadVolume("range=1D")
+      .catch(() => {})
+      .finally(() => {
+        first = window.setTimeout(warm, 300);
+      });
+    const every = window.setInterval(warm, KEEP_FRESH_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(first);
+      window.clearInterval(every);
+    };
+  }, []);
 
   const rows = useMemo(() => {
     const buckets = payload?.buckets ?? [];
@@ -166,7 +199,7 @@ export function VolumeChart() {
         <SegmentedToggle
           options={RANGE_OPTIONS}
           value={range}
-          onChange={setRange}
+          onChange={pickRange}
           layoutId="volume-range-pill"
           className="min-w-[240px]"
         />
@@ -379,6 +412,7 @@ export function VolumeChart() {
                       stackId="vol"
                       fill={COIN_META[coin].color}
                       barSize={OVERVIEW_BAR_W}
+                      animationDuration={entranceMs}
                       radius={
                         coin === lastEnabled
                           ? [OVERVIEW_BAR_RADIUS, OVERVIEW_BAR_RADIUS, 0, 0]
@@ -395,6 +429,7 @@ export function VolumeChart() {
                     stroke="var(--t-spark-line)"
                     strokeWidth={2.2}
                     dot={false}
+                    animationDuration={entranceMs}
                     activeDot={{ r: 3, fill: CHART_GOLD }}
                   />
                 )}
@@ -406,6 +441,7 @@ export function VolumeChart() {
                     stroke={OI_COLOR}
                     strokeWidth={2}
                     dot={false}
+                    animationDuration={entranceMs}
                     connectNulls
                     activeDot={{ r: 3, fill: OI_COLOR }}
                   />

@@ -12,7 +12,7 @@ import {
   usdBoard,
 } from "@/components/overview/spark-format";
 import type { VolumeHistoryPayload } from "@/lib/volume-history";
-import { loadVolume } from "@/lib/volume-history-client";
+import { loadVolume, peekVolume } from "@/lib/volume-history-client";
 import { cn } from "@/lib/utils";
 
 const MS_DAY = 86_400_000;
@@ -72,8 +72,12 @@ function formatTps(value: number | null): string {
 export function VolumeStatCard() {
   const exchange = useLiveExchange();
   const [mode, setMode] = useState<VolumeMode>("24h");
-  const [day, setDay] = useState<VolumeHistoryPayload | null>(null);
-  const [all, setAll] = useState<VolumeHistoryPayload | null>(null);
+  // Seeded from what the page already holds, however old: coming back to the
+  // Overview drew an empty spark until a refetch of the hourly series (some
+  // 80 KB) came back, which on a slow link took seconds. The load below
+  // still refreshes it.
+  const [day, setDay] = useState<VolumeHistoryPayload | null>(() => peekVolume("range=1D") ?? null);
+  const [all, setAll] = useState<VolumeHistoryPayload | null>(() => peekVolume("range=ALL&interval=1h") ?? null);
   const [allFailed, setAllFailed] = useState(false);
 
   useEffect(() => {
