@@ -335,3 +335,90 @@ async function postAccount(wallet: string): Promise<unknown> {
 export async function fetchAccountSnapshot(wallet: string): Promise<AccountSnapshot | null> {
   return readAccountSnapshot(await postAccount(wallet));
 }
+
+export interface FillTotals {
+  /** Notional traded, maker and taker sides alike. */
+  volumeUsd: number;
+  /** Trading fees paid, net of any maker rebates (positive = paid). */
+  feesUsd: number;
+  fills: number;
+  /** The oldest fill the exchange still holds, ms: it prunes the earliest. */
+  since: number | null;
+}
+
+/** Fills per page: the exchange's own ceiling. */
+const FILLS_PAGE = 5000;
+/** A wallet with more than this many pages is summed as far as they go. */
+const FILLS_MAX_PAGES = 20;
+const FILL_TOTALS_TTL_MS = 10 * 60_000;
+const fillTotalsCache = new Map<string, { at: number; data: FillTotals | null }>();
+const fillTotalsInFlight = new Map<string, Promise<FillTotals | null>>();
+
+async function postFillsPage(wallet: string, cursor?: string): Promise<{ rows: unknown[]; next?: string } | null> {
+  try {
+    const res = await fetchWithRetry(
+      `${EXCHANGE_API_BASE}/account`,
+      {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json", "User-Agent": USER_AGENT },
+        body: JSON.stringify({ type: "fills", user: wallet, limit: FILLS_PAGE, ...(cursor ? { cursor } : {}) }),
+        cache: "no-store",
+      },
+      { maxRetries: ACCOUNT_MAX_RETRIES, timeoutMs: EXCHANGE_TIMEOUT_MS, baseBackoffMs: 500, maxBackoffMs: ACCOUNT_MAX_WAIT_MS },
+    );
+    if (!res.ok) return null;
+    const body = asRecord(await res.json());
+    const rows = Array.isArray(body?.data) ? body.data : [];
+    const page = asRecord(body?.page);
+    return { rows, next: page?.hasMore && typeof page.nextCursor === "string" ? page.nextCursor : undefined };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A wallet's trading over every fill the exchange still holds: the account
+ * snapshot only reports volume over a rolling 14 days, and its `margin.fees`
+ * is not a lifetime total (30 dollars on a wallet that had paid over 5,000).
+ * Each fill's `fee` is the queried account's own, negative when paid.
+ * Cached for ten minutes per wallet; null when the exchange would not answer.
+ */
+export function fetchFillTotals(wallet: string): Promise<FillTotals | null> {
+  const hit = fillTotalsCache.get(wallet);
+  if (hit && Date.now() - hit.at < FILL_TOTALS_TTL_MS) return Promise.resolve(hit.data);
+  const pending = fillTotalsInFlight.get(wallet);
+  if (pending) return pending;
+
+  const run = (async (): Promise<FillTotals | null> => {
+    let volumeUsd = 0;
+    let fees = 0;
+    let fills = 0;
+    let since: number | null = null;
+    let cursor: string | undefined;
+    for (let page = 0; page < FILLS_MAX_PAGES; page += 1) {
+      const result = await postFillsPage(wallet, cursor);
+      if (!result) return page === 0 ? null : { volumeUsd, feesUsd: -fees, fills, since };
+      for (const raw of result.rows) {
+        const fill = asRecord(raw);
+        if (!fill) continue;
+        volumeUsd += Math.abs((Number(fill.amount) || 0) * (Number(fill.price) || 0));
+        fees += Number(fill.fee) || 0;
+        fills += 1;
+        // Timestamps are nanoseconds.
+        const at = Math.round(Number(fill.timestamp) / 1e6);
+        if (Number.isFinite(at) && at > 0 && (since == null || at < since)) since = at;
+      }
+      if (!result.next) break;
+      cursor = result.next;
+    }
+    return { volumeUsd, feesUsd: -fees, fills, since };
+  })();
+
+  fillTotalsInFlight.set(wallet, run);
+  return run
+    .then((data) => {
+      fillTotalsCache.set(wallet, { at: Date.now(), data });
+      return data;
+    })
+    .finally(() => fillTotalsInFlight.delete(wallet));
+}

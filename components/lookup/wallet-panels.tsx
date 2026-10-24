@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FillTotals } from "@/lib/bulk-exchange";
 import type { WalletData } from "@/types";
 import {
   AuraDonut,
@@ -148,6 +149,25 @@ function formatSignedUsd(value: number | null | undefined): string {
 export function AuraStatsPanel({ data }: { data: WalletData }) {
   const narrow = useNarrowViewport();
   const exchange = data.exchange;
+  // Read after the lookup has drawn (/api/wallet/lifetime): summing a busy
+  // wallet's fills takes seconds, and the rest of the card should not wait.
+  const [lifetime, setLifetime] = useState<{ wallet: string; totals: FillTotals | null } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/wallet/lifetime?address=${encodeURIComponent(data.wallet)}`)
+      .then((res) => (res.ok ? (res.json() as Promise<FillTotals>) : null))
+      .catch(() => null)
+      .then((totals) => {
+        if (!cancelled) setLifetime({ wallet: data.wallet, totals });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [data.wallet]);
+  const read = lifetime?.wallet === data.wallet ? lifetime : null;
+  const totals = read?.totals && read.totals.fills > 0 ? read.totals : null;
+  // Still reading: the all-time row, waiting. Failed: the 14 day figure.
+  const waiting = read == null;
 
   // Older cached payloads predate the field.
   const rank = data.rank ?? "Unranked";
@@ -157,20 +177,25 @@ export function AuraStatsPanel({ data }: { data: WalletData }) {
     { label: "Aura rank", value: `#${data.aura_rank.toLocaleString("en-US")}` },
     { label: "Peak PnL", value: formatSignedUsd(exchange?.peakPnlUsd) },
     { label: "Current PnL", value: formatSignedUsd(exchange?.pnlUsd) },
+    // All time from the wallet's fills when the lookup could read them; the
+    // account snapshot only reports a rolling window.
+    waiting || totals
+      ? { label: "Volume (all time)", value: totals ? formatUsd(totals.volumeUsd) : "…" }
+      : {
+          label: `Volume (${exchange?.windowDays ?? 14}d)`,
+          value: exchange && exchange.volumeUsd > 0 ? formatUsd(exchange.volumeUsd) : "—",
+        },
     {
-      // Upstream reports volume over a rolling window, not for all time.
-      label: `Volume (${exchange?.windowDays ?? 14}d)`,
-      value: exchange && exchange.volumeUsd > 0 ? formatUsd(exchange.volumeUsd) : "—",
-    },
-    {
-      label: "Volume rank",
+      // The ranking itself is over the recorded 14 day volumes.
+      label: `Volume rank (${exchange?.windowDays ?? 14}d)`,
       value: exchange?.volumeRank ? `#${exchange.volumeRank.toLocaleString("en-US")}` : "—",
     },
     // The Challenger Series trading rank, with its official badge.
     { label: "Rank", value: rank, badge: `/ranks/${rank.toLowerCase()}.webp` },
     {
+      // Lifetime only: the snapshot's own fee figure is not a running total.
       label: "Fees paid",
-      value: typeof exchange?.feesUsd === "number" ? formatUsd(exchange.feesUsd) : "—",
+      value: totals ? formatUsd(totals.feesUsd) : waiting ? "…" : "—",
     },
   ];
 
