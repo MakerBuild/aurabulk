@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Bar,
@@ -263,6 +263,31 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
   const { ref, hasEntered } = useInViewOnce<HTMLDivElement>(0.2);
   const [sharedHover, setSharedHover] = useState<number | undefined>(undefined);
 
+  // The shared hover used to be cleared only by the row's onMouseLeave, and
+  // that can miss: after a week pick, whose list closes right over the
+  // legend, the first source was seen staying lit even with the pointer off
+  // the page. So while something is lit, watch the pointer natively and let
+  // go as soon as it is off the row, off the page, or the window loses focus.
+  useEffect(() => {
+    if (sharedHover === undefined) return;
+    const clear = () => setSharedHover(undefined);
+    const onMove = (e: PointerEvent) => {
+      const row = ref.current;
+      if (row && !row.contains(e.target as Node)) clear();
+    };
+    const onOut = (e: MouseEvent) => {
+      if (!e.relatedTarget) clear();
+    };
+    document.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("mouseout", onOut);
+    window.addEventListener("blur", clear);
+    return () => {
+      document.removeEventListener("pointermove", onMove);
+      window.removeEventListener("mouseout", onOut);
+      window.removeEventListener("blur", clear);
+    };
+  }, [sharedHover, ref]);
+
   if (wallet) {
     return (
       <div
@@ -310,7 +335,12 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
             </div>
             <Select
               value={selectedGroup}
-              onChange={setSelectedGroup}
+              // A new week starts with nothing lit; the old index would point
+              // at a different source in it.
+              onChange={(group) => {
+                setSelectedGroup(group);
+                setSharedHover(undefined);
+              }}
               options={groupOptions}
               className="shrink-0"
               compact
