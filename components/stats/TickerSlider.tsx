@@ -85,6 +85,7 @@ export function TickerSlider<T extends string>({
   className?: string;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [trackW, setTrackW] = useState(0);
   const [widths, setWidths] = useState<number[] | null>(null);
@@ -208,10 +209,14 @@ export function TickerSlider<T extends string>({
     goTo(best, !relaid && at.current >= 0);
   }, [slots, loop, options, value, goTo, offset]);
 
-  // The wheel steps one ticker at a time, round and round. Bound natively:
-  // React's wheel listener is passive and cannot preventDefault.
+  // The wheel steps one ticker at a time, round and round, anywhere on the
+  // strip, arrows included. Bound natively: React's wheel listener is passive
+  // and cannot preventDefault. That alone no longer holds the page still:
+  // the site's smooth scroll (Lenis) reads the wheel on the window and does
+  // not look at defaultPrevented, so the strip carries data-lenis-prevent-wheel
+  // for it to skip.
   useEffect(() => {
-    const track = trackRef.current;
+    const track = rootRef.current;
     if (!track) return;
     let travel = 0;
     let lastStep = 0;
@@ -284,7 +289,7 @@ export function TickerSlider<T extends string>({
 
   return (
     // `shrink!`: .term-seg holds its width outside the utilities.
-    <div className={cn("term-seg w-full min-w-0 shrink!", className)}>
+    <div ref={rootRef} data-lenis-prevent-wheel className={cn("term-seg w-full min-w-0 shrink!", className)}>
       <ArrowButton dir={-1} onClick={() => step(-1)} disabled={options.length < 2} />
       <div
         ref={trackRef}
