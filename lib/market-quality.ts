@@ -52,9 +52,12 @@ const inFlight = new Map<string, Promise<MarketQualityPayload>>();
 
 let marketsCache: { at: number; data: ExchangeMarketInfo[] } | null = null;
 
+/** Markets BULK lists but Execution leaves out of its ticker strip. */
+const HIDDEN_MARKETS = new Set(["PAPER-USD"]);
+
 async function tradingMarkets(): Promise<ExchangeMarketInfo[]> {
   if (marketsCache && Date.now() - marketsCache.at < 3_600_000) return marketsCache.data;
-  const data = await fetchTradingMarkets().catch(() => []);
+  const data = (await fetchTradingMarkets().catch(() => [])).filter((m) => !HIDDEN_MARKETS.has(m.symbol));
   if (data.length) marketsCache = { at: Date.now(), data };
   return data.length ? data : (marketsCache?.data ?? []);
 }
