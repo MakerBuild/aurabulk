@@ -241,10 +241,21 @@ function PoolModeToggle({ mode, onChange }: { mode: PoolMode; onChange: (mode: P
 
 const noSubscribe = () => () => {};
 
+/** BULK reveals the week's leagues and pool an hour after the Saturday 12:00
+ *  UTC snapshot, at 13:00, as its own countdown runs. */
+const REVEAL_DELAY_MS = 3_600_000;
+
+/** The next reveal after `now`: this week's, until it has passed. The week
+ *  itself turns over at 12:00, so for that first hour it is the reveal of the
+ *  week that just closed, not one a week away. */
+function nextReveal(weekStart: number, now: number): number {
+  const closing = weekStart + REVEAL_DELAY_MS;
+  return now < closing ? closing : weekStart + WEEK_MS + REVEAL_DELAY_MS;
+}
+
 /**
- * Time left in the week, to the Saturday 12:00 UTC snapshot that settles the
- * leagues and pays the pool: one box per unit, as the BULK app counts down
- * its own reveal.
+ * Time left to the next reveal, 13:00 UTC on Saturday: one box per unit, as
+ * the BULK app counts down its own.
  */
 function RevealCountdown({ target, now }: { target: number; now: number }) {
   // The server's clock and the browser's never agree to the second, so the
@@ -265,9 +276,9 @@ function RevealCountdown({ target, now }: { target: number; now: number }) {
     <div className="flex items-center gap-2 sm:gap-3">
       <div className="hidden items-center gap-1.5 sm:flex">
         <span className="font-label whitespace-nowrap text-text-dim">Next reveal</span>
-        <InfoTooltip text="Leagues settle and the pool pays out at Saturday's 12:00 UTC snapshot." panelClassName="w-60" />
+        <InfoTooltip text="Leagues settle at Saturday's 12:00 UTC snapshot. BULK reveals them and the pool at 13:00 UTC." panelClassName="w-60" />
       </div>
-      <div className="flex gap-1 sm:gap-1.5" role="timer" aria-label="Time until the weekly snapshot">
+      <div className="flex gap-1 sm:gap-1.5" role="timer" aria-label="Time until the weekly reveal">
         {units.map((unit) => (
           <div
             key={unit.label}
@@ -540,7 +551,7 @@ export function ChallengerOverview({
                 }
               : { label: "Net revenue", value: netRevenueUsd == null ? "—" : usd0(netRevenueUsd) },
           ]}
-          footAside={<RevealCountdown target={weekStart + WEEK_MS} now={now} />}
+          footAside={<RevealCountdown target={nextReveal(weekStart, now)} now={now} />}
         />
         {gauntlet && (
           <WeekCard
