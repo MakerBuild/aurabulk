@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useLiveFinancials } from "@/components/live/LiveFinancialProvider";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { SnapshotButton } from "@/components/snapshot/SnapshotButton";
+import { challengerWeekStart } from "@/lib/challenger-series";
 import { cn } from "@/lib/utils";
 
 const WEEK_DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 const MS_DAY = 86_400_000;
+const MS_WEEK = 7 * MS_DAY;
 
 function utcMidnight(ms: number): number {
   const d = new Date(ms);
@@ -15,9 +17,8 @@ function utcMidnight(ms: number): number {
 }
 
 /** Tick index for Sat→Fri labels. Uses the UTC calendar day, not 24h
- * slices from Saturday 12:00 — those stay on Sunday until Monday 12:00 UTC. */
-function campaignDayIndex(nowMs: number, nextSnapshotMs: number): number {
-  const weekStartMs = nextSnapshotMs - 7 * MS_DAY;
+ * slices from Saturday 13:00 — those stay on Sunday until Monday 13:00 UTC. */
+function campaignDayIndex(nowMs: number, weekStartMs: number): number {
   const days = Math.floor((utcMidnight(nowMs) - utcMidnight(weekStartMs)) / MS_DAY);
   return Math.min(6, Math.max(0, days));
 }
@@ -59,18 +60,27 @@ export function HeaderCampaignStatus() {
   const nextSnapshot = live.campaign.nextSnapshotTimestamp;
   const [today, setToday] = useState<number | null>(null);
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
+  const [closing, setClosing] = useState(false);
 
+  // The clock runs to Saturday 13:00 UTC, when BULK reveals the week and the
+  // next opens (challengerWeekStart), not to the 12:00 snapshot. For the hour
+  // between them the campaign has already moved its week on, so the header
+  // holds the week number back to the one still closing.
   useEffect(() => {
     const update = () => {
-      setToday(campaignDayIndex(Date.now(), nextSnapshot));
-      setRemainingMs(Math.max(0, nextSnapshot - Date.now()));
+      const now = Date.now();
+      const start = challengerWeekStart(now);
+      setToday(campaignDayIndex(now, start));
+      setRemainingMs(Math.max(0, start + MS_WEEK - now));
+      // This week opened before the campaign's: the hour after 12:00.
+      setClosing(start < nextSnapshot - MS_WEEK);
     };
     update();
     const id = window.setInterval(update, 30_000);
     return () => window.clearInterval(id);
   }, [nextSnapshot]);
 
-  const week = live.campaign.week;
+  const week = closing ? live.campaign.week - 1 : live.campaign.week;
   const left = remainingMs != null ? formatLeftCompact(remainingMs) : "—";
 
   return (

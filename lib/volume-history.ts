@@ -1,5 +1,6 @@
 import { fetchExchangeStats, fetchKlines, marketBase, type ExchangeCandle } from "@/lib/bulk-exchange";
 import { getNextSnapshotTimestamp } from "@/lib/projected-snapshot-tvl";
+import { challengerWeekStart } from "@/lib/challenger-series";
 
 export const VOLUME_RANGES = ["1D", "W", "M", "Y", "ALL"] as const;
 export type VolumeRange = (typeof VOLUME_RANGES)[number];
@@ -348,6 +349,9 @@ export function keepVolumeHistoryWarm(): void {
     try {
       // Most-opened first: the chart's default range, then the KPI spark.
       await settle("1D", () => buildVolumeHistory("1D"));
+      // The Challenger Series pool and Gauntlet charts: cold, the page's
+      // weekly revenue waited seven seconds on this and showed "$—".
+      await settle("challenger-week", () => buildWeekHourly(challengerWeekStart(Date.now())));
       await settle("ALL:1h", buildAllTimeHourly);
       for (const range of VOLUME_RANGES) {
         if (range !== "1D") await settle(range, () => buildVolumeHistory(range));
