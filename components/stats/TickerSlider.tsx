@@ -30,10 +30,20 @@ const GAP_PX = 2;
  *  half a second, and retargeted mid-flight without a jolt. */
 const GLIDE = { type: "spring", stiffness: 190, damping: 28, mass: 1 } as const;
 const LENS_GLIDE = { type: "spring", stiffness: 320, damping: 32 } as const;
-/** Wheel travel for one ticker: a mouse notch is about 100px, so one notch is
- *  one step, and a trackpad has to travel a little before the next. */
-const WHEEL_STEP_PX = 60;
+/** The wheel, one ticker at a time. A mouse notch arrives as one event of
+ *  100px or more (120, or 125 to 150 on a scaled display): each such event
+ *  is one step, whatever its size, where a 60px threshold read a 120px notch
+ *  as two and skipped a ticker. A trackpad sends a stream of small deltas:
+ *  those add up, a step per WHEEL_STEP_PX of travel. */
+const WHEEL_NOTCH_PX = 50;
+const WHEEL_STEP_PX = 100;
 const WHEEL_GAP_MS = 90;
+/** A line-mode wheel (Firefox) reports a notch as 3 lines. */
+const WHEEL_LINE_PX = 40;
+/** How long the wheel has to rest before the page switches to the ticker
+ *  under the lens. Only the strip moves while it spins: switching the whole
+ *  page at every notch re-rendered it mid-glide and made the strip stutter. */
+const WHEEL_SETTLE_MS = 220;
 /** Pointer travel before a press becomes a drag rather than a click. */
 const DRAG_SLOP_PX = 5;
 /** How far a released drag's speed carries it, in seconds of that speed. */
@@ -138,6 +148,13 @@ export function TickerSlider<T extends string>({
   });
   /** The market this strip last showed as picked, ahead of the page. */
   const shown = useRef<T | null>(null);
+  /** A pick handed to the page that it has not shown yet, and the market the
+   *  page was on when it was made. The switch runs as a transition, so the
+   *  page can render again on the old market first (a poll landing, say):
+   *  that is the page lagging, not the page moving, and must not pull the
+   *  strip back. It did: the strip stopped on a ticker, slid back to the
+   *  last one, then returned once the page caught up. */
+  const requested = useRef<{ next: T; behind: Set<T> } | null>(null);
 
   /** Glide (or jump) to a slot, the short way round the loop. */
   const goTo = useCallback(
@@ -160,28 +177,45 @@ export function TickerSlider<T extends string>({
     [offset, lensW],
   );
 
+  /** Hand the page the market under the lens, if it is a new one. */
+  const commit = useCallback((slot: number) => {
+    const { slots: list, options: opts, onChange: change } = latest.current;
+    const s = list[slot];
+    if (!s) return;
+    const next = opts[s.market].value;
+    if (next === shown.current) return;
+    // Every market the page may still render on its way: the one it was on,
+    // and any pick before this one it has not shown yet.
+    const behind = new Set<T>(requested.current ? [...requested.current.behind, requested.current.next] : []);
+    behind.add(latest.current.value);
+    requested.current = { next, behind };
+    shown.current = next;
+    startTransition(() => change(next));
+  }, []);
+
   /** A pick from the strip itself: it moves now, the page follows. */
   const pick = useCallback(
     (slot: number) => {
-      const { slots: list, options: opts, onChange: change } = latest.current;
-      const s = list[slot];
-      if (!s) return;
+      if (!latest.current.slots[slot]) return;
       goTo(slot, true);
-      const next = opts[s.market].value;
-      if (next === shown.current) return;
-      shown.current = next;
-      startTransition(() => change(next));
+      commit(slot);
     },
-    [goTo],
+    [goTo, commit],
   );
+
+  /** The slot `dir` tickers on from the one under the lens, round the loop. */
+  const next = useCallback((dir: -1 | 1) => {
+    const n = latest.current.slots.length;
+    if (n < 2 || at.current < 0) return -1;
+    return (((at.current + dir) % n) + n) % n;
+  }, []);
 
   const step = useCallback(
     (dir: -1 | 1) => {
-      const n = latest.current.slots.length;
-      if (n < 2 || at.current < 0) return;
-      pick((((at.current + dir) % n) + n) % n);
+      const slot = next(dir);
+      if (slot >= 0) pick(slot);
     },
-    [pick],
+    [next, pick],
   );
 
   // Follow the page's market: placed outright on first layout and whenever
@@ -191,12 +225,23 @@ export function TickerSlider<T extends string>({
   const laidOut = useRef<Slot[] | null>(null);
   useLayoutEffect(() => {
     if (!slots.length) return;
-    const market = options.findIndex((o) => o.value === value);
-    if (market < 0) return;
     const relaid = laidOut.current !== slots;
     laidOut.current = slots;
-    const outside = value !== shown.current;
-    shown.current = value;
+    const asked = requested.current;
+    // Caught up, or still behind on a market it is leaving: either way the
+    // strip already shows the right one. Anything else is the page choosing
+    // a market of its own, and the strip follows it.
+    let lagging = false;
+    if (asked) {
+      if (value === asked.next) requested.current = null;
+      else if (asked.behind.has(value)) lagging = true;
+      else requested.current = null;
+    }
+    const target = lagging ? shown.current : value;
+    const market = options.findIndex((o) => o.value === target);
+    if (market < 0) return;
+    const outside = !lagging && value !== shown.current;
+    if (!lagging) shown.current = value;
     if (!relaid && !outside) return;
     // The copy of that market nearest where the strip already is.
     let best = -1;
@@ -220,24 +265,33 @@ export function TickerSlider<T extends string>({
     if (!track) return;
     let travel = 0;
     let lastStep = 0;
+    let settle = 0;
     const onWheel = (e: WheelEvent) => {
       const raw = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      const delta = e.deltaMode === 1 ? raw * 32 : raw;
+      const delta = e.deltaMode === 1 ? raw * WHEEL_LINE_PX : raw;
       if (!delta) return;
       e.preventDefault();
       const dir = delta > 0 ? 1 : -1;
       if (Math.sign(travel) !== dir) travel = 0;
-      travel += delta;
+      // A notch is a step on its own; small deltas count toward one.
+      travel = Math.abs(delta) >= WHEEL_NOTCH_PX ? dir * WHEEL_STEP_PX : travel + delta;
       const now = performance.now();
       if (Math.abs(travel) >= WHEEL_STEP_PX && now - lastStep >= WHEEL_GAP_MS) {
         travel = 0;
         lastStep = now;
-        step(dir);
+        const slot = next(dir);
+        if (slot >= 0) goTo(slot, true);
       }
+      // The page follows once the wheel rests, onto wherever the strip is.
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => commit(at.current), WHEEL_SETTLE_MS);
     };
     track.addEventListener("wheel", onWheel, { passive: false });
-    return () => track.removeEventListener("wheel", onWheel);
-  }, [step]);
+    return () => {
+      track.removeEventListener("wheel", onWheel);
+      window.clearTimeout(settle);
+    };
+  }, [next, goTo, commit]);
 
   // Drag (mouse or touch) moves the strip under the finger; on release it
   // carries on with the finger's speed and settles on the nearest ticker.
