@@ -389,6 +389,7 @@ export function Standings({
                 wallet: row.wallet,
                 position: row.position,
                 tradingAura: row.tradingAura,
+                inside: row.rank === upper,
               }))}
             />
           </div>

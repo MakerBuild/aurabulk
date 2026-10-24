@@ -10,6 +10,9 @@ export interface CurvePoint {
   wallet: string;
   position: number;
   tradingAura: number;
+  /** In the upper league. Taken from the league, not the AURA: in the lower
+   *  leagues the first one out can tie the last one in. */
+  inside: boolean;
 }
 
 /** Room for the axis labels: AURA on the left, ranks under the plot. */
@@ -17,6 +20,8 @@ const PAD_LEFT = 38;
 const PAD_RIGHT = 8;
 const PAD_TOP = 14;
 const PAD_BOTTOM = 22;
+/** The least room between two rank labels: about one "#1185" and a gap. */
+const MIN_TICK_GAP = 40;
 
 /** Each side of the line wears its league's colour, the site's rank tokens
  *  (taken from the badges, set per theme). */
@@ -107,8 +112,9 @@ export function AuraCurve({
   const x = (rank: number) => PAD_LEFT + ((last - rank) / Math.max(1, last - first)) * plotW;
   const y = (value: number) => PAD_TOP + (1 - (value - lo) / (hi - lo)) * plotH;
   // The cut falls between the last one in and the first one out.
-  const lastIn = points.filter((p) => p.tradingAura >= line).reduce((m, p) => Math.max(m, p.position), first);
-  const cutX = x(lastIn + 0.5);
+  const lastIn = points.filter((p) => p.inside).reduce((m, p) => Math.max(m, p.position), first);
+  const firstOut = points.filter((p) => !p.inside).reduce((m, p) => Math.min(m, p.position), last);
+  const cutX = x((lastIn + firstOut) / 2);
 
   const sorted = [...points].sort((a, b) => a.position - b.position);
   const line_ = sorted.map((p, i) => `${i ? "L" : "M"}${x(p.position).toFixed(1)},${y(p.tradingAura).toFixed(1)}`).join(" ");
@@ -126,7 +132,13 @@ export function AuraCurve({
     setHover(rank);
   }
 
-  const xTicks = sorted.filter((p) => p.position % 5 === 0 || p.position === lastIn + 1).map((p) => p.position);
+  // Every fifth rank and the first one out, minus any that would crowd
+  // another: on a phone #1185 and #1186 printed over each other. The first
+  // one out is placed first, so it is never the one dropped.
+  const xTicks: number[] = [];
+  for (const rank of [firstOut, ...sorted.map((p) => p.position).filter((r) => r % 5 === 0 && r !== firstOut)]) {
+    if (xTicks.every((kept) => Math.abs(x(kept) - x(rank)) >= MIN_TICK_GAP)) xTicks.push(rank);
+  }
 
   return (
     <div
@@ -214,7 +226,7 @@ export function AuraCurve({
               textAnchor={x(rank) > w - PAD_RIGHT - 14 ? "end" : x(rank) < PAD_LEFT + 14 ? "start" : "middle"}
               className="font-mono text-[10px]"
               // The first one out takes the lower league's colour, the rest stay muted.
-              fill={rank === lastIn + 1 ? outColor : "var(--t-text-muted)"}
+              fill={rank === firstOut ? outColor : "var(--t-text-muted)"}
             >
               #{rank}
             </text>
@@ -260,7 +272,7 @@ export function AuraCurve({
       {w > 0 &&
         h > 0 &&
         sorted
-          .filter((p) => p.position === lastIn || p.position === lastIn + 1)
+          .filter((p) => p.position === lastIn || p.position === firstOut)
           .map((p) => {
             const inside = p.position === lastIn;
             return (

@@ -44,8 +44,11 @@ export function FootStats({
       {stats.map((stat, i) => (
         <div key={i} className="min-w-0 text-left">
           {/* The space under the label is padding, not the figure's margin:
-              truncate-safe sets the figure's own block margin and wins. */}
-          <p className="font-label m-0 truncate pb-2.5 text-text-dim">{stat.label}</p>
+              truncate-safe sets the figure's own block margin and wins. The
+              label wraps rather than cutting off on a phone ("Projected net
+              revenue" in a third of the card); the figures still share a
+              baseline, since every column sits on the row's bottom edge. */}
+          <p className="font-label m-0 pb-2.5 leading-[1.35] text-text-dim">{stat.label}</p>
           <p className="font-data m-0 truncate-safe text-[12px] leading-none tabular-nums">
             {slide(
               <>
