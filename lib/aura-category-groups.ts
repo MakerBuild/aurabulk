@@ -153,17 +153,19 @@ export const OVERVIEW_GROUP = "overview";
  * the same buckets, so their figures agree:
  *   - Pre-Deposits: pre-deposit weeks and their referral bonuses.
  *   - Mainnet Trading: everything earned on mainnet except the protocol
- *     pool — trading, maker rebates, trading referrals, boosts.
+ *     pool and the Gauntlet — trading, maker rebates, trading referrals, boosts.
  *   - BulkSOL: every protocol reward from any week, pre-deposit or mainnet,
  *     and the Exponent corrections to them.
  *   - Retro: every retro category, retro protocol staking included.
+ *   - Gauntlet: the Challenger Series' weekly Gauntlet rewards.
  * Anything unrecognised lands in "other" rather than being guessed at.
  */
-export type AuraSourceKey = "pre-deposits" | "mainnet-trading" | "bulksol" | "retro" | "other";
+export type AuraSourceKey = "pre-deposits" | "mainnet-trading" | "gauntlet" | "bulksol" | "retro" | "other";
 
 export const AURA_SOURCE_LABELS: Record<AuraSourceKey, string> = {
   "pre-deposits": "Pre-Deposits",
   "mainnet-trading": "Mainnet Trading",
+  gauntlet: "Gauntlet",
   bulksol: "BulkSOL",
   retro: "Retro",
   other: "Other",
@@ -173,8 +175,8 @@ export function auraSourceKey(key: string): AuraSourceKey {
   if (key.startsWith("retro_")) return "retro";
   if (/^mainnet_week\d+_protocol(?:_.+)?$/.test(key)) return "bulksol";
   if (MAINNET_WEEK_RE.test(key)) return "mainnet-trading";
-  // The Gauntlet is trading AURA too: BULK counts it toward the league.
-  if (CHALLENGER_WEEK_RE.test(key)) return "mainnet-trading";
+  // Its own source, though BULK counts it toward the league as trading AURA.
+  if (CHALLENGER_WEEK_RE.test(key)) return "gauntlet";
   if (/^(?:predeposit_)?(?:referral_)?week\d+$/.test(key)) return "pre-deposits";
   if (/^week\d+_(?:protocol_.+|.*exponent.*correction)$/.test(key)) return "bulksol";
   return "other";
@@ -198,6 +200,22 @@ export function aggregateBySource(data: CategoryBreakdownItem[]): CategoryBreakd
       points,
       share: totalPoints > 0 ? (points / totalPoints) * 100 : 0,
     }))
+    .sort((a, b) => Number(a.key === "other") - Number(b.key === "other") || b.points - a.points);
+}
+
+/**
+ * The overview by source with the Gauntlet counted in Mainnet Trading, for
+ * the exchange-wide views (the homepage ring, the Aura page): beside the
+ * campaign's millions it is a sliver of a percent, and it is trading AURA.
+ * A wallet's own breakdown keeps it as a source of its own.
+ */
+export function withGauntletInTrading(sources: CategoryBreakdownItem[]): CategoryBreakdownItem[] {
+  const gauntlet = sources.find((s) => s.key === "gauntlet");
+  const trading = sources.find((s) => s.key === "mainnet-trading");
+  if (!gauntlet || !trading) return sources;
+  return sources
+    .filter((s) => s !== gauntlet)
+    .map((s) => (s === trading ? { ...s, points: s.points + gauntlet.points, share: s.share + gauntlet.share } : s))
     .sort((a, b) => Number(a.key === "other") - Number(b.key === "other") || b.points - a.points);
 }
 

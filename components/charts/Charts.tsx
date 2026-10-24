@@ -37,6 +37,7 @@ import {
   OVERVIEW_GROUP,
   buildCategoryGroupOptions,
   filterCategoryBreakdown,
+  withGauntletInTrading,
   type CategoryBreakdownItem,
 } from "@/lib/aura-category-groups";
 
@@ -151,7 +152,9 @@ function collapseSmallCategories(data: CategoryChartRow[]) {
   const prominent = data.filter((item) => item.groupShare >= MIN_GROUP_SHARE || item.key === "others");
   const tiny = data.filter((item) => item.groupShare < MIN_GROUP_SHARE && item.key !== "others");
 
-  if (tiny.length === 0 || prominent.length === 0) {
+  // A lone small source keeps its own name: "Others" made of one row (the
+  // Gauntlet, beside the campaign's millions) only hides what it is.
+  if (tiny.length <= 1 || prominent.length === 0) {
     return { chartData: [...data], othersCategories: [] };
   }
 
@@ -184,10 +187,11 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
     ? pickedGroup
     : OVERVIEW_GROUP;
 
-  const filtered = useMemo(
-    () => filterCategoryBreakdown(data, selectedGroup),
-    [data, selectedGroup]
-  );
+  // The exchange-wide overview counts the Gauntlet in Mainnet Trading.
+  const filtered = useMemo(() => {
+    const rows = filterCategoryBreakdown(data, selectedGroup);
+    return selectedGroup === OVERVIEW_GROUP ? withGauntletInTrading(rows) : rows;
+  }, [data, selectedGroup]);
 
   const isDrillDown = selectedGroup !== OVERVIEW_GROUP;
 

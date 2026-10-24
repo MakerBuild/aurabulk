@@ -1,4 +1,4 @@
-import { aggregateBySource, type CategoryBreakdownItem } from "@/lib/aura-category-groups";
+import { aggregateBySource, withGauntletInTrading, type CategoryBreakdownItem } from "@/lib/aura-category-groups";
 import { RANK_NAMES } from "@/lib/ranks";
 
 function numFull(value: number): string {
@@ -135,7 +135,7 @@ const HOMEPAGE_SOURCE_LABELS: Partial<Record<string, string>> = {
 };
 
 function overviewSources(items: CategoryBreakdownItem[]): CategoryBreakdownItem[] {
-  return aggregateBySource(items)
+  return withGauntletInTrading(aggregateBySource(items))
     .filter((source) => source.points > 0)
     .map((source) => ({
       ...source,
