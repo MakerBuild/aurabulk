@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 export interface FootStat {
   /** Text, or a node when part of it slides on a switch (SwapValue). */
   label: React.ReactNode;
+  /** A shorter label for phones, where a column is a third of the card. */
+  phoneLabel?: React.ReactNode;
   /** The figure itself; a unit, when it has one, goes in `unit`. */
   value: string;
   unit?: string;
@@ -44,11 +46,19 @@ export function FootStats({
       {stats.map((stat, i) => (
         <div key={i} className="min-w-0 text-left">
           {/* The space under the label is padding, not the figure's margin:
-              truncate-safe sets the figure's own block margin and wins. The
-              label wraps rather than cutting off on a phone ("Projected net
-              revenue" in a third of the card); the figures still share a
-              baseline, since every column sits on the row's bottom edge. */}
-          <p className="font-label m-0 pb-2.5 leading-[1.35] text-text-dim">{stat.label}</p>
+              truncate-safe sets the figure's own block margin and wins. One
+              line always: a label wrapping to two stood up over its row on a
+              phone, so a long one carries a short phone version instead. */}
+          <p className="font-label m-0 truncate pb-2.5 text-text-dim">
+            {stat.phoneLabel ? (
+              <>
+                <span className="sm:hidden">{stat.phoneLabel}</span>
+                <span className="hidden sm:inline">{stat.label}</span>
+              </>
+            ) : (
+              stat.label
+            )}
+          </p>
           <p className="font-data m-0 truncate-safe text-[12px] leading-none tabular-nums">
             {slide(
               <>

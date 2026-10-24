@@ -535,6 +535,7 @@ export function ChallengerOverview({
             projected
               ? {
                   label: "Projected net revenue",
+                  phoneLabel: "Proj. revenue",
                   value: series ? usd0(series.projectedUsd / PRIZE_POOL_SHARE) : "—",
                 }
               : { label: "Net revenue", value: netRevenueUsd == null ? "—" : usd0(netRevenueUsd) },
@@ -565,9 +566,10 @@ export function ChallengerOverview({
             }
             stats={[
               { label: "Reward", value: count(GAUNTLET_AURA), unit: "AURA" },
-              { label: "Projected volume", value: series ? usdBoard(series.projectedVolumeUsd) : "—" },
+              { label: "Projected volume", phoneLabel: "Proj. volume", value: series ? usdBoard(series.projectedVolumeUsd) : "—" },
               {
                 label: "Per $1M traded",
+                phoneLabel: "Per $1M",
                 value: series && series.weekVolumeUsd > 0 ? count(GAUNTLET_AURA / (series.weekVolumeUsd / 1e6)) : "—",
                 unit: "AURA",
               },

@@ -400,13 +400,24 @@ export function Standings({
               swap
               stats={[
                 // Only what changes with the league slides; the wording holds still.
-                { label: <>To enter <SwapValue>{upper}</SwapValue></>, value: aura(cutoff), unit: "AURA" },
+                // On a phone the league's name is left to the chart above.
+                {
+                  label: (
+                    <>
+                      To enter <SwapValue>{upper}</SwapValue>
+                    </>
+                  ),
+                  phoneLabel: "To enter",
+                  value: aura(cutoff),
+                  unit: "AURA",
+                },
                 {
                   label: (
                     <>
                       Closest chaser{chaser && <> · <SwapValue>#{chaser.position}</SwapValue></>}
                     </>
                   ),
+                  phoneLabel: <>Chaser{chaser && <> · <SwapValue>#{chaser.position}</SwapValue></>}</>,
                   value: chaser ? gap(cutoff - chaser.tradingAura) : "—",
                   unit: chaser ? "AURA" : undefined,
                   tone: "accent",
@@ -415,6 +426,11 @@ export function Standings({
                   label: (
                     <>
                       Within <SwapValue>{aura(band)}</SwapValue> AURA
+                    </>
+                  ),
+                  phoneLabel: (
+                    <>
+                      ±<SwapValue>{aura(band)}</SwapValue> AURA
                     </>
                   ),
                   value: String(near),
