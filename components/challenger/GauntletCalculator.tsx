@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 const aura = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: n < 10 ? 2 : 0, maximumFractionDigits: n < 10 ? 2 : 0 });
@@ -20,129 +21,94 @@ function grouped(text: string): string {
 }
 
 /** A field's width for its text: tabular digits are a `ch` each, the
- *  separators about a third of one. */
+ *  separators about a third of one. Safari has no field-sizing, so the width
+ *  is set rather than left to the browser. */
 function fieldWidth(text: string): string {
   const narrow = text.replace(/[^.,]/g, "").length;
   return `calc(${text.length - narrow}ch + ${narrow * 0.34}ch + 1px)`;
 }
 
-/** The figure every column shares: the stats' own from sm up, so the
- *  calculator and the row under it read at one size. On a phone 20px, big
- *  enough to type into and over the 16px below which iOS zooms into a field. */
-const FIGURE = "font-figure text-[20px] leading-none tracking-[0.01em] tabular-nums sm:text-[13px]";
-/** Each column's value row: one fixed height with its hairline at the
- *  bottom, so the three lines under it start on one level whatever a field
- *  renders at. A thumb's height on a phone; the whole row takes the tap. */
-const VALUE_ROW = "flex h-12 min-w-0 items-end gap-1 border-b pb-2 sm:h-6 sm:pb-1.5";
-
-/** One column: a label over a figure over one short line, as the stats below
- *  are laid out, so the calculator sits on the same three columns. */
-function Column({
-  label,
-  aside,
-  children,
-  note,
-  className,
-}: {
-  className?: string;
-  label: string;
-  /** A control set just after the label, clear of the next column. */
-  aside?: React.ReactNode;
-  children: React.ReactNode;
-  note: React.ReactNode;
-}) {
-  return (
-    <div className={`flex min-w-0 flex-col ${className ?? ""}`}>
-      {/* One fixed height, whatever stands in it: the unit switch's larger
-          word made the Hold row taller than its neighbours on iOS. */}
-      <div className="mb-2.5 flex h-3 min-w-0 items-center gap-3">
-        <p className="font-label m-0 truncate leading-none text-text-dim">{label}</p>
-        {aside}
-      </div>
-      {children}
-      <p className="font-figure m-0 mt-2 flex min-w-0 items-center gap-1.5 truncate text-[15px] leading-none tracking-[0.01em] text-text-muted tabular-nums sm:text-[13px]">
-        {note}
-      </p>
-    </div>
-  );
-}
+/** The site's small capitals, for the boxes' and the strip's labels. */
+const LABEL = "font-label m-0 shrink-0 leading-none text-text-dim";
 
 /**
- * A column's figure: no box, a hairline under it that lights on focus. The
- * estimate is one too, read-only, so all three sit on one baseline and one
- * hairline. A currency sign is part of the figure, as "$15.14M" is in the
- * stats below; a unit follows it small and muted, the same for every column.
+ * One input, both built alike: its label over a box, and in the box the
+ * figure at the left and its unit at the right, in the label's small
+ * capitals (USD, or the days | hours switch). The box is the field: a tap
+ * anywhere in it lands in the input, and its border lights while in use.
  */
-function FigureInput({
+function InputBox({
+  id,
+  label,
+  trailing,
   value,
   onChange,
-  prefix,
-  suffix,
-  label,
-  readOnly = false,
-  accent = false,
+  ariaLabel,
 }: {
-  value: string;
-  onChange?: (text: string) => void;
-  prefix?: string;
-  suffix?: string;
+  id: string;
   label: string;
-  readOnly?: boolean;
-  accent?: boolean;
+  /** The unit at the value row's right end. */
+  trailing: React.ReactNode;
+  value: string;
+  onChange: (text: string) => void;
+  ariaLabel: string;
 }) {
   return (
-    <label
-      className={`${VALUE_ROW} border-[var(--color-line-strong)] transition-colors ${readOnly ? "" : "focus-within:border-[var(--color-accent)]"}`}
-    >
-      {/* Bottom-aligned boxes of line-height 1, not baselines: Safari puts an
-          input's baseline elsewhere than Chrome, so a field without a "$"
-          before it (the hold) sat lower on an iPhone than one with. */}
-      <span className="flex min-w-0 items-end gap-1.5">
-        <span className={`${FIGURE} flex min-w-0 items-end ${accent ? "text-accent" : "text-text-primary"}`}>
-          {prefix && <span className="leading-none">{prefix}</span>}
+    <div className="flex min-w-0 flex-col">
+      <label htmlFor={id} className={cn(LABEL, "mb-2 flex h-3 cursor-text items-center")}>
+        {label}
+      </label>
+      <div className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] px-3 py-3 transition-colors focus-within:border-[var(--color-accent)]">
+        {/* 18px and up: below 16px iOS zooms into a field. */}
+        <label htmlFor={id} className="flex min-w-0 flex-1 cursor-text items-center">
           <input
-            aria-label={label}
+            id={id}
+            aria-label={ariaLabel}
             inputMode="decimal"
             value={value}
             placeholder="0"
-            readOnly={readOnly}
-            tabIndex={readOnly ? -1 : undefined}
-            onChange={(e) => onChange?.(e.target.value)}
-            // Sized to its text: Safari has no field-sizing, and its
-            // \`size\` width left a gap before the unit on an iPhone.
+            onChange={(e) => onChange(e.target.value)}
             style={{ width: fieldWidth(value || "0") }}
-            className={`${FIGURE} block h-[1em] min-w-0 max-w-full appearance-none rounded-none border-0 bg-transparent p-0 text-inherit shadow-none outline-none [field-sizing:content] placeholder:text-text-dim ${readOnly ? "cursor-default" : ""}`}
+            className={cn(
+              "font-figure block h-5 min-w-0 max-w-full appearance-none rounded-none border-0 bg-transparent p-0 leading-none tracking-[-0.01em] text-text-primary shadow-none outline-none tabular-nums [field-sizing:content] placeholder:text-text-dim",
+              value.length > 9 ? "text-[18px]" : "text-[20px]",
+            )}
           />
-        </span>
-        {suffix && (
-          <span className="font-figure shrink-0 pb-px text-[15px] leading-none tracking-[0.01em] text-text-muted sm:text-[13px]">
-            {suffix}
-          </span>
-        )}
-      </span>
-    </label>
+        </label>
+        <div className="flex h-5 shrink-0 items-center">{trailing}</div>
+      </div>
+    </div>
   );
 }
 
 type HoldUnit = "days" | "hours";
 
-/** Days or hours for the hold, in the label row's own type so it sits level
- *  with "Hold". Each option's tap area reaches past its word, padding taken
- *  back by margin so the row keeps its height. */
+/** Days | Hours, the same switch as Current | Projected on the pool card:
+ *  the lit word is the unit the field reads in. Each word's tap area reaches
+ *  past it, given back by margin so the value row keeps its height. */
 function UnitSwitch({ unit, onChange }: { unit: HoldUnit; onChange: (unit: HoldUnit) => void }) {
   return (
-    <span role="radiogroup" aria-label="Hold unit" className="font-label flex shrink-0 items-center">
-      {(["days", "hours"] as const).map((option) => (
-        <button
-          key={option}
-          type="button"
-          role="radio"
-          aria-checked={unit === option}
-          onClick={() => unit !== option && onChange(option)}
-          className={`-my-3 cursor-pointer border-0 bg-transparent px-2 py-3 text-[11.5px] leading-none uppercase transition-colors first:-ml-2 sm:-my-1 sm:px-1 sm:py-1 sm:text-[9.5px] sm:first:-ml-1 ${unit === option ? "text-accent" : "text-text-dim hover:text-text-muted"}`}
-        >
-          {option}
-        </button>
+    <span role="radiogroup" aria-label="Hold unit" className="-mr-1 flex shrink-0 items-center sm:-mr-1.5">
+      {(["days", "hours"] as const).map((option, i) => (
+        <span key={option} className="contents">
+          {i > 0 && (
+            <span className="font-label leading-none text-text-dim" aria-hidden>
+              |
+            </span>
+          )}
+          <button
+            type="button"
+            role="radio"
+            aria-checked={unit === option}
+            onClick={() => unit !== option && onChange(option)}
+            className={cn(
+              "font-label -my-2.5 cursor-pointer border-0 bg-transparent px-1 py-2.5 leading-none transition-colors sm:px-1.5",
+              unit === option ? "volume-mode-on" : "volume-mode-off text-text-muted hover:text-text-secondary",
+            )}
+          >
+            {option}
+          </button>
+        </span>
       ))}
     </span>
   );
@@ -155,12 +121,11 @@ function UnitSwitch({ unit, onChange }: { unit: HoldUnit; onChange: (unit: HoldU
  * over the week's projected eligible $1K-hours plus its own. So a bigger
  * position earns less per dollar, and none takes more than the whole reward.
  * A hold is typed in days or hours and counts up to the whole week, Saturday
- * 13:00 to Saturday 13:00 UTC.
+ * 13:00 to Saturday 13:00 UTC; a longer one is taken back to the week.
  *
- * Laid out on the card's three stat columns: the size, the hold, and the
- * estimate, under which the AURA it earns ticks up live. A phone's third of
- * the card is too narrow to type into, so there the size and hold share a
- * row and the estimate takes the next one whole.
+ * The two inputs as boxes side by side, and under them a gold-washed strip
+ * with the answer: its label and live tick at the left, the figure at the
+ * right. The same at every width.
  */
 export function GauntletCalculator({
   reward,
@@ -174,11 +139,13 @@ export function GauntletCalculator({
   /** The longest hold that counts: the whole Gauntlet week. */
   weekHours: number;
 }) {
+  const sizeId = useId();
+  const holdId = useId();
   const [size, setSize] = useState("10,000");
   const [hold, setHold] = useState("1");
   const [unit, setUnit] = useState<HoldUnit>("days");
-  const askedHours = parse(hold) * (unit === "days" ? 24 : 1);
-  const holdHours = Math.min(askedHours, weekHours);
+  const perUnit = unit === "days" ? 24 : 1;
+  const holdHours = Math.min(parse(hold) * perUnit, weekHours);
   const yours = (parse(size) / 1000) * holdHours;
   const total = yours > 0 ? (reward * yours) / (poolKiloHours + yours) : 0;
   const share = total / reward;
@@ -198,54 +165,69 @@ export function GauntletCalculator({
   }, [perSecond]);
 
   return (
-    <div className="grid w-full grid-cols-2 items-start gap-x-5 gap-y-5 sm:grid-cols-3 sm:gap-2">
-      <Column label="Position" note={`${(share * 100).toFixed(share < 0.01 ? 2 : 1)}% of pool`}>
-        <FigureInput label="Position size in USD" prefix="$" value={size} onChange={(text) => setSize(grouped(text))} />
-      </Column>
-      <Column
-        label="Hold"
-        aside={
-          <UnitSwitch
-            unit={unit}
-            onChange={(next) => {
-              // The same hold in the other unit, so switching keeps the estimate.
-              if (hold) setHold(String(+(next === "hours" ? askedHours : askedHours / 24).toFixed(2)));
-              setUnit(next);
-            }}
-          />
-        }
-        note={
-          askedHours > weekHours
-            ? "Counts 7 days, the week"
-            : unit === "days"
-              ? `${+holdHours.toFixed(1)}h of ${weekHours}h`
-              : `${+(holdHours / 24).toFixed(2)} of 7 days`
-        }
-      >
-        <FigureInput
-          label={`Hold in ${unit}`}
-          suffix={parse(hold) === 1 ? unit.slice(0, -1) : unit}
-          value={hold}
-          onChange={(text) => setHold(text.replace(/[^\d.]/g, ""))}
+    <div className="flex w-full flex-col gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
+        <InputBox
+          id={sizeId}
+          label="Position"
+          ariaLabel="Position size in USD"
+          trailing={<span className="font-label leading-none text-text-muted">USD</span>}
+          value={size}
+          onChange={(text) => setSize(grouped(text))}
         />
-      </Column>
-      <Column
-        className="col-span-2 sm:col-span-1"
-        label="Est. reward"
-        note={
-          <>
-            <span className="relative flex size-1.5 shrink-0" aria-hidden>
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--color-bid-green)] opacity-60" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-[var(--color-bid-green)]" />
+        <InputBox
+          id={holdId}
+          label="Hold"
+          ariaLabel={`Hold in ${unit}`}
+          trailing={
+            <UnitSwitch
+              unit={unit}
+              onChange={(next) => {
+                // The same hold in the other unit, so switching keeps the estimate.
+                if (hold) setHold(String(+(next === "hours" ? holdHours : holdHours / 24).toFixed(2)));
+                setUnit(next);
+              }}
+            />
+          }
+          value={hold}
+          onChange={(text) => {
+            const clean = text.replace(/[^\d.]/g, "");
+            // Past the week counts as the week, so the field says so.
+            const most = weekHours / perUnit;
+            setHold(parse(clean) > most ? String(most) : clean);
+          }}
+        />
+      </div>
+
+      {/* The answer, on the boxes' own grid: the same inset, the label in
+          their small capitals, and the figure standing on the line the tick
+          sits on, its unit in the same capitals as USD. */}
+      <div className="flex min-w-0 items-end justify-between gap-3 rounded-lg bg-[rgb(var(--t-accent-rgb)/0.07)] px-3 py-3">
+        <div className="flex min-w-0 flex-col">
+          <p className={LABEL}>Est. reward</p>
+          <p className="font-figure m-0 mt-2 flex min-w-0 items-center gap-2 truncate text-[13px] leading-none tracking-[0.02em] tabular-nums">
+            <span className="inline-flex items-center gap-1.5 text-[var(--color-bid-green)]" title="AURA earned since you opened the calculator">
+              <span className="relative flex size-1.5 shrink-0" aria-hidden>
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--color-bid-green)] opacity-60" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-[var(--color-bid-green)]" />
+              </span>
+              <span>
+                +<span ref={tickRef}>0.000000</span>
+              </span>
             </span>
-            <span className="text-[var(--color-bid-green)]" title="AURA earned since you opened the calculator">
-              +<span ref={tickRef}>0.000000</span>
-            </span>
-          </>
-        }
-      >
-        <FigureInput label="Estimated reward in AURA" value={aura(total)} suffix="AURA" readOnly accent />
-      </Column>
+            <span className="h-3 w-px shrink-0 bg-[var(--t-text-dim)]" aria-hidden />
+            <span className="text-text-muted">{`${(share * 100).toFixed(share < 0.01 ? 2 : 1)}% of pool`}</span>
+          </p>
+        </div>
+        {/* Its baseline sits 0.1em over its box's foot, the tick's 1.3px:
+            the margin lowers it the difference, onto the tick's line. */}
+        <p className="m-0 -mb-[1.7px] flex shrink-0 items-baseline gap-2 leading-none">
+          <span className="font-figure text-[28px] font-semibold leading-none tracking-[-0.02em] text-accent tabular-nums sm:text-[30px]">
+            {aura(total)}
+          </span>
+          <span className="font-label leading-none text-text-muted">AURA</span>
+        </p>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
@@ -119,6 +118,7 @@ function WeekCard({
   stats,
   footAside,
   alt,
+  altShown = false,
   className,
 }: {
   label: React.ReactNode;
@@ -134,9 +134,10 @@ function WeekCard({
   /** Fills the foot's right two columns, next to a lone stat. */
   footAside?: React.ReactNode;
 
-  /** Shown in place of the figure and chart while set (the Gauntlet
-   *  calculator), sliding over as the leaderboard's rows do. */
+  /** A second view of the card (the Gauntlet calculator), shown in place
+   *  of the figure, chart and stats while `altShown`. */
   alt?: React.ReactNode;
+  altShown?: boolean;
   className?: string;
 }) {
   return (
@@ -145,27 +146,26 @@ function WeekCard({
         <div className="flex min-w-0 items-center gap-1.5">{label}</div>
         {badge && <span className="font-label shrink-0 text-[var(--t-accent)]">{badge}</span>}
       </div>
-      <AnimatePresence mode="wait" initial={false}>
-        {alt ? (
-          <motion.div
-            key="alt"
-            className="flex min-h-0 min-w-0 flex-1 items-end"
-            initial={{ opacity: 0, x: 14 }}
-            animate={{ opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
-            exit={{ opacity: 0, x: -8, transition: { duration: 0.14, ease: "easeIn" } }}
-          >
-            {alt}
-          </motion.div>
-        ) : (
-          // Side by side from sm up; on a phone the chart needs the full
-          // width or its seven day labels run together.
-          <motion.div
-            key="main"
-            className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6"
-            initial={{ opacity: 0, x: -14 }}
-            animate={{ opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
-            exit={{ opacity: 0, x: 8, transition: { duration: 0.14, ease: "easeIn" } }}
-          >
+      {/* Both views share one grid cell and are always laid out, so the card
+          holds the taller one's height in either: switching only fades and
+          slides them, and neither this card nor the pool card beside it, which
+          the row stretches to match, changes size. CSS transitions rather than
+          framer: they finish whatever the frame rate, where a stalled frame
+          loop left the chart faded out under the calculator. */}
+      <div className="grid min-h-0 flex-1">
+        <div
+          className={cn(
+            "flex min-h-0 min-w-0 flex-col transition-[opacity,translate] [grid-area:1/1]",
+            altShown
+              ? "pointer-events-none translate-x-2 opacity-0 duration-150 ease-in"
+              : "translate-x-0 opacity-100 delay-75 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          )}
+          inert={altShown}
+          aria-hidden={altShown || undefined}
+        >
+          {/* Side by side from sm up; on a phone the chart needs the full
+              width or its seven day labels run together. */}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6">
             <div className="flex shrink-0 flex-col">
               <p className="font-figure m-0 pb-0.5 whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] sm:text-[28px]">
                 <span className={cn("kpi-number", counting && "is-counting")}>{figure}</span>
@@ -176,11 +176,25 @@ function WeekCard({
                 stretched to its neighbour's height fills it with chart rather
                 than leaving a gap under the footer. */}
             <div className="flex min-h-[70px] min-w-0 flex-1 flex-col">{chart}</div>
-          </motion.div>
+          </div>
+          <div className="mt-4">
+            <FootStats stats={stats} aside={footAside} />
+          </div>
+        </div>
+        {alt && (
+          <div
+            className={cn(
+              "flex min-h-0 min-w-0 items-center transition-[opacity,translate] [grid-area:1/1]",
+              altShown
+                ? "translate-x-0 opacity-100 delay-75 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                : "pointer-events-none translate-x-3.5 opacity-0 duration-150 ease-in",
+            )}
+            inert={!altShown}
+            aria-hidden={!altShown || undefined}
+          >
+            {alt}
+          </div>
         )}
-      </AnimatePresence>
-      <div className="mt-4">
-        <FootStats stats={stats} aside={footAside} />
       </div>
     </PanelCard>
   );
@@ -646,7 +660,13 @@ export function ChallengerOverview({
         />
         {gauntlet ? (
           <WeekCard
-            label={<h2 className="font-label volume-mode-on m-0 truncate">This week&apos;s Gauntlet</h2>}
+            // In calculator mode the label names the calculator, as each card's
+            // label names what the card shows.
+            label={
+              <h2 className="font-label volume-mode-on m-0 truncate">
+                {calculating ? "Gauntlet calculator" : <>This week&apos;s Gauntlet</>}
+              </h2>
+            }
             // The Gauntlet is what the card is about, so its name takes the
             // headline; the week's figure for it reads right under it.
             figure={gauntlet.name}
@@ -691,7 +711,7 @@ export function ChallengerOverview({
               ) : null)
             }
             alt={
-              calculating && canCalculate && oiPoolKiloHours != null ? (
+              canCalculate && oiPoolKiloHours != null ? (
                 <GauntletCalculator
                   reward={GAUNTLET_AURA}
                   poolKiloHours={oiPoolKiloHours}
@@ -699,6 +719,7 @@ export function ChallengerOverview({
                 />
               ) : undefined
             }
+            altShown={calculating}
             stats={
               gauntlet.metric === "openInterest"
                 ? [
