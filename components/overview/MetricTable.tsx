@@ -215,11 +215,11 @@ export function MetricTableRow({
       {/* Flush right, along with every column except the names. Digits line up
           by place value that way — the thousands column under the thousands
           column — which is the whole reason these are tabular figures. */}
-      <span className="font-data text-right" style={{ color: textColor }}>
+      <span className="text-right font-sans text-[13px] tabular-nums" style={{ color: textColor }}>
         {count}
       </span>
       {share != null && (
-        <span className="font-data text-right font-semibold" style={{ color: textColor }}>
+        <span className="text-right font-sans text-[13px] font-semibold tabular-nums" style={{ color: textColor }}>
           {share}
         </span>
       )}

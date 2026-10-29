@@ -22,11 +22,14 @@
   --t-bg-raised: #161618;
   --t-bg-secondary: #544a4c;
 
-  /* Text — primary reads, secondary supports, muted labels, dim icons. */
+  /* Text — primary reads, secondary supports, muted labels, dim icons.
+     Muted and dim were #8b8580 and #6b6660: the small capitals in those
+     greys were hard to read on the near-black cards, so both step up while
+     keeping their order under secondary. */
   --t-text-primary: #f5f3ee;
   --t-text-secondary: #c9c4bd;
-  --t-text-muted: #8b8580;
-  --t-text-dim: #6b6660;
+  --t-text-muted: #a8a29b;
+  --t-text-dim: #8f8982;
 
   /* Accent. -rgb is the same colour as a bare triplet so effects can do
      rgb(var(--t-accent-rgb) / 0.5) instead of a second hard-coded rgba. */
@@ -373,7 +376,17 @@ body {
   margin-block: -0.2em;
 }
 
-/** Table cells, axes, week markers, TVL deltas — Overpass Mono. */
+/** Figures in tables, tooltips and rows: the site face with tabular digits,
+ *  at the pages' 13px. Takes over from .font-data (Overpass Mono), which is
+ *  left to wallet addresses. Unlayered, so it sets the size over any text-[]
+ *  utility on the same element, as .font-data did. */
+.font-num {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/** Wallet addresses — Overpass Mono. */
 .font-data {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 12px;
@@ -1286,9 +1299,34 @@ input[type="number"] {
 
 .recharts-text {
   fill: var(--color-text-secondary) !important;
-  font-family: var(--font-mono), ui-monospace, monospace !important;
-  font-size: 12px !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-variant-numeric: tabular-nums;
   letter-spacing: 0;
+}
+
+/* A link arrow leaning toward where it goes, on hover: out a few pixels and
+   back, over and over. */
+@keyframes arrow-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+/* The Overview's volume chart sets its axes at the page's 13px text size, in
+   the site face with tabular figures. The rule above is !important, so this
+   is too. */
+.volume-chart .recharts-text {
+  fill: var(--color-text-muted) !important;
+  font-family: var(--font-sans), system-ui, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 /* FDV chart ticks sit over the card gloss; secondary fill disappeared into

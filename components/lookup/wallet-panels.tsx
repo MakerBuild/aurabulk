@@ -114,7 +114,7 @@ export function PersonalSourcesPanel({ data }: { data: WalletData }) {
         )}
       </div>
       {segments.length === 0 ? (
-        <p className="font-data text-[13px] text-text-muted">
+        <p className="font-num text-[13px] text-text-muted">
           {selectedWeek === "all"
             ? "No source breakdown."
             : `No Aura recorded for week ${selectedWeek}.`}
@@ -221,7 +221,7 @@ export function AuraStatsPanel({ data }: { data: WalletData }) {
             <p className="font-label m-0 text-text-muted">{stat.label}</p>
             <p
               className={cn(
-                "mt-1 font-data text-[15px] font-medium tabular-nums",
+                "font-figure mt-1 text-[13px] tracking-[0.02em]",
                 stat.badge && "flex items-center gap-1.5",
                 stat.accent ? "text-accent" : "text-text-primary"
               )}

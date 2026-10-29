@@ -203,10 +203,10 @@ export function MiniSpark({
                     : "translate(-50%, 0)",
             }}
           >
-            <p className="m-0 font-mono text-[9.5px] leading-none text-text-muted tabular-nums">
+            <p className="font-label m-0 leading-none text-text-muted">
               {formatTime(active.t)}
             </p>
-            <p className="m-0 mt-0.5 font-mono text-[10.5px] leading-none text-text-primary tabular-nums">
+            <p className="font-figure m-0 mt-1 text-[13px] leading-none tracking-[0.01em] text-text-primary">
               {formatValue(active.value)}
             </p>
           </div>

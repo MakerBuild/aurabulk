@@ -36,7 +36,8 @@ const LINE_MID_BID = `color-mix(in oklab, ${BID} 55%, ${BID_DEEP})`;
 const LINE_MID_ASK = `color-mix(in oklab, ${ASK} 55%, ${ASK_DEEP})`;
 const GRID = "rgb(var(--t-veil-rgb) / 0.06)";
 const AXIS_TEXT = "var(--t-text-muted)";
-const MONO = "var(--font-mono)";
+/** Axis text in the site face (it was Overpass Mono). */
+const MONO = "var(--font-sans)";
 
 /** What the chart is heading towards: the frame, and the order's reach. */
 interface Target {
@@ -336,7 +337,7 @@ export function DepthChart({
         onPointerLeave={() => setHoverX(null)}
       >
         {!geo || !f ? (
-          <p className="font-data m-0 pt-24 text-center text-text-dim">Loading order book…</p>
+          <p className="font-num m-0 pt-24 text-center text-text-dim">Loading order book…</p>
         ) : (
           <svg width={width} height={chartH} className="absolute left-0 top-0 block overflow-visible">
             <defs>
@@ -371,13 +372,13 @@ export function DepthChart({
             {geo.yTicks.map((t) => (
               <g key={t}>
                 <line x1={PAD.left} x2={width - PAD.right} y1={geo.y(t)} y2={geo.y(t)} stroke={GRID} />
-                <text x={PAD.left - 8} y={geo.y(t)} dy="0.32em" textAnchor="end" fontFamily={MONO} fontSize={12} fill={AXIS_TEXT}>
+                <text x={PAD.left - 8} y={geo.y(t)} dy="0.32em" textAnchor="end" fontFamily={MONO} fontSize={13} fill={AXIS_TEXT}>
                   {fmtUsdShort(t)}
                 </text>
               </g>
             ))}
             {geo.xTicks.map((t) => (
-              <text key={t} x={geo.x(t)} y={chartH - 6} textAnchor="middle" fontFamily={MONO} fontSize={12} fill={AXIS_TEXT}>
+              <text key={t} x={geo.x(t)} y={chartH - 6} textAnchor="middle" fontFamily={MONO} fontSize={13} fill={AXIS_TEXT}>
                 {t.toLocaleString("en-US", {
                   minimumFractionDigits: geo.tickDecimals,
                   maximumFractionDigits: geo.tickDecimals,
@@ -413,7 +414,7 @@ export function DepthChart({
               )}
             </g>
 
-            <text x={geo.x(f.mid)} y={PAD.top - 4} textAnchor="middle" fontFamily={MONO} fontSize={12} fill={AXIS_TEXT}>
+            <text x={geo.x(f.mid)} y={PAD.top - 4} textAnchor="middle" fontFamily={MONO} fontSize={13} fill={AXIS_TEXT}>
               mid
             </text>
 
@@ -432,7 +433,7 @@ export function DepthChart({
                   y={geo.y(f.filled) - 9}
                   textAnchor={side === "buy" ? "end" : "start"}
                   fontFamily={MONO}
-                  fontSize={12}
+                  fontSize={13}
                   fill="var(--t-text-primary)"
                 >
                   {fmtUsdShort(fill.filledUsd)} → {fmtPrice(fill.worstPx, decimals)}
@@ -451,14 +452,14 @@ export function DepthChart({
                 : { left: geo.x(hover.px) + 10 }
             }
           >
-            <p className="font-data m-0 text-text-primary">{fmtPrice(hover.px, decimals)}</p>
-            <p className="font-data m-0 text-text-muted">
+            <p className="font-num m-0 text-text-primary">{fmtPrice(hover.px, decimals)}</p>
+            <p className="font-num m-0 text-text-muted">
               {hover.bp >= 0 ? "+" : "−"}
               {Math.abs(hover.bp).toFixed(1)} bp from mid
             </p>
             <p className="m-0 mt-1 flex justify-between gap-4 text-text-secondary">
               <span>{hover.isAsk ? "Asks up to here" : "Bids down to here"}</span>
-              <span className="font-data" style={{ color: hover.isAsk ? ASK : BID }}>
+              <span className="font-num" style={{ color: hover.isAsk ? ASK : BID }}>
                 {fmtUsdShort(hover.depth)}
               </span>
             </p>

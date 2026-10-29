@@ -389,8 +389,11 @@ export function AuraDonut({
   // keeps ~15% clearance either side.
   const holeDiameter = innerRadius * 2;
   const tightHole = holeDiameter > 0 && holeDiameter < 96;
-  const valueFontPx = Math.max(11, Math.min(28, holeDiameter * (tightHole ? 0.22 : 0.19)));
-  const captionFontPx = Math.max(8.5, Math.min(11, holeDiameter * 0.055));
+  // Snapped to the page's steps (28 headline, 18 title, 13 text) rather
+  // than scaled freely, so the readout is one of the sizes around it.
+  const fitFontPx = holeDiameter * (tightHole ? 0.22 : 0.19);
+  const valueFontPx = fitFontPx >= 28 ? 28 : fitFontPx >= 18 ? 18 : 13;
+  const captionFontPx = 9.5;
 
   const sourcesLayout = !showShare;
   // Below xl the ring stays capped by the row's height while the card can be

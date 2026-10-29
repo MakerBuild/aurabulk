@@ -255,7 +255,7 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
           {othersCategories.map((c) => (
             <span key={c.category} className="flex justify-between gap-3">
               <span>{c.category}</span>
-              <span className="font-data text-text-secondary">
+              <span className="font-num text-text-secondary">
                 {formatNumber(c.points)} Aura · {c.groupShare.toFixed(1)}%
               </span>
             </span>
@@ -413,8 +413,8 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                   tickFormatter={(v) => `${v.toFixed(0)}%`}
                   minTickGap={28}
                   tick={{
-                    fontSize: 12,
-                    fontFamily: "var(--font-mono), ui-monospace, monospace",
+                    fontSize: 13,
+                    fontFamily: "var(--font-sans), system-ui, sans-serif",
                     fill: "var(--color-text-primary)",
                   }}
                 />
@@ -449,7 +449,7 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                         </p>
                         <div className="grid grid-cols-[auto_auto] gap-x-3 leading-none">
                           <span className="font-label text-text-muted">Share</span>
-                          <span className="font-data text-right text-[var(--t-accent)]">
+                          <span className="font-num text-right text-[var(--t-accent)]">
                             {row.groupShare.toFixed(1)}% of group · {row.share.toFixed(2)}% total
                           </span>
                         </div>
@@ -496,8 +496,8 @@ export function CategoryCharts({ data, wallet, className }: CategoryChartsProps)
                     position="right"
                     formatter={(value: number) => `${value.toFixed(1)}%`}
                     fill="var(--color-text-primary)"
-                    fontSize={12}
-                    fontFamily="var(--font-mono), ui-monospace, monospace"
+                    fontSize={13}
+                    fontFamily="var(--font-sans), system-ui, sans-serif"
                   />
                 </Bar>
               </BarChart>

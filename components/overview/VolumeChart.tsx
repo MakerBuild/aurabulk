@@ -46,11 +46,16 @@ const COIN_META: Record<VolumeCoin, { label: string; color: string }> = {
 
 const OI_COLOR = "var(--t-oi-line)";
 
+/** The axes at the page's 13px text size, in the site face (the CSS in
+ *  .volume-chart has the last word, as recharts' own rule is !important). */
 const AXIS_TICK = {
   fill: "var(--t-text-muted)",
-  fontSize: 11,
-  fontFamily: "var(--font-overpass-mono), ui-monospace, monospace",
+  fontSize: 13,
+  fontWeight: 500,
+  fontFamily: "var(--font-sans), system-ui, sans-serif",
 } as const;
+/** Room for "$500.0K" at 13px beside the plot. */
+const Y_AXIS_WIDTH = 60;
 
 const RANGE_OPTIONS = VOLUME_RANGES.map((r) => ({ value: r, label: r }));
 
@@ -257,14 +262,14 @@ export function VolumeChart() {
       {/* The plot box is sized by the card alone — content sits in an
           absolute layer — so swapping the loading line for the chart never
           changes the height of the grid row this card shares with the donut. */}
-      <div className="relative mt-2 min-h-[220px] flex-1 overflow-hidden xl:min-h-0">
+      <div className="volume-chart relative mt-2 min-h-[220px] flex-1 overflow-hidden xl:min-h-0">
         <div className="absolute inset-0">
         {failed ? (
-          <p className="font-data m-0 pt-10 text-center text-text-dim">Couldn’t load volume.</p>
+          <p className="m-0 pt-10 text-center font-sans text-[13px] text-text-dim">Couldn’t load volume.</p>
         ) : !payload ? (
-          <p className="font-data m-0 pt-10 text-center text-text-dim">Loading volume…</p>
+          <p className="m-0 pt-10 text-center font-sans text-[13px] text-text-dim">Loading volume…</p>
         ) : rows.length === 0 ? (
-          <p className="font-data m-0 pt-10 text-center text-text-dim">No volume in this window.</p>
+          <p className="m-0 pt-10 text-center font-sans text-[13px] text-text-dim">No volume in this window.</p>
         ) : (
           // Mounted only once the splash lifts: Recharts plays its bar and
           // line entrance on mount, and under the splash it would be over
@@ -317,7 +322,7 @@ export function VolumeChart() {
                   tick={AXIS_TICK}
                   axisLine={false}
                   tickLine={false}
-                  width={52}
+                  width={Y_AXIS_WIDTH}
                 />
                 <YAxis
                   yAxisId="cum"
@@ -328,7 +333,7 @@ export function VolumeChart() {
                   tick={AXIS_TICK}
                   axisLine={false}
                   tickLine={false}
-                  width={52}
+                  width={Y_AXIS_WIDTH}
                 />
                 <YAxis
                   yAxisId="oi"
@@ -339,7 +344,7 @@ export function VolumeChart() {
                   tick={AXIS_TICK}
                   axisLine={false}
                   tickLine={false}
-                  width={52}
+                  width={Y_AXIS_WIDTH}
                 />
                 <Tooltip
                   cursor={{ fill: "rgb(var(--t-veil-rgb)/0.03)" }}
@@ -348,30 +353,30 @@ export function VolumeChart() {
                     const row = tip[0]?.payload as ChartRow | undefined;
                     if (!row || row.future) return null;
                     return (
-                      <div className="rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 text-[11px] shadow-[var(--t-shadow-pop)]">
-                        <p className="font-data m-0 mb-1.5 text-text-muted">
+                      <div className="font-label rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 shadow-[var(--t-shadow-pop)] [&>p]:items-center [&>p+p]:mt-1.5">
+                        <p className="font-label m-0 mb-2 leading-none text-text-muted">
                           {formatAxisTick(Number(label), range)}
                         </p>
                         {VOLUME_COINS.filter((c) => enabled[c] && row[c] > 0).map((c) => (
                           <p key={c} className="m-0 flex justify-between gap-6 text-text-secondary">
                             <span>{COIN_META[c].label}</span>
-                            <span className="font-data text-text-primary">{formatUsd(row[c])}</span>
+                            <span className="font-figure text-[13px] tracking-[0.01em] text-text-primary">{formatUsd(row[c])}</span>
                           </p>
                         ))}
                         <p className="m-0 mt-1 flex justify-between gap-6 text-text-secondary">
                           <span>Total</span>
-                          <span className="font-data text-text-primary">{formatUsd(row.total)}</span>
+                          <span className="font-figure text-[13px] tracking-[0.01em] text-text-primary">{formatUsd(row.total)}</span>
                         </p>
                         {showCumulative && row.cumulative != null && (
                           <p className="m-0 flex justify-between gap-6 text-accent">
                             <span>Cumulative</span>
-                            <span className="font-data">{formatUsd(row.cumulative)}</span>
+                            <span className="font-figure text-[13px] tracking-[0.01em]">{formatUsd(row.cumulative)}</span>
                           </p>
                         )}
                         {showOi && row.oi != null && (
                           <p className="m-0 flex justify-between gap-6" style={{ color: OI_COLOR }}>
                             <span>Open Interest</span>
-                            <span className="font-data">{formatUsd(row.oi)}</span>
+                            <span className="font-figure text-[13px] tracking-[0.01em]">{formatUsd(row.oi)}</span>
                           </p>
                         )}
                       </div>

@@ -1,6 +1,7 @@
 import type { OverviewDonutSegment } from "@/lib/overview-metrics";
 import { AURA_SOURCES_DONUT_WELL, AuraDonut } from "@/components/overview/AuraDonut";
 import { PanelCard } from "@/components/overview/PanelCard";
+import { CardLink } from "@/components/overview/CardLink";
 
 export function AuraSourcesPanel({
   donut,
@@ -11,6 +12,10 @@ export function AuraSourcesPanel({
 }) {
   return (
     <PanelCard className="h-full flex-1" glossy glossDelay={-8}>
+      {/* To the Aura page, in the corner as on the ranks card. Laid over the
+          card rather than given a row, which the donut would lose height to,
+          and as far from the top as the ranks card centres its own. */}
+      <CardLink href="/aura" label="Aura" className="absolute right-0 top-1.5 z-10" />
       {/* No PanelLabel here — same reasoning as Depositors by Tier: the
           "Category / Aura / Share" header row already identifies the table,
           and the donut sizes itself off however much vertical room this

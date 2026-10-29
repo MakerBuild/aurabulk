@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ArrowRight } from "lucide-react";
+import { MoveRight } from "lucide-react";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import {
@@ -678,11 +678,20 @@ export function ChallengerOverview({
                   aria-pressed={calculating}
                   aria-label={calculating ? "Back to the chart" : "Calculate"}
                   // A tap area well past the small label, given back by margin.
-                  className="font-label -mx-3 -my-3 flex cursor-pointer items-center border-0 bg-transparent px-3 py-3 text-[var(--t-accent)] transition-colors hover:text-text-primary"
+                  className="font-label group -mx-3 -my-3 flex cursor-pointer items-center border-0 bg-transparent px-3 py-3 text-[var(--t-accent)] transition-colors hover:text-text-primary"
                 >
                   {/* Back is an arrow alone, pointing the way the chart slides
-                      back in from. */}
-                  {calculating ? <ArrowRight className="size-4" strokeWidth={2.25} aria-hidden /> : "Calculate"}
+                      back in from: the long one the Overview cards link with,
+                      nudging the same way on hover. */}
+                  {calculating ? (
+                    <MoveRight
+                      className="h-4 w-6 group-hover:animate-[arrow-nudge_0.9s_ease-in-out_infinite] group-focus-visible:animate-[arrow-nudge_0.9s_ease-in-out_infinite]"
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                  ) : (
+                    "Calculate"
+                  )}
                 </button>
               ) : undefined
             }

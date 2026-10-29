@@ -72,7 +72,7 @@ export function AuraHunter({
       />
 
       {error && (
-        <p className="mt-3 text-center font-data text-[13px] text-ask-red">
+        <p className="mt-3 text-center font-num text-[13px] text-ask-red">
           {error}
         </p>
       )}

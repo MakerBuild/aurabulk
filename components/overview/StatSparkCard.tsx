@@ -58,7 +58,7 @@ export function StatSparkCard({
           <p className="font-figure m-0 pb-0.5 whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] sm:text-[28px] xl:text-[30px]">
             {figure}
           </p>
-          <p className="m-0 flex flex-1 items-center font-data text-[12px] leading-none">
+          <p className="font-figure m-0 flex flex-1 items-center text-[13px] leading-none tracking-[0.02em]">
             <span
               className={cn(
                 "translate-y-px",
@@ -77,7 +77,7 @@ export function StatSparkCard({
         {stats.map((stat) => (
           <div key={stat.label} className="min-w-0">
             <p className="font-label m-0 text-text-dim">{stat.label}</p>
-            <p className="font-data m-0 mt-1 truncate-safe text-[11px] leading-none text-text-secondary tabular-nums">
+            <p className="font-figure m-0 mt-1.5 truncate-safe text-[13px] leading-none tracking-[0.01em] text-text-primary">
               {stat.value}
             </p>
           </div>

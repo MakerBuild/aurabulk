@@ -230,7 +230,7 @@ export function TwoSidedLiquidity({
                     {/* Value then bar in the DOM: a row from sm, reversed into
                         bar-over-value on a phone. */}
                     <span className="flex min-w-0 flex-col-reverse items-end gap-1 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
-                      <span className="font-data shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
+                      <span className="font-num shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
                         <SwapValue>{r.available ? fmtUsdShort(r.bid) : "—"}</SwapValue>
                       </span>
                       <span className="flex h-2.5 w-full min-w-0 justify-end sm:h-4 sm:w-auto sm:flex-1">
@@ -243,7 +243,7 @@ export function TwoSidedLiquidity({
                     <span className="flex flex-col items-center gap-1">
                       <span
                         className={cn(
-                          "font-data whitespace-nowrap text-center text-[12px] leading-none sm:text-[13px] sm:leading-normal",
+                          "font-num whitespace-nowrap text-center text-[12px] leading-none sm:text-[13px] sm:leading-normal",
                           on ? "text-accent" : r.available ? "text-text-muted" : "text-text-dim",
                         )}
                       >
@@ -255,7 +255,7 @@ export function TwoSidedLiquidity({
                           `±${r.bp} bp`
                         )}
                       </span>
-                      <span className={cn("font-data text-[11px] font-medium leading-none sm:hidden", splitTone)}>
+                      <span className={cn("font-num text-[11px] font-medium leading-none sm:hidden", splitTone)}>
                         <SwapValue>{split}</SwapValue>
                       </span>
                     </span>
@@ -266,11 +266,11 @@ export function TwoSidedLiquidity({
                           style={{ ...barStyle("ask", r.available ? r.ask / scale : 0), opacity: on ? 1 : 0.7 }}
                         />
                       </span>
-                      <span className="font-data shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
+                      <span className="font-num shrink-0 text-[11px] leading-none text-text-secondary sm:text-[13px] sm:leading-normal">
                         <SwapValue>{r.available ? fmtUsdShort(r.ask) : "—"}</SwapValue>
                       </span>
                     </span>
-                    <span className={cn("font-data hidden text-right text-[13px] font-medium sm:block", splitTone)}>
+                    <span className={cn("font-num hidden text-right text-[13px] font-medium sm:block", splitTone)}>
                       <SwapValue>{split}</SwapValue>
                     </span>
                   </button>
@@ -321,11 +321,11 @@ export function TwoSidedLiquidity({
 
           {/* Row 3: each side's depth, the verdict between them. */}
           <div className="col-span-3 grid h-9 grid-cols-subgrid items-center">
-            <span className="font-data truncate text-bid-green">
+            <span className="font-num truncate text-bid-green">
               <SwapValue>{focused?.available ? fmtUsdShort(focused.bid) : "—"}</SwapValue>
             </span>
             {focused && meta ? (
-              <span className={cn("font-data whitespace-nowrap", meta.className)}>
+              <span className={cn("font-num whitespace-nowrap", meta.className)}>
                 <SwapValue innerClassName="flex items-center gap-1.5">
                   <meta.Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.4} aria-hidden />
                   {meta.label} · {skewRatio(focused.bid, focused.ask)}
@@ -334,7 +334,7 @@ export function TwoSidedLiquidity({
             ) : (
               <span />
             )}
-            <span className="font-data truncate text-right text-ask-red">
+            <span className="font-num truncate text-right text-ask-red">
               <SwapValue>{focused?.available ? fmtUsdShort(focused.ask) : "—"}</SwapValue>
             </span>
           </div>
@@ -369,16 +369,16 @@ export function TwoSidedLiquidity({
           {/* Row 5: the touch itself, best bid and best ask with the spread
               between them. */}
           <div className="col-span-3 grid h-9 grid-cols-subgrid items-center border-t border-[var(--color-line)]">
-            <span className="font-data truncate text-bid-green">
+            <span className="font-num truncate text-bid-green">
               <SwapValue>{fmtPrice(top.bestBid, decimals)}</SwapValue>
             </span>
             <span className="flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="font-data text-text-primary">
+              <span className="font-num text-text-primary">
                 <SwapValue>{fmtBp(top.spreadBp)}</SwapValue>
               </span>
               <span className="font-label text-text-muted">Spread</span>
             </span>
-            <span className="font-data truncate text-right text-ask-red">
+            <span className="font-num truncate text-right text-ask-red">
               <SwapValue>{fmtPrice(top.bestAsk, decimals)}</SwapValue>
             </span>
           </div>
@@ -391,7 +391,7 @@ export function TwoSidedLiquidity({
               return (
                 <span
                   className={cn(
-                    "font-data",
+                    "font-num",
                     align,
                     worse == null || worse === side ? "font-semibold text-text-primary" : "text-text-muted",
                   )}

@@ -13,6 +13,7 @@ import { UnderlineTabs } from "@/components/ui/UnderlineTabs";
 import { TickSlider } from "@/components/ui/TickSlider";
 import { FieldLabel } from "@/components/ui/FieldLabel";
 import { PresetChips } from "@/components/ui/PresetChips";
+import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
 import {
   Area,
   AreaChart,
@@ -151,23 +152,13 @@ function scaledFigure(value: number, divisor: number, suffix: string): string {
   return `${Number.isInteger(n) ? n : +n.toFixed(1)}${suffix}`;
 }
 
-function niceUsdStep(rough: number): number {
-  if (!(rough > 0)) return 1;
-  const magnitude = Math.pow(10, Math.floor(Math.log10(rough)));
-  const normalised = rough / magnitude;
-  const step = normalised <= 1 ? 1 : normalised <= 2 ? 2 : normalised <= 2.5 ? 2.5 : normalised <= 5 ? 5 : 10;
-  return step * magnitude;
-}
-
-/** Round dollar levels from $0 to the curve's own peak — the top tick is
- *  the $2B scenario, so the line reaches the top of the plot. */
+/** $0, half the peak and the peak — the top tick is the $2B scenario, so
+ *  the line reaches the top of the plot. Three evenly spaced levels rather
+ *  than round steps: a round step under an uneven peak left a gap of a
+ *  fraction of a step at the top, with its two labels all but touching. */
 function usdAxisTicks(max: number): { hi: number; ticks: number[] } {
   const hi = Math.max(max, 1);
-  const step = niceUsdStep(hi / 4);
-  const ticks: number[] = [];
-  for (let v = 0; v < hi - step * 0.35; v += step) ticks.push(v);
-  ticks.push(hi);
-  return { hi, ticks };
+  return { hi, ticks: [0, hi / 2, hi] };
 }
 
 function formatAxisUsd(value: number): string {
@@ -194,7 +185,7 @@ function FdvAxisTick({
   payload,
   index,
   visibleTicksCount,
-  fontSize = 12,
+  fontSize = 13,
 }: {
   x?: number;
   y?: number;
@@ -213,7 +204,7 @@ function FdvAxisTick({
       textAnchor={isFirst ? "start" : isLast ? "end" : "middle"}
       fill="var(--color-text-primary)"
       fontSize={fontSize}
-      fontFamily="var(--font-mono)"
+      fontFamily="var(--font-sans)"
     >
       {fdvTick(payload?.value ?? 0)}
     </text>
@@ -239,12 +230,12 @@ function FdvYAxisTick({
     <text
       x={x}
       y={y}
-      dx={FDV_Y_AXIS_W - 2}
+      dx={FDV_Y_AXIS_W}
       dy={isBottom ? -6 : 4}
       textAnchor="end"
       fill="var(--color-text-primary)"
-      fontSize={12}
-      fontFamily="var(--font-mono)"
+      fontSize={13}
+      fontFamily="var(--font-sans)"
     >
       {formatAxisUsd(payload?.value ?? 0)}
     </text>
@@ -604,6 +595,7 @@ function EstimatorWorkbench({
           <FdvValueChart
             userAura={userAura}
             fdv={fdv}
+            setFdv={setFdv}
             allocation={allocation}
             auraSupply={auraSupply}
             result={result}
@@ -639,15 +631,21 @@ function EstimatorWorkbench({
  *
  * The live FDV is marked at the nearest interpolated stop, so a typed 637M
  * sits between $500M and $750M rather than snapping to a scenario. */
+/** The FDV scenarios as switch options, one per stop on the curve. */
+const FDV_OPTIONS = FDV_SCENARIOS.map((f) => ({ value: String(f), label: fdvTick(f) }));
+
 function FdvValueChart({
   userAura,
   fdv,
+  setFdv,
   allocation,
   auraSupply,
   result,
 }: {
   userAura: number;
   fdv: number;
+  /** Picks a scenario from the header's switch. */
+  setFdv: (v: number) => void;
   allocation: number;
   auraSupply: number;
   result: { poolValue: number; auraValue: number; userValue: number };
@@ -701,7 +699,6 @@ function FdvValueChart({
   const hovered = hoveredIndex != null ? (data[hoveredIndex] ?? null) : null;
   const shownValue = hovered ? hovered.value : result.userValue;
   const shownAuraValue = hovered ? hovered.auraValue : result.auraValue;
-  const shownPoolValue = hovered ? hovered.poolValue : result.poolValue;
 
   const yMax = data.reduce((m, d) => Math.max(m, d.value), 0);
   const { hi: yHi, ticks: yTicks } = usdAxisTicks(yMax);
@@ -723,32 +720,30 @@ function FdvValueChart({
 
   return (
     <PanelCard className="h-full min-h-0" glossy glossDelay={-11}>
-      <div className="flex shrink-0 flex-wrap items-start justify-between gap-x-6 gap-y-3">
-        <div className="min-w-0">
-          <PanelLabel>Your Airdrop Value</PanelLabel>
-          <p className="m-0 mt-2 truncate-safe font-figure text-[clamp(24px,3vw,34px)] leading-none text-accent">
+      {/* The label at the top left, as Your inputs on the card beside it,
+          and in the top right corner, centred on the label's line, the FDV
+          the value is read at as a switch of the scenarios. Picking one sets
+          the FDV, as typing it in the inputs does; a typed FDV between
+          scenarios lights none. Under them, the sum and its price per Aura. */}
+      <div className="flex shrink-0 flex-col">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <PanelLabel>Your airdrop value</PanelLabel>
+          <SegmentedToggle
+            options={FDV_OPTIONS}
+            value={String(fdv)}
+            onChange={(v) => setFdv(Number(v))}
+            layoutId="fdv-scenario-pill"
+            className="sm:-my-2"
+          />
+        </div>
+        <p className="m-0 mt-3 flex min-w-0 items-baseline gap-3 leading-none">
+          <span className="font-figure truncate-safe text-[38px] font-semibold leading-none tracking-[-0.03em] text-text-primary sm:text-[44px]">
             {formatUsdExact(shownValue)}
-          </p>
-        </div>
-        {/* Read-only: the market cap is edited in the inputs card, and one
-            edit point per number keeps it clear which is the real one.
-            On a phone the pair drops under the figure; there it takes the
-            whole row, one figure at each edge, instead of bunching on the
-            left behind a divider that no longer divides anything. */}
-        <div className="grid w-full grid-cols-2 gap-4 border-t border-[var(--color-line)] pt-3 sm:flex sm:w-auto sm:shrink-0 sm:items-start sm:gap-6 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
-          <div className="text-left sm:text-right">
-            <PanelLabel>Price per Aura</PanelLabel>
-            <p className="font-data m-0 mt-1.5 text-[12px] font-semibold text-accent">
-              ${shownAuraValue.toFixed(4)}
-            </p>
-          </div>
-          <div className="text-right">
-            <PanelLabel>Airdrop market cap</PanelLabel>
-            <p className="font-data m-0 mt-1.5 text-[12px] font-semibold text-accent">
-              {formatUsd(shownPoolValue)}
-            </p>
-          </div>
-        </div>
+          </span>
+          <span className="font-figure shrink-0 text-[13px] leading-none tracking-[0.02em] text-accent">
+            ${shownAuraValue.toFixed(shownAuraValue < 0.01 ? 4 : 2)} / AURA
+          </span>
+        </p>
       </div>
 
       <div
@@ -817,7 +812,7 @@ function FdvValueChart({
               interval={0}
               tickLine={false}
               axisLine={false}
-              tick={(props) => <FdvAxisTick {...props} fontSize={narrow ? 10 : 12} />}
+              tick={(props) => <FdvAxisTick {...props} fontSize={narrow ? 10 : 13} />}
               tickMargin={10}
             />
             <YAxis
@@ -972,7 +967,7 @@ function FdvScenarioPanel({
           >
             <span
               className={cn(
-                "font-data truncate text-[13px]",
+                "font-num truncate text-[13px]",
                 row.isCurrent ? "text-accent" : "text-text-primary"
               )}
             >
@@ -980,7 +975,7 @@ function FdvScenarioPanel({
             </span>
             <span
               className={cn(
-                "font-data text-right text-[13px]",
+                "font-num text-right text-[13px]",
                 row.isCurrent ? "text-accent" : "text-text-secondary"
               )}
             >
@@ -988,7 +983,7 @@ function FdvScenarioPanel({
             </span>
             <span
               className={cn(
-                "font-data text-right text-[13px] font-semibold",
+                "font-num text-right text-[13px] font-semibold",
                 row.isCurrent ? "text-accent" : "text-text-primary"
               )}
             >
@@ -996,7 +991,7 @@ function FdvScenarioPanel({
             </span>
             <span
               className={cn(
-                "font-data text-right text-[13px] font-medium",
+                "font-num text-right text-[13px] font-medium",
                 row.isCurrent
                   ? "text-accent"
                   : row.delta >= 0

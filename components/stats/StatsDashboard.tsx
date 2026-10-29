@@ -80,7 +80,7 @@ function StripStat({
       )}
     >
       <span className="font-label leading-none text-text-muted">{label}</span>
-      <span className={cn("font-data truncate-safe leading-none text-text-primary", tone)}>
+      <span className={cn("font-figure truncate-safe text-[13px] leading-none tracking-[0.02em] text-text-primary", tone)}>
         {value}
       </span>
     </div>
@@ -216,7 +216,7 @@ export function StatsDashboard() {
                 </span>
                 <span className="font-label text-accent">Perp</span>
               </span>
-              <span className="flex items-center gap-1.5 font-data text-[11px] leading-none text-text-muted">
+              <span className="flex items-center gap-1.5 font-num text-[11px] leading-none text-text-muted">
                 <span
                   className={cn("h-1.5 w-1.5 rounded-full", updated ? "bg-bid-green" : "bg-[var(--t-text-dim)]")}
                   aria-hidden

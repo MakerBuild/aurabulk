@@ -21,6 +21,7 @@ import {
 import type { DepositTier } from "@/lib/overview-metrics";
 import { MARK_EASE, pulseMotion } from "@/lib/chart-gold-pulse";
 import { PanelCard } from "@/components/overview/PanelCard";
+import { CardLink } from "@/components/overview/CardLink";
 import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
 import { CATEGORY_NAME } from "@/components/overview/MetricTable";
 import { cn, formatNumber } from "@/lib/utils";
@@ -72,9 +73,10 @@ function auraExact(value: number): string {
   return Math.round(value).toLocaleString("en-US");
 }
 
-/** Type scale — Familjen labels/names, Overpass Mono data cells. */
+/** Type scale — Familjen throughout: small capitals for headings, the sans
+ *  with tabular digits for the cells, as the Challenger Series board. */
 const HEADING = "font-label text-text-muted";
-const CELL = "font-data";
+const CELL = "font-sans text-[13px] tabular-nums";
 /** The name column is capped at 180 so a wide viewport doesn't strand
  * "Megalodon" hundreds of pixels from its own row of figures — that was the
  * old bug this column existed to avoid. The five numeric ones are fixed to
@@ -312,13 +314,16 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
           hovering only explains a single tier at a time, not the whole
           chart. */}
       {/* Left, over the chart it drives — not over the table. */}
-      <div ref={toggleRowRef} className="flex pb-2">
+      {/* The arrow opposite goes to the Challenger Series, where these
+          ranks are the leagues, in the gold of the Gauntlet card's own. */}
+      <div ref={toggleRowRef} className="flex items-center justify-between pb-2">
         <SegmentedToggle
           options={METRIC_OPTIONS}
           value={metric}
           onChange={setMetric}
           layoutId="deposit-metric-toggle-pill"
         />
+        <CardLink href="/challenger-series" label="Challenger Series" />
       </div>
 
         {/* Fills its own card now rather than being measured against the
@@ -458,7 +463,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
               >
                 {/* The Aura band each rank covers is in the table and the
                     tooltip. */}
-                <span className="block whitespace-nowrap px-0.5 text-center font-sans text-[9.5px] font-medium leading-none text-text-secondary sm:text-[11px]">
+                <span className="block whitespace-nowrap px-0.5 text-center font-sans text-[9.5px] font-medium leading-none text-text-secondary sm:font-semibold sm:uppercase sm:tracking-[0.04em]">
                   {row.name}
                 </span>
               </div>
@@ -606,7 +611,7 @@ export function DepositorsDistributionPanel({ tiers }: { tiers: DepositTier[] })
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className="ghost-pill shrink-0 cursor-pointer px-2.5 py-[3px] text-[11px]"
+                className="ghost-pill font-label shrink-0 cursor-pointer px-2.5 py-1"
               >
                 Clear filter
               </button>
@@ -715,7 +720,7 @@ function TierTooltip({
           {figures.map(([label, value]) => (
             <Fragment key={label}>
               <span className="font-label text-text-muted">{label}</span>
-              <span className="font-data text-right text-[var(--t-accent)]">{value}</span>
+              <span className="font-figure text-right text-[13px] tracking-[0.01em] text-[var(--t-accent)]">{value}</span>
             </Fragment>
           ))}
         </div>
@@ -755,7 +760,7 @@ function TierBar({
     >
       <span
         className={cn(
-          "font-data absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap text-[11px] leading-none transition-colors duration-300",
+          "font-figure absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap text-[13px] leading-none tracking-[0.01em] transition-colors duration-300",
           lit ? "text-text-primary" : "text-text-secondary"
         )}
       >

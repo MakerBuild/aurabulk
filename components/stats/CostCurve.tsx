@@ -21,7 +21,8 @@ const SIDE_META: Record<Side, { label: string; color: string }> = {
 };
 const GRID = "rgb(var(--t-veil-rgb) / 0.06)";
 const AXIS_TEXT = "var(--t-text-muted)";
-const MONO = "var(--font-mono)";
+/** Axis text in the site face (it was Overpass Mono). */
+const MONO = "var(--font-sans)";
 
 /** How the cost of a size splits, for the hover readout. */
 const PARTS = [
@@ -208,7 +209,7 @@ export function CostCurve({
         }}
       >
         {!model ? (
-          <p className="font-data m-0 pt-16 text-center text-text-dim">Loading order book…</p>
+          <p className="font-num m-0 pt-16 text-center text-text-dim">Loading order book…</p>
         ) : (
           <svg width={width} height={chartH} className="absolute left-0 top-0 block overflow-visible">
             <defs>
@@ -222,7 +223,7 @@ export function CostCurve({
             {model.yTicks.map((t, i) => (
               <g key={t}>
                 <line x1={PAD.left} x2={width - PAD.right} y1={model.y(t)} y2={model.y(t)} stroke={GRID} />
-                <text x={PAD.left - 8} y={model.y(t)} dy="0.32em" textAnchor="end" fontFamily={MONO} fontSize={12} fill={AXIS_TEXT}>
+                <text x={PAD.left - 8} y={model.y(t)} dy="0.32em" textAnchor="end" fontFamily={MONO} fontSize={13} fill={AXIS_TEXT}>
                   {/* The unit once, on the top tick. */}
                   {+t.toFixed(2)}
                   {i === model.yTicks.length - 1 ? " bp" : ""}
@@ -236,7 +237,7 @@ export function CostCurve({
                 y={chartH - 6}
                 textAnchor={i === 0 ? "start" : i === all.length - 1 ? "end" : "middle"}
                 fontFamily={MONO}
-                fontSize={12}
+                fontSize={13}
                 fill={AXIS_TEXT}
               >
                 {fmtUsdShort(t)}
@@ -309,8 +310,8 @@ export function CostCurve({
                 : { left: Math.max(PAD.left, markerX - 12) }),
             }}
           >
-            <span className="font-data text-text-primary">{fmtUsdShort(sizeUsd)}</span>
-            <span className="font-data text-text-muted">
+            <span className="font-num text-text-primary">{fmtUsdShort(sizeUsd)}</span>
+            <span className="font-num text-text-muted">
               {" · "}
               <SwapValue>{current ? fmtBp(current.totalBp) : "exceeds book"}</SwapValue>
             </span>
@@ -326,18 +327,18 @@ export function CostCurve({
                 : { left: model.x(hover.size) + 10 }
             }
           >
-            <p className="font-data m-0 mb-1.5 text-text-muted">{fmtUsdShort(hover.size)} market order</p>
+            <p className="font-num m-0 mb-1.5 text-text-muted">{fmtUsdShort(hover.size)} market order</p>
             {hover.main ? (
               <>
                 {PARTS.map((part) => (
                   <p key={part.key} className="m-0 flex items-center justify-between gap-4 text-text-secondary">
                     <span>{part.label}</span>
-                    <span className="font-data text-text-primary">{fmtBp(hover.main![part.key])}</span>
+                    <span className="font-num text-text-primary">{fmtBp(hover.main![part.key])}</span>
                   </p>
                 ))}
                 <p className="m-0 mt-1 flex items-center justify-between gap-4 border-t border-[var(--color-line)] pt-1 text-text-secondary">
                   <span>{mainMeta.label} total</span>
-                  <span className="font-data text-text-primary">
+                  <span className="font-num text-text-primary">
                     {fmtBp(hover.main.total)} · {fmtUsd(hover.main.totalUsd)}
                   </span>
                 </p>
@@ -347,7 +348,7 @@ export function CostCurve({
             )}
             <p className="m-0 flex items-center justify-between gap-4 text-text-muted">
               <span>{otherMeta.label} total</span>
-              <span className="font-data">{hover.other ? fmtBp(hover.other.total) : "exceeds book"}</span>
+              <span className="font-num">{hover.other ? fmtBp(hover.other.total) : "exceeds book"}</span>
             </p>
             <p className="m-0 mt-1 text-[11px] text-text-dim">Click to price this size</p>
           </div>

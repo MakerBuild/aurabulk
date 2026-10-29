@@ -79,7 +79,7 @@ function FooterCell({
         {swatch && <span className="h-2 w-2 shrink-0 rounded-[1px]" style={{ background: swatch }} />}
         {label}
       </p>
-      <p className={cn("font-data m-0 mt-1.5 truncate-safe leading-none text-text-primary", tone)}>
+      <p className={cn("font-figure m-0 mt-1.5 truncate-safe text-[13px] leading-none tracking-[0.02em] text-text-primary", tone)}>
         <SwapValue>{value}</SwapValue>
       </p>
     </div>
@@ -223,7 +223,7 @@ export function CostCalculator({
               onBlur={() => setText(sizeUsd.toLocaleString("en-US"))}
               className={cn(FIGURE_FIELD, "min-w-0 flex-1 bg-transparent text-text-primary outline-none")}
             />
-            <span className="font-data shrink-0 text-[12px] text-text-muted">
+            <span className="font-num shrink-0 text-[12px] text-text-muted">
               <SwapValue>
                 {qty != null ? `≈ ${fmtQty(qty)} ${base}` : base}
               </SwapValue>
@@ -260,7 +260,7 @@ export function CostCalculator({
               info="Your tier depends on your volume over the last 14 days. Search a wallet or pick a tier."
             />
             {walletState.status === "ok" && (
-              <span className="font-data shrink-0 text-[11px] leading-none text-text-muted">
+              <span className="font-num shrink-0 text-[11px] leading-none text-text-muted">
                 {volumeLabel(Math.round(walletState.volumeUsd))} 14D volume
               </span>
             )}
@@ -275,7 +275,7 @@ export function CostCalculator({
             placeholder="Find your tier from a wallet…"
           />
           {walletState.status === "error" && (
-            <p className="m-0 mt-2 font-data text-[13px] text-ask-red">{walletState.message}</p>
+            <p className="m-0 mt-2 font-num text-[13px] text-ask-red">{walletState.message}</p>
           )}
           {/* The rebate list is always mounted and eases in and out: its
               column grows from nothing while the tier list gives up half the
@@ -342,7 +342,7 @@ export function CostCalculator({
             >
               <SwapValue>{cost ? fmtUsd(Math.abs(cost.totalUsd)) : "—"}</SwapValue>
             </span>
-            <span className="font-data leading-none text-text-muted">
+            <span className="font-num leading-none text-text-muted">
               <SwapValue>{cost ? fmtBp(Math.abs(cost.totalBp)) : ""}</SwapValue>
             </span>
           </p>

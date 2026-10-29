@@ -101,25 +101,25 @@ export function FeeTierTable({
               )}
               style={{ height: 42 }}
             >
-              <span className={cn("font-data flex items-center gap-2 text-[13px]", on ? "text-accent" : "text-text-primary")}>
+              <span className={cn("font-num flex items-center gap-2 text-[13px]", on ? "text-accent" : "text-text-primary")}>
                 {t.tier}
                 {walletTier === t.tier && <span className="font-label text-accent">You</span>}
               </span>
-              <span className={cn("font-data truncate text-[13px]", on ? "text-accent" : "text-text-secondary")}>
+              <span className={cn("font-num truncate text-[13px]", on ? "text-accent" : "text-text-secondary")}>
                 {tierRangeLabel(t)}
               </span>
-              <span className={cn("font-data hidden text-right text-[13px] sm:block", on ? "text-accent" : "text-text-secondary")}>
+              <span className={cn("font-num hidden text-right text-[13px] sm:block", on ? "text-accent" : "text-text-secondary")}>
                 {t.makerBps.toFixed(1)}
               </span>
-              <span className={cn("font-data text-right text-[13px]", on ? "text-accent" : "text-text-secondary")}>
+              <span className={cn("font-num text-right text-[13px]", on ? "text-accent" : "text-text-secondary")}>
                 {t.takerBps.toFixed(1)}
               </span>
-              <span className={cn("font-data text-right text-[13px]", on ? "text-accent" : "text-text-primary")}>
+              <span className={cn("font-num text-right text-[13px]", on ? "text-accent" : "text-text-primary")}>
                 <SwapValue>{cost ? fmtUsd(fee) : "—"}</SwapValue>
               </span>
               <span
                 className={cn(
-                  "font-data hidden text-right text-[13px] font-medium sm:block",
+                  "font-num hidden text-right text-[13px] font-medium sm:block",
                   on ? "text-accent" : saving > 0.005 ? "text-bid-green" : "text-text-muted",
                 )}
               >
@@ -135,7 +135,7 @@ export function FeeTierTable({
                     }}
                   />
                 </span>
-                <span className={cn("font-data text-right text-[13px] font-semibold", on ? "text-accent" : "text-text-primary")}>
+                <span className={cn("font-num text-right text-[13px] font-semibold", on ? "text-accent" : "text-text-primary")}>
                   <SwapValue>{cost ? fmtUsd(allIn) : "—"}</SwapValue>
                 </span>
               </span>
