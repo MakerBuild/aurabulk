@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import {
@@ -15,6 +16,7 @@ import {
   seasonWeek,
   challengerWeekStart,
 } from "@/lib/challenger-series";
+import { holdBoot } from "@/lib/boot-gate";
 import type { RankName } from "@/lib/ranks";
 import type { WeeklyRevenuePayload } from "@/lib/weekly-revenue";
 import { cn } from "@/lib/utils";
@@ -76,7 +78,9 @@ function useLiveWeekRevenue(): {
         // Keep counting from the last figure.
       }
     };
-    load();
+    // The first load holds the boot splash, so the cards open on the week's
+    // figures and charts rather than drawing in after it lifts.
+    void holdBoot(load());
     const refresh = window.setInterval(load, REFRESH_MS);
     const tick = window.setInterval(() => setNow(Date.now()), TICK_MS);
     return () => {
@@ -652,10 +656,13 @@ export function ChallengerOverview({
                   type="button"
                   onClick={() => setCalculating((v) => !v)}
                   aria-pressed={calculating}
+                  aria-label={calculating ? "Back to the chart" : "Calculate"}
                   // A tap area well past the small label, given back by margin.
-                  className="font-label -mx-3 -my-3 cursor-pointer border-0 bg-transparent px-3 py-3 text-[var(--t-accent)] transition-colors hover:text-text-primary"
+                  className="font-label -mx-3 -my-3 flex cursor-pointer items-center border-0 bg-transparent px-3 py-3 text-[var(--t-accent)] transition-colors hover:text-text-primary"
                 >
-                  {calculating ? "Chart" : "Calculate"}
+                  {/* Back is an arrow alone, pointing the way the chart slides
+                      back in from. */}
+                  {calculating ? <ArrowRight className="size-4" strokeWidth={2.25} aria-hidden /> : "Calculate"}
                 </button>
               ) : undefined
             }

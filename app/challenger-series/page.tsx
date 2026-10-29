@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { preload } from "react-dom";
 import { PageHeading } from "@/components/layout/PageHeading";
 import { ChallengerOverview, type LeagueSummary } from "@/components/challenger/ChallengerOverview";
 import type { StandingRow, StandingsData } from "@/components/challenger/Standings";
@@ -89,6 +90,10 @@ export default function ChallengerSeriesPage() {
       lastPosition: ranked.length ? Math.max(...ranked) : null,
     };
   });
+
+  // The week's revenue and open interest start loading with the HTML rather
+  // than after the scripts hydrate; the cards' own fetch picks this one up.
+  preload("/api/weekly-revenue", { as: "fetch", crossOrigin: "anonymous" });
 
   return (
     <div className="shell flex flex-col gap-4 pb-11 pt-5">

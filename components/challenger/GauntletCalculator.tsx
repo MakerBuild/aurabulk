@@ -19,6 +19,13 @@ function grouped(text: string): string {
   return rest.length ? `${head}.${rest.join("").slice(0, 2)}` : head;
 }
 
+/** A field's width for its text: tabular digits are a `ch` each, the
+ *  separators about a third of one. */
+function fieldWidth(text: string): string {
+  const narrow = text.replace(/[^.,]/g, "").length;
+  return `calc(${text.length - narrow}ch + ${narrow * 0.34}ch + 1px)`;
+}
+
 /** The figure every column shares: the stats' own from sm up, so the
  *  calculator and the row under it read at one size. On a phone 20px, big
  *  enough to type into and over the 16px below which iOS zooms into a field. */
@@ -46,8 +53,10 @@ function Column({
 }) {
   return (
     <div className={`flex min-w-0 flex-col ${className ?? ""}`}>
-      <div className="flex min-w-0 items-baseline gap-3 pb-2.5">
-        <p className="font-label m-0 truncate text-text-dim">{label}</p>
+      {/* One fixed height, whatever stands in it: the unit switch's larger
+          word made the Hold row taller than its neighbours on iOS. */}
+      <div className="mb-2.5 flex h-3 min-w-0 items-center gap-3">
+        <p className="font-label m-0 truncate leading-none text-text-dim">{label}</p>
         {aside}
       </div>
       {children}
@@ -85,9 +94,12 @@ function FigureInput({
     <label
       className={`${VALUE_ROW} border-[var(--color-line-strong)] transition-colors ${readOnly ? "" : "focus-within:border-[var(--color-accent)]"}`}
     >
-      <span className="flex min-w-0 items-baseline gap-1.5">
-        <span className={`${FIGURE} flex min-w-0 items-baseline ${accent ? "text-accent" : "text-text-primary"}`}>
-          {prefix}
+      {/* Bottom-aligned boxes of line-height 1, not baselines: Safari puts an
+          input's baseline elsewhere than Chrome, so a field without a "$"
+          before it (the hold) sat lower on an iPhone than one with. */}
+      <span className="flex min-w-0 items-end gap-1.5">
+        <span className={`${FIGURE} flex min-w-0 items-end ${accent ? "text-accent" : "text-text-primary"}`}>
+          {prefix && <span className="leading-none">{prefix}</span>}
           <input
             aria-label={label}
             inputMode="decimal"
@@ -96,11 +108,17 @@ function FigureInput({
             readOnly={readOnly}
             tabIndex={readOnly ? -1 : undefined}
             onChange={(e) => onChange?.(e.target.value)}
-            size={Math.max(1, value.length)}
-            className={`${FIGURE} min-w-0 max-w-full border-0 bg-transparent p-0 text-inherit outline-none [field-sizing:content] placeholder:text-text-dim ${readOnly ? "cursor-default" : ""}`}
+            // Sized to its text: Safari has no field-sizing, and its
+            // \`size\` width left a gap before the unit on an iPhone.
+            style={{ width: fieldWidth(value || "0") }}
+            className={`${FIGURE} block h-[1em] min-w-0 max-w-full appearance-none rounded-none border-0 bg-transparent p-0 text-inherit shadow-none outline-none [field-sizing:content] placeholder:text-text-dim ${readOnly ? "cursor-default" : ""}`}
           />
         </span>
-        {suffix && <span className="font-figure shrink-0 text-[15px] tracking-[0.01em] text-text-muted sm:text-[13px]">{suffix}</span>}
+        {suffix && (
+          <span className="font-figure shrink-0 pb-px text-[15px] leading-none tracking-[0.01em] text-text-muted sm:text-[13px]">
+            {suffix}
+          </span>
+        )}
       </span>
     </label>
   );
@@ -113,7 +131,7 @@ type HoldUnit = "days" | "hours";
  *  back by margin so the row keeps its height. */
 function UnitSwitch({ unit, onChange }: { unit: HoldUnit; onChange: (unit: HoldUnit) => void }) {
   return (
-    <span role="radiogroup" aria-label="Hold unit" className="font-label flex shrink-0 items-baseline">
+    <span role="radiogroup" aria-label="Hold unit" className="font-label flex shrink-0 items-center">
       {(["days", "hours"] as const).map((option) => (
         <button
           key={option}
@@ -121,7 +139,7 @@ function UnitSwitch({ unit, onChange }: { unit: HoldUnit; onChange: (unit: HoldU
           role="radio"
           aria-checked={unit === option}
           onClick={() => unit !== option && onChange(option)}
-          className={`-my-3 cursor-pointer border-0 bg-transparent px-2 py-3 text-[11.5px] uppercase transition-colors first:-ml-2 sm:-my-1 sm:px-1 sm:py-1 sm:text-[9.5px] sm:first:-ml-1 ${unit === option ? "text-accent" : "text-text-dim hover:text-text-muted"}`}
+          className={`-my-3 cursor-pointer border-0 bg-transparent px-2 py-3 text-[11.5px] leading-none uppercase transition-colors first:-ml-2 sm:-my-1 sm:px-1 sm:py-1 sm:text-[9.5px] sm:first:-ml-1 ${unit === option ? "text-accent" : "text-text-dim hover:text-text-muted"}`}
         >
           {option}
         </button>

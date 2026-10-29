@@ -93,10 +93,11 @@ export function HeaderCampaignStatus() {
       <ThemeToggle />
       <span className="hidden h-[18px] w-px bg-[var(--color-line-strong)] xl:block" aria-hidden />
       <span
-        className="flex shrink-0 items-center gap-1.5 xl:gap-[9px]"
+        className="flex shrink-0 items-center gap-[7.5px] xl:gap-[9px]"
         title={`Week ${week} · ${left}`}
       >
-        <span className="font-label text-text-muted">W{week}</span>
+        {/* Capitals as tall as the ticks beside them: 14px caps are 9px in this face, and they sit 1px low in a line-height-1 box, so it rises by that. .font-label sets its own size, so these win by !important. The margin takes back the spacing after the last letter, so the gap to the ticks is the 8px the Menu row keeps too. */}
+        <span className="font-label -mr-[0.12em] -translate-y-px text-[14px]! leading-none tracking-[0.12em]! text-text-muted">W{week}</span>
         <WeekTicks today={today} />
         {/* Desktop only. Below the inline nav's breakpoint the corner also
             carries the switch and the Menu button, and the countdown was the

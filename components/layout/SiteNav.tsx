@@ -147,27 +147,30 @@ export function SiteNav() {
           <HeaderCampaignStatus />
 
           {/* Flattened nav for narrow screens, where the inline bar is hidden. */}
-          <div ref={menuRef} className="relative xl:hidden">
+          {/* A flex box, not a block: in a block the button rode a line box
+              whose descender space set it below the week clock beside it. */}
+          {/* Its negative margin brings it to 8px past the week ticks on a
+              phone, the gap W22 and the chevron keep too. */}
+          <div ref={menuRef} className="relative -ml-[2.5px] flex items-center sm:ml-0 xl:hidden">
             <button
               ref={menuButtonRef}
               type="button"
               aria-expanded={menuOpen}
               aria-controls="site-nav-menu"
               onClick={() => setMenuOpen((open) => !open)}
+              // Bare, as the site's other dropdowns open (Select's `bare`): a
+              // label and a chevron, no frame. The padding is a tap area only,
+              // given back by margin.
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[13px] transition-colors",
-                menuOpen
-                  ? "border-accent bg-[rgb(var(--t-accent-rgb)/0.14)] text-accent"
-                  : "border-[rgb(var(--t-accent-rgb)/0.4)] text-accent"
+                // 4.5px plus the chevron's own inset makes 8px to the word.
+                "group -mx-2 -my-2 inline-flex items-center gap-[4.5px] px-2 py-2 transition-colors",
+                menuOpen ? "text-accent" : "text-text-muted hover:text-text-primary"
               )}
             >
-              Menu
+              {/* Capitals as tall as the week ticks beside it, as W22 is. */}
+              <span className="font-label -mr-[0.12em] -translate-y-px text-[14px]! leading-none tracking-[0.12em]!">Menu</span>
               <ChevronDown
-                className={cn(
-                  "h-[13px] w-[13px] transition-transform duration-200",
-                  menuOpen && "rotate-180"
-                )}
-                strokeWidth={2.4}
+                className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200", menuOpen && "rotate-180")}
               />
             </button>
             {/* inert while closed: it is only faded out, and its links must
