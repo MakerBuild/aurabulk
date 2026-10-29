@@ -353,32 +353,44 @@ export function VolumeChart() {
                     const row = tip[0]?.payload as ChartRow | undefined;
                     if (!row || row.future) return null;
                     return (
-                      <div className="font-label rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-2.5 py-2 shadow-[var(--t-shadow-pop)] [&>p]:items-center [&>p+p]:mt-1.5">
-                        <p className="font-label m-0 mb-2 leading-none text-text-muted">
-                          {formatAxisTick(Number(label), range)}
-                        </p>
-                        {VOLUME_COINS.filter((c) => enabled[c] && row[c] > 0).map((c) => (
-                          <p key={c} className="m-0 flex justify-between gap-6 text-text-secondary">
-                            <span>{COIN_META[c].label}</span>
-                            <span className="font-figure text-[13px] tracking-[0.01em] text-text-primary">{formatUsd(row[c])}</span>
+                      // Readable first: the page's 13px text, room between
+                      // rows, and every row on one grid, name at the left and
+                      // figure at the right. Sections part by a rule with the
+                      // same space either side: the hour, the coins, the total
+                      // (the one bold line), the running lines in their own
+                      // colours. The margins live on the sections, not the rows.
+                      <div className="min-w-[200px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3.5 py-3 font-sans text-[13px] leading-none tabular-nums shadow-[var(--t-shadow-pop)]">
+                        <p className="m-0 text-text-muted">{formatAxisTick(Number(label), range)}</p>
+                        <div className="mt-2.5 flex flex-col gap-2.5 border-t border-[var(--color-line)] pt-2.5">
+                          {VOLUME_COINS.filter((c) => enabled[c] && row[c] > 0).map((c) => (
+                            <p key={c} className="m-0 flex justify-between gap-8 text-text-secondary">
+                              <span>{COIN_META[c].label}</span>
+                              <span className="text-text-primary">{formatUsd(row[c])}</span>
+                            </p>
+                          ))}
+                        </div>
+                        <div className="mt-2.5 border-t border-[var(--color-line)] pt-2.5">
+                          <p className="m-0 flex justify-between gap-8 font-semibold text-text-primary">
+                            <span>Total</span>
+                            <span>{formatUsd(row.total)}</span>
                           </p>
-                        ))}
-                        <p className="m-0 mt-1 flex justify-between gap-6 text-text-secondary">
-                          <span>Total</span>
-                          <span className="font-figure text-[13px] tracking-[0.01em] text-text-primary">{formatUsd(row.total)}</span>
-                        </p>
-                        {showCumulative && row.cumulative != null && (
-                          <p className="m-0 flex justify-between gap-6 text-accent">
-                            <span>Cumulative</span>
-                            <span className="font-figure text-[13px] tracking-[0.01em]">{formatUsd(row.cumulative)}</span>
-                          </p>
-                        )}
-                        {showOi && row.oi != null && (
-                          <p className="m-0 flex justify-between gap-6" style={{ color: OI_COLOR }}>
-                            <span>Open Interest</span>
-                            <span className="font-figure text-[13px] tracking-[0.01em]">{formatUsd(row.oi)}</span>
-                          </p>
-                        )}
+                        </div>
+                        {(showCumulative && row.cumulative != null) || (showOi && row.oi != null) ? (
+                          <div className="mt-2.5 flex flex-col gap-2.5 border-t border-[var(--color-line)] pt-2.5">
+                            {showCumulative && row.cumulative != null && (
+                              <p className="m-0 flex justify-between gap-8 text-accent">
+                                <span>Cumulative</span>
+                                <span>{formatUsd(row.cumulative)}</span>
+                              </p>
+                            )}
+                            {showOi && row.oi != null && (
+                              <p className="m-0 flex justify-between gap-8" style={{ color: OI_COLOR }}>
+                                <span>Open Interest</span>
+                                <span>{formatUsd(row.oi)}</span>
+                              </p>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
                     );
                   }}
