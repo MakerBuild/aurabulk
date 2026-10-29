@@ -157,7 +157,19 @@ export function MiniSpark({
   const fadeId = useId();
   const maskId = useId();
   const [hover, setHover] = useState<number | null>(null);
+  const plotRef = useRef<HTMLDivElement>(null);
   const geo = useMorphedSpark(rows);
+
+  // A touch leaves its readout up after the finger lifts (a tap is how a
+  // phone asks for one); the next touch anywhere outside the plot clears it.
+  useEffect(() => {
+    if (hover == null) return;
+    const clear = (e: PointerEvent) => {
+      if (!plotRef.current?.contains(e.target as Node)) setHover(null);
+    };
+    document.addEventListener("pointerdown", clear);
+    return () => document.removeEventListener("pointerdown", clear);
+  }, [hover]);
   const active = hover != null && geo ? geo.pts[hover] : null;
 
   function pick(clientX: number, target: HTMLElement) {
@@ -183,10 +195,27 @@ export function MiniSpark({
   return (
     <div className="flex min-h-[56px] min-w-0 flex-1 flex-col justify-end">
 
+      {/* Mouse: the readout follows the pointer and goes when it leaves.
+          Touch: a tap shows the nearest point, a sideways drag scrubs along
+          the line (pan-y leaves vertical swipes to scroll the page), and the
+          readout stays after the finger lifts. */}
       <div
-        className="relative min-h-[44px] w-full flex-1 cursor-crosshair overflow-hidden"
+        ref={plotRef}
+        className="relative min-h-[44px] w-full flex-1 cursor-crosshair touch-pan-y overflow-hidden"
+        onPointerDown={(e) => {
+          pick(e.clientX, e.currentTarget);
+          // Captured, so a scrub keeps reporting even off the plot; a pointer
+          // that is not active (none in practice) just goes uncaptured.
+          if (e.pointerType !== "mouse") {
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId);
+            } catch {}
+          }
+        }}
         onPointerMove={(e) => pick(e.clientX, e.currentTarget)}
-        onPointerLeave={() => setHover(null)}
+        onPointerLeave={(e) => {
+          if (e.pointerType === "mouse") setHover(null);
+        }}
       >
         {active && (
           <div
