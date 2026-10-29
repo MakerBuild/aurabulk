@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { PanelCard } from "@/components/overview/PanelCard";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import {
   GAUNTLETS,
   GAUNTLET_AURA,
+  OI_GAUNTLET_ELIGIBLE_SHARE,
   leaguePrizesUsd,
   PRIZE_POOL_SHARE,
   SEASON_WEEKS,
@@ -20,9 +22,11 @@ import { formatSignedDelta, usdBoard } from "@/components/overview/spark-format"
 import { DayBars, PoolCurve, weekDays } from "@/components/challenger/WeekCharts";
 import { Standings, type StandingsData } from "@/components/challenger/Standings";
 import { FootStats, type FootStat } from "@/components/challenger/FootStats";
+import { GauntletCalculator } from "@/components/challenger/GauntletCalculator";
 import { LeagueCarousel } from "@/components/challenger/LeagueCarousel";
 
 const WEEK_MS = 7 * 86_400_000;
+const WEEK_HOURS = 7 * 24;
 /** The API reads the exchange's fee total behind a 15s cache; polling
  *  faster only hands back the same figure. */
 const REFRESH_MS = 30_000;
@@ -110,6 +114,7 @@ function WeekCard({
   chart,
   stats,
   footAside,
+  alt,
   className,
 }: {
   label: React.ReactNode;
@@ -124,6 +129,10 @@ function WeekCard({
   stats: FootStat[];
   /** Fills the foot's right two columns, next to a lone stat. */
   footAside?: React.ReactNode;
+
+  /** Shown in place of the figure and chart while set (the Gauntlet
+   *  calculator), sliding over as the leaderboard's rows do. */
+  alt?: React.ReactNode;
   className?: string;
 }) {
   return (
@@ -132,20 +141,40 @@ function WeekCard({
         <div className="flex min-w-0 items-center gap-1.5">{label}</div>
         {badge && <span className="font-label shrink-0 text-[var(--t-accent)]">{badge}</span>}
       </div>
-      {/* Side by side from sm up; on a phone the chart needs the full width
-          or its seven day labels run together. */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6">
-        <div className="flex shrink-0 flex-col">
-          <p className="font-figure m-0 pb-0.5 whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] sm:text-[28px] xl:text-[30px]">
-            <span className={cn("kpi-number", counting && "is-counting")}>{figure}</span>
-          </p>
-          <p className="m-0 mt-2.5 flex flex-1 items-center gap-2 font-data text-[12px] leading-none">{delta}</p>
-        </div>
-        {/* Grows into whatever height the card has spare, so a card
-            stretched to its neighbour's height fills it with chart rather
-            than leaving a gap under the footer. */}
-        <div className="flex min-h-[70px] min-w-0 flex-1 flex-col">{chart}</div>
-      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        {alt ? (
+          <motion.div
+            key="alt"
+            className="flex min-h-0 min-w-0 flex-1 items-end"
+            initial={{ opacity: 0, x: 14 }}
+            animate={{ opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+            exit={{ opacity: 0, x: -8, transition: { duration: 0.14, ease: "easeIn" } }}
+          >
+            {alt}
+          </motion.div>
+        ) : (
+          // Side by side from sm up; on a phone the chart needs the full
+          // width or its seven day labels run together.
+          <motion.div
+            key="main"
+            className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6"
+            initial={{ opacity: 0, x: -14 }}
+            animate={{ opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+            exit={{ opacity: 0, x: 8, transition: { duration: 0.14, ease: "easeIn" } }}
+          >
+            <div className="flex shrink-0 flex-col">
+              <p className="font-figure m-0 pb-0.5 whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em] sm:text-[28px]">
+                <span className={cn("kpi-number", counting && "is-counting")}>{figure}</span>
+              </p>
+              <p className="font-figure m-0 mt-2.5 flex flex-1 items-center gap-2.5 text-[13px] leading-none tracking-[0.02em]">{delta}</p>
+            </div>
+            {/* Grows into whatever height the card has spare, so a card
+                stretched to its neighbour's height fills it with chart rather
+                than leaving a gap under the footer. */}
+            <div className="flex min-h-[70px] min-w-0 flex-1 flex-col">{chart}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="mt-4">
         <FootStats stats={stats} aside={footAside} />
       </div>
@@ -163,7 +192,7 @@ function GauntletSoon() {
         <h2 className="font-label volume-mode-on m-0 truncate">This week&apos;s Gauntlet</h2>
       </div>
       <div className="flex min-h-[120px] flex-1 items-center justify-center">
-        <p className="font-figure m-0 text-center text-[22px] font-semibold leading-tight tracking-[-0.02em] text-text-secondary sm:text-[24px]">
+        <p className="font-figure m-0 text-center text-[18px] font-semibold leading-tight tracking-[-0.02em] text-text-secondary">
           New Gauntlet is coming soon
         </p>
       </div>
@@ -262,7 +291,7 @@ const noSubscribe = () => () => {};
 /**
  * Time left in the week, to Saturday 13:00 UTC, when BULK reveals the leagues
  * and the pool and the next week opens: one box per unit, as the BULK app
- * counts down its own.
+ * counts down its own, with no label: the units under the digits say it.
  */
 function RevealCountdown({ target, now }: { target: number; now: number }) {
   // The server's clock and the browser's never agree to the second, so the
@@ -280,21 +309,17 @@ function RevealCountdown({ target, now }: { target: number; now: number }) {
     { label: "seconds", value: left % 60 },
   ];
   return (
-    <div className="flex items-center gap-2 sm:gap-3">
-      <div className="hidden items-center gap-1.5 sm:flex">
-        <span className="font-label whitespace-nowrap text-text-dim">Next reveal</span>
-        <InfoTooltip text="The week closes at 13:00 UTC on Saturday, when BULK reveals the leagues and the pool." panelClassName="w-60" />
-      </div>
+    <div className="flex">
       <div className="flex gap-1 sm:gap-1.5" role="timer" aria-label="Time until the weekly reveal">
         {units.map((unit) => (
           <div
             key={unit.label}
             className="flex w-10 flex-col items-center rounded-md border border-[var(--color-line)] bg-[rgb(var(--t-accent-rgb)/0.05)] py-1 sm:w-12"
           >
-            <span className="font-figure text-[15px] leading-none tabular-nums text-text-primary sm:text-[17px]">
+            <span className="font-figure text-[18px] leading-none tabular-nums text-text-primary">
               {mounted ? String(unit.value).padStart(2, "0") : "--"}
             </span>
-            <span className="mt-0.5 text-[9px] leading-none text-text-muted">{unit.label}</span>
+            <span className="mt-0.5 text-[9.5px] leading-none text-text-muted">{unit.label}</span>
           </div>
         ))}
       </div>
@@ -304,7 +329,33 @@ function RevealCountdown({ target, now }: { target: number; now: number }) {
 
 /** A 24h move, green as on the Overview cards. */
 function Up({ children }: { children: React.ReactNode }) {
-  return <span className="text-[var(--color-bid-green)]">{children}</span>;
+  return <span className="inline-flex items-center gap-2 text-[var(--color-bid-green)]">{children}</span>;
+}
+
+/** A move that can go either way: green up, red down. */
+function Move({ value, children }: { value: number; children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2",
+        value < 0 ? "text-[var(--color-ask-red)]" : "text-[var(--color-bid-green)]",
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** A move and the span it covers, a hairline between so the figure and
+ *  "24h" do not read as one number. */
+function Over({ amount, period }: { amount: string; period: string }) {
+  return (
+    <>
+      {amount}
+      <span className="h-3.5 w-px shrink-0 bg-[var(--t-text-dim)]" aria-hidden />
+      <span className="text-text-muted">{period}</span>
+    </>
+  );
 }
 
 function positions(league: LeagueSummary): string {
@@ -362,9 +413,27 @@ function weekSeries(anchor: WeeklyRevenuePayload, now: number, livePoolUsd: numb
   const last24hVolumeUsd = hours
     .filter((h) => h.t + HOUR_MS > dayAgo)
     .reduce((sum, h) => sum + h.volumeUsd, 0);
+  // Open interest: each day's average of the hourly prints, the latest print,
+  // its move over 24h, and the week's average so far.
+  const oi = anchor.oi ?? [];
+  const oiDays = slots.map((d) => {
+    const inDay = oi.filter((p) => p.t >= d.start && p.t < d.end);
+    return inDay.length ? inDay.reduce((sum, p) => sum + p.usd, 0) / inDay.length : 0;
+  });
+  const oiLast = oi[oi.length - 1];
+  const oiDayAgo = oiLast ? (oi.findLast((p) => p.t <= oiLast.t - 86_400_000) ?? oi[0]) : undefined;
+  const oiSeries = oiLast
+    ? {
+        days: oiDays,
+        last24hUsd: oiLast.usd - (oiDayAgo?.usd ?? oiLast.usd),
+        avgUsd: oi.reduce((sum, p) => sum + p.usd, 0) / oi.length,
+      }
+    : null;
+
   return {
     points,
     days,
+    oi: oiSeries,
     weekVolumeUsd,
     last24hVolumeUsd,
     projectedVolumeUsd: (weekVolumeUsd * WEEK_MS) / elapsed,
@@ -417,6 +486,18 @@ export function ChallengerOverview({
     setBoard((prev) =>
       prev.rank === rank ? prev : { rank, dir: dir ?? (order.indexOf(rank) < order.indexOf(prev.rank) ? 1 : -1) }
     );
+
+  // The week's projected eligible open interest, in $1,000-hours: this
+  // week's average held all week, over the eligible share of the book. The
+  // rate is what one $1,000-hour takes of the reward.
+  const oiPoolKiloHours =
+    series?.oi && series.oi.avgUsd > 0
+      ? (series.oi.avgUsd * WEEK_HOURS * OI_GAUNTLET_ELIGIBLE_SHARE) / 1000
+      : null;
+  const oiRate = oiPoolKiloHours != null ? GAUNTLET_AURA / oiPoolKiloHours : null;
+  // The Gauntlet card's chart, or the calculator in its place.
+  const [calculating, setCalculating] = useState(false);
+  const canCalculate = gauntlet?.metric === "openInterest" && oiRate != null;
 
   const leagueCards = leagues.map((league, i) => {
     const selected = league.rank === board.rank;
@@ -475,20 +556,20 @@ export function ChallengerOverview({
             </span>
             <p
               className={cn(
-                "m-0 text-[14px] font-semibold uppercase tracking-[0.08em]",
+                "m-0 text-[13px] font-semibold uppercase tracking-[0.08em]",
                 selected ? "text-accent" : "text-text-primary"
               )}
             >
               {league.rank}
             </p>
-            <p className="font-data m-0 text-[11px] leading-none text-text-muted">{positions(league)}</p>
+            <p className="m-0 whitespace-nowrap font-sans text-[13px] leading-none text-text-muted tabular-nums">{positions(league)}</p>
             <dl className="m-0 mt-2 flex w-full flex-col gap-2 border-t border-[var(--color-line)] pt-3">
               {rows.map((row) => (
                 <div key={row.label} className="flex items-baseline justify-between gap-2">
                   <dt className="font-label whitespace-nowrap text-text-dim">{row.label}</dt>
                   <dd
                     className={cn(
-                      "font-data m-0 tabular-nums",
+                      "font-figure m-0 text-[13px] tracking-[0.01em]",
                       row.prize && prize != null ? "text-accent" : "text-text-secondary",
                       prize == null && row.label !== "Traders" && row.label !== "Min AURA" && "text-text-muted"
                     )}
@@ -532,8 +613,8 @@ export function ChallengerOverview({
               {!series
                 ? "—"
                 : projected
-                  ? `${formatSignedDelta(series.projectedUsd - pool, usd0)} to go`
-                  : `${formatSignedDelta(series.last24hUsd, usd0)} 24h`}
+                  ? <Over amount={formatSignedDelta(series.projectedUsd - pool, usd0)} period="to go" />
+                  : <Over amount={formatSignedDelta(series.last24hUsd, usd0)} period="24h" />}
             </Up>
           }
           chart={
@@ -565,32 +646,74 @@ export function ChallengerOverview({
             // The Gauntlet is what the card is about, so its name takes the
             // headline; the week's figure for it reads right under it.
             figure={gauntlet.name}
+            badge={
+              canCalculate ? (
+                <button
+                  type="button"
+                  onClick={() => setCalculating((v) => !v)}
+                  aria-pressed={calculating}
+                  className="font-label border-0 bg-transparent p-0 text-[var(--t-accent)] transition-colors hover:text-text-primary"
+                >
+                  {calculating ? "Chart" : "Calculate"}
+                </button>
+              ) : undefined
+            }
             delta={
               series && gauntlet.metric === "takerVolume" ? (
                 <>
                   <span className="text-text-primary">{usdBoard(series.weekVolumeUsd)}</span>
-                  <Up>{`${formatSignedDelta(series.last24hVolumeUsd, usdBoard)} 24h`}</Up>
+                  <Up>
+                    <Over amount={formatSignedDelta(series.last24hVolumeUsd, usdBoard)} period="24h" />
+                  </Up>
                 </>
+              ) : series?.oi && gauntlet.metric === "openInterest" ? (
+                <Move value={series.oi.last24hUsd}>
+                  <Over amount={formatSignedDelta(series.oi.last24hUsd, usdBoard)} period="24h" />
+                </Move>
               ) : (
                 "—"
               )
             }
             chart={
               series &&
-              gauntlet.metric === "takerVolume" && (
+              (gauntlet.metric === "takerVolume" ? (
                 <DayBars weekStart={weekStart} now={now} days={series.days} format={usdBoard} />
-              )
+              ) : gauntlet.metric === "openInterest" && series.oi ? (
+                <DayBars weekStart={weekStart} now={now} days={series.oi.days} format={usdBoard} average />
+              ) : null)
             }
-            stats={[
-              { label: "Reward", value: count(GAUNTLET_AURA), unit: "AURA" },
-              { label: "Projected volume", phoneLabel: "Proj. volume", value: series ? usdBoard(series.projectedVolumeUsd) : "—" },
-              {
-                label: "Per $1M traded",
-                phoneLabel: "Per $1M",
-                value: series && series.weekVolumeUsd > 0 ? count(GAUNTLET_AURA / (series.weekVolumeUsd / 1e6)) : "—",
-                unit: "AURA",
-              },
-            ]}
+            alt={
+              calculating && canCalculate && oiPoolKiloHours != null ? (
+                <GauntletCalculator
+                  reward={GAUNTLET_AURA}
+                  poolKiloHours={oiPoolKiloHours}
+                  weekHours={WEEK_HOURS}
+                />
+              ) : undefined
+            }
+            stats={
+              gauntlet.metric === "openInterest"
+                ? [
+                    { label: "Reward", value: count(GAUNTLET_AURA), unit: "AURA" },
+                    { label: "Week average", phoneLabel: "Avg OI", value: series?.oi ? usdBoard(series.oi.avgUsd) : "—" },
+                    {
+                      label: "Per $1K held 1h",
+                      phoneLabel: "Per $1K·1h",
+                      value: oiRate != null ? oiRate.toFixed(4) : "—",
+                      unit: "AURA",
+                    },
+                  ]
+                : [
+                    { label: "Reward", value: count(GAUNTLET_AURA), unit: "AURA" },
+                    { label: "Projected volume", phoneLabel: "Proj. volume", value: series ? usdBoard(series.projectedVolumeUsd) : "—" },
+                    {
+                      label: "Per $1M traded",
+                      phoneLabel: "Per $1M",
+                      value: series && series.weekVolumeUsd > 0 ? count(GAUNTLET_AURA / (series.weekVolumeUsd / 1e6)) : "—",
+                      unit: "AURA",
+                    },
+                  ]
+            }
           />
         ) : (
           <GauntletSoon />

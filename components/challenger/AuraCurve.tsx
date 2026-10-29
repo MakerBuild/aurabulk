@@ -161,7 +161,7 @@ export function AuraCurve({
           {auraTicks(lo, hi).map((t) => (
             <g key={t}>
               <line x1={PAD_LEFT} x2={w - PAD_RIGHT} y1={y(t)} y2={y(t)} stroke="var(--color-line)" />
-              <text x={PAD_LEFT - 8} y={y(t) + 3} textAnchor="end" className="fill-[var(--t-text-muted)] font-mono text-[10px]">
+              <text x={PAD_LEFT - 8} y={y(t) + 3} textAnchor="end" className="font-label fill-[var(--t-text-muted)]">
                 {auraTick(t)}
               </text>
             </g>
@@ -224,7 +224,7 @@ export function AuraCurve({
               y={h - 6}
               // The end labels hang inward so neither is cut by the card.
               textAnchor={x(rank) > w - PAD_RIGHT - 14 ? "end" : x(rank) < PAD_LEFT + 14 ? "start" : "middle"}
-              className="font-mono text-[10px]"
+              className="font-label"
               // The first one out takes the lower league's colour, the rest stay muted.
               fill={rank === firstOut ? outColor : "var(--t-text-muted)"}
             >

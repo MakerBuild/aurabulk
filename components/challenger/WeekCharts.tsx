@@ -55,8 +55,11 @@ function dayIndex(days: WeekDay[], t: number): number {
   return i < 0 ? days.length - 1 : i;
 }
 
-/** Columns as wide as each day is long, so a half day takes half a slot. */
-function dayColumns(days: WeekDay[]): string {
+/** Columns as wide as each day is long, so a half day takes half a slot:
+ *  under a line drawn against time. Bars take even columns instead (equal),
+ *  where a part day drawn half as wide read as a fault. */
+function dayColumns(days: WeekDay[], equal = false): string {
+  if (equal) return `repeat(${days.length}, minmax(0, 1fr))`;
   return days.map((d) => `${(d.end - d.start) / HOUR_MS}fr`).join(" ");
 }
 
@@ -109,21 +112,32 @@ export function Tip({ x, width, children }: { x: number; width: number; children
 export function TipLine({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <p className="m-0 font-mono text-[9.5px] leading-none text-text-muted tabular-nums">{label}</p>
-      <p className="m-0 mt-0.5 font-mono text-[10.5px] leading-none text-text-primary tabular-nums">{value}</p>
+      <p className="font-label m-0 leading-none text-text-muted">{label}</p>
+      <p className="font-figure m-0 mt-1 text-[13px] leading-none tracking-[0.01em] text-text-primary">{value}</p>
     </>
   );
 }
 
 /** The week's days under a plot, the current day picked out. */
-function DayAxis({ days, today, active }: { days: WeekDay[]; today: number; active?: number | null }) {
+function DayAxis({
+  days,
+  today,
+  active,
+  equal = false,
+}: {
+  days: WeekDay[];
+  today: number;
+  active?: number | null;
+  /** Even columns, under bars rather than a line. */
+  equal?: boolean;
+}) {
   return (
-    <div className="mt-1.5 grid" style={{ gridTemplateColumns: dayColumns(days) }}>
+    <div className="mt-1.5 grid" style={{ gridTemplateColumns: dayColumns(days, equal) }}>
       {days.map((day, i) => (
         <span
           key={day.start}
           className={cn(
-            "font-data text-center !text-[10px] leading-none transition-colors",
+            "font-label text-center leading-none transition-colors",
             i === active ? "text-text-primary" : i === today ? "text-accent" : "text-text-muted",
           )}
         >
@@ -325,12 +339,16 @@ export function DayBars({
   now,
   days,
   format,
+  average = false,
 }: {
   weekStart: number;
   now: number;
   /** One value per day of weekDays(weekStart), oldest first; days ahead are 0. */
   days: number[];
   format: (n: number) => string;
+  /** Each bar is a day's average (open interest), not a total: the hover
+   *  reads "average" in place of a share of the week, which would not add up. */
+  average?: boolean;
 }) {
   const [ref, { width, height }] = useBox<HTMLDivElement>();
   const plotH = Math.max(PLOT_H, height);
@@ -343,7 +361,7 @@ export function DayBars({
   function pickDay(event: React.PointerEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     const share = Math.min(1, Math.max(0, (event.clientX - rect.left) / Math.max(1, rect.width)));
-    setActive(dayIndex(slots, weekStart + share * WEEK_MS));
+    setActive(Math.min(slots.length - 1, Math.floor(share * slots.length)));
   }
 
   return (
@@ -351,7 +369,7 @@ export function DayBars({
       <div
         ref={ref}
         className="relative grid cursor-pointer touch-none items-end gap-1.5 border-b border-[var(--color-line-strong)] sm:gap-2"
-        style={{ minHeight: PLOT_H, gridTemplateColumns: dayColumns(slots) }}
+        style={{ minHeight: PLOT_H, gridTemplateColumns: dayColumns(slots, true) }}
         // The day comes from the pointer's x over the whole plot, so the gaps
         // between bars and a finger dragging across them both pick a day.
         onPointerMove={pickDay}
@@ -390,19 +408,19 @@ export function DayBars({
           );
         })}
         {active != null && width > 0 && (
-          <Tip x={((slots[active].start + slots[active].end) / 2 - weekStart) / WEEK_MS * width} width={width}>
+          <Tip x={((active + 0.5) / slots.length) * width} width={width}>
             {active > today ? (
               <TipLine label={dayName(slots[active])} value="Not started" />
             ) : (
               <TipLine
-                label={`${dayName(slots[active])}${active === today ? " · so far" : ""} · ${total > 0 ? Math.round((days[active] / total) * 100) : 0}% of week`}
+                label={`${dayName(slots[active])}${active === today ? " · so far" : ""} · ${average ? "average" : `${total > 0 ? Math.round((days[active] / total) * 100) : 0}% of week`}`}
                 value={format(days[active])}
               />
             )}
           </Tip>
         )}
       </div>
-      <DayAxis days={slots} today={today} active={active} />
+      <DayAxis days={slots} today={today} active={active} equal />
     </div>
   );
 }

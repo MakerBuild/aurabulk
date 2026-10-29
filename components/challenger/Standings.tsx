@@ -212,15 +212,15 @@ export function Standings({
           pinned && "bg-[rgb(var(--t-accent-rgb)/0.08)]",
         )}
       >
-        <span className="font-data text-text-muted">{cell(row.position ?? "—")}</span>
+        <span className="font-sans tabular-nums text-text-muted">{cell(row.position ?? "—")}</span>
         <span className="font-data min-w-0 truncate text-text-secondary">
           {cell(<CopyableWallet wallet={row.wallet} display={truncateWallet(row.wallet, 4)} />)}
         </span>
-        <span className="font-data text-right text-text-primary">
+        <span className="font-sans text-right tabular-nums text-text-primary">
           {cell(row.tradingAura > 0 ? aura(row.tradingAura) : "—")}
         </span>
         {cell(<LeagueCell rank={row.rank} />, "flex min-w-0")}
-        <span className={cn("font-data text-right", isPaid(row.rank) ? "text-accent" : "text-text-muted")}>
+        <span className={cn("font-sans text-right tabular-nums", isPaid(row.rank) ? "text-accent" : "text-text-muted")}>
           {cell(row.rank === "Unranked" ? "—" : payout(row))}
         </span>
       </li>
@@ -316,7 +316,7 @@ export function Standings({
             showClear={query.length > 0 || found != null}
             placeholder="Search by wallet address…"
           />
-          {searchError && <p className="font-data m-0 mt-1.5 text-text-muted">{searchError}</p>}
+          {searchError && <p className="m-0 mt-1.5 font-sans text-[13px] text-text-muted">{searchError}</p>}
         </div>
         <div className={cn(BOARD_COLS, "border-b border-[var(--color-line)] pb-2")}>
           <span className="font-label text-text-dim">Rank</span>
@@ -349,7 +349,7 @@ export function Standings({
             transition: `height ${SLIDE_MS}ms ${SLIDE_EASE}`,
           }}
         >
-          <ol ref={listRef} className="m-0 list-none p-0 text-[12px]">
+          <ol ref={listRef} className="m-0 list-none p-0 text-[13px]">
             {found && boardRow(found, `pin-${found.wallet}`, { pinned: true })}
             <SwapProvider swapKey={board} direction={direction} pending={false}>
               {rows

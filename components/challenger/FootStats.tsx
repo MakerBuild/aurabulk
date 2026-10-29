@@ -44,12 +44,16 @@ export function FootStats({
       {/* Keyed by column, not label, so a switch keeps the column and only
           slides what is in it. */}
       {stats.map((stat, i) => (
-        <div key={i} className="min-w-0 text-left">
+        // Beside an aside, the stat spans the aside's height, label at its
+        // top and figure at its foot, so the two labels start level.
+        <div key={i} className={cn("min-w-0 text-left", aside && "flex flex-col justify-between self-stretch pt-0.5")}>
           {/* The space under the label is padding, not the figure's margin:
               truncate-safe sets the figure's own block margin and wins. One
               line always: a label wrapping to two stood up over its row on a
-              phone, so a long one carries a short phone version instead. */}
-          <p className="font-label m-0 truncate pb-2.5 text-text-dim">
+              phone, so a long one carries a short phone version instead.
+              Clipped across only, so a "?" beside a label can stand taller
+              than the line without being cut. */}
+          <p className="font-label m-0 overflow-x-clip text-ellipsis whitespace-nowrap pb-2.5 text-text-dim">
             {stat.phoneLabel ? (
               <>
                 <span className="sm:hidden">{stat.phoneLabel}</span>
@@ -59,7 +63,7 @@ export function FootStats({
               stat.label
             )}
           </p>
-          <p className="font-data m-0 truncate-safe text-[12px] leading-none tabular-nums">
+          <p className="font-figure m-0 truncate-safe text-[13px] leading-none tracking-[0.01em]">
             {slide(
               <>
                 <span
@@ -71,7 +75,7 @@ export function FootStats({
                 >
                   {stat.value}
                 </span>
-                {stat.unit && <span className="ml-1 text-text-muted">{stat.unit}</span>}
+                {stat.unit && <span className="ml-1.5 text-text-muted">{stat.unit}</span>}
               </>,
             )}
           </p>

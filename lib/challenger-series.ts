@@ -154,14 +154,27 @@ export const GAUNTLET_AURA = 50_000;
 export interface Gauntlet {
   name: string;
   /** What the Gauntlet ranks by, when the site can chart it. Taker volume
-   *  is the exchange's volume: every fill has exactly one taker. */
-  metric?: "takerVolume";
+   *  is the exchange's volume: every fill has exactly one taker. Open
+   *  interest is charted from the exchange's own total, hour by hour. */
+  metric?: "takerVolume" | "openInterest";
 }
+
+/**
+ * The share of the exchange's open interest that takes part in an Open
+ * Interest Gauntlet. Whitelisted market makers are left out, so the reward is
+ * split over less than the exchange's whole book. Calibrated on week 2
+ * (Oct 17 to 24, 2026): 132,933 AURA paid on open interest, and
+ * 5jn4…YjhEac took 13,684 for about 132K $1K-hours held, 0.103 AURA per
+ * $1K-hour, against 0.0556 over every $1K-hour of exchange OI. A rough,
+ * single-wallet estimate; replace it with BULK's own figure when there is one.
+ */
+export const OI_GAUNTLET_ELIGIBLE_SHARE = 0.54;
 
 /** This season's Gauntlets by week, as BULK announces them each Saturday.
  *  A week missing here simply shows no Gauntlet. */
 export const GAUNTLETS: Record<number, Gauntlet> = {
   2: { name: "Taker Volume", metric: "takerVolume" },
+  3: { name: "Open Interest", metric: "openInterest" },
 };
 
 /** Season week (1 based) that the snapshot week starting at `weekStartMs`

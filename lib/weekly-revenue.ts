@@ -2,6 +2,7 @@ import { fetchFeeTotals } from "@/lib/bulk-exchange";
 import { netRevenueAt, readFeeHistoryFile } from "@/lib/fee-history";
 import { challengerWeekStart } from "@/lib/challenger-series";
 import { buildWeekHourly, sumCandleVolumes } from "@/lib/volume-history";
+import { loadOiPoints } from "@/lib/oi-history-store";
 
 /** A reading this recent says little about the pace: it may span a lull. */
 const MIN_PACE_SPAN_MS = 20 * 60_000;
@@ -24,6 +25,9 @@ export interface WeeklyRevenuePayload {
   /** The week's traded volume hour by hour (each fill has one taker, so this
    *  is taker volume too). The charts split the net revenue along it. */
   hours: { t: number; volumeUsd: number }[];
+  /** The exchange's open interest through the week, hour by hour, ending on
+   *  the live print: for an Open Interest Gauntlet. */
+  oi: { t: number; usd: number }[];
 }
 
 export async function buildWeeklyRevenue(): Promise<WeeklyRevenuePayload> {
@@ -60,5 +64,9 @@ export async function buildWeeklyRevenue(): Promise<WeeklyRevenuePayload> {
     ? Math.max(0, totals.netRevenueUsd - recent.netRevenueUsd) / (totals.at - recent.at)
     : netRevenueUsd / Math.max(1, totals.at - weekStart);
 
-  return { weekStart, at: totals.at, netRevenueUsd, usdPerMs, source, hours };
+  const oi = (await loadOiPoints().catch(() => []))
+    .filter((p) => p.t >= weekStart)
+    .map((p) => ({ t: p.t, usd: p.value }));
+
+  return { weekStart, at: totals.at, netRevenueUsd, usdPerMs, source, hours, oi };
 }
