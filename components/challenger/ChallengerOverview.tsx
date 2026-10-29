@@ -652,7 +652,8 @@ export function ChallengerOverview({
                   type="button"
                   onClick={() => setCalculating((v) => !v)}
                   aria-pressed={calculating}
-                  className="font-label border-0 bg-transparent p-0 text-[var(--t-accent)] transition-colors hover:text-text-primary"
+                  // A tap area well past the small label, given back by margin.
+                  className="font-label -mx-3 -my-3 cursor-pointer border-0 bg-transparent px-3 py-3 text-[var(--t-accent)] transition-colors hover:text-text-primary"
                 >
                   {calculating ? "Chart" : "Calculate"}
                 </button>

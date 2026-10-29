@@ -19,13 +19,14 @@ function grouped(text: string): string {
   return rest.length ? `${head}.${rest.join("").slice(0, 2)}` : head;
 }
 
-/** The figure every column shares: the stats' own, so the calculator and the
- *  row under it read at one size. */
-const FIGURE = "font-figure text-[13px] leading-none tracking-[0.01em] tabular-nums";
+/** The figure every column shares: the stats' own from sm up, so the
+ *  calculator and the row under it read at one size. On a phone 20px, big
+ *  enough to type into and over the 16px below which iOS zooms into a field. */
+const FIGURE = "font-figure text-[20px] leading-none tracking-[0.01em] tabular-nums sm:text-[13px]";
 /** Each column's value row: one fixed height with its hairline at the
  *  bottom, so the three lines under it start on one level whatever a field
- *  renders at. */
-const VALUE_ROW = "flex h-6 min-w-0 items-end gap-1 border-b pb-1.5";
+ *  renders at. A thumb's height on a phone; the whole row takes the tap. */
+const VALUE_ROW = "flex h-12 min-w-0 items-end gap-1 border-b pb-2 sm:h-6 sm:pb-1.5";
 
 /** One column: a label over a figure over one short line, as the stats below
  *  are laid out, so the calculator sits on the same three columns. */
@@ -34,7 +35,9 @@ function Column({
   aside,
   children,
   note,
+  className,
 }: {
+  className?: string;
   label: string;
   /** A control set just after the label, clear of the next column. */
   aside?: React.ReactNode;
@@ -42,13 +45,13 @@ function Column({
   note: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 flex-col">
+    <div className={`flex min-w-0 flex-col ${className ?? ""}`}>
       <div className="flex min-w-0 items-baseline gap-3 pb-2.5">
         <p className="font-label m-0 truncate text-text-dim">{label}</p>
         {aside}
       </div>
       {children}
-      <p className="font-figure m-0 mt-2 flex min-w-0 items-center gap-1.5 truncate text-[13px] leading-none tracking-[0.01em] text-text-muted tabular-nums">
+      <p className="font-figure m-0 mt-2 flex min-w-0 items-center gap-1.5 truncate text-[15px] leading-none tracking-[0.01em] text-text-muted tabular-nums sm:text-[13px]">
         {note}
       </p>
     </div>
@@ -97,7 +100,7 @@ function FigureInput({
             className={`${FIGURE} min-w-0 max-w-full border-0 bg-transparent p-0 text-inherit outline-none [field-sizing:content] placeholder:text-text-dim ${readOnly ? "cursor-default" : ""}`}
           />
         </span>
-        {suffix && <span className="font-figure shrink-0 text-[13px] tracking-[0.01em] text-text-muted">{suffix}</span>}
+        {suffix && <span className="font-figure shrink-0 text-[15px] tracking-[0.01em] text-text-muted sm:text-[13px]">{suffix}</span>}
       </span>
     </label>
   );
@@ -106,10 +109,11 @@ function FigureInput({
 type HoldUnit = "days" | "hours";
 
 /** Days or hours for the hold, in the label row's own type so it sits level
- *  with "Hold". A phone's third of the card shows the initials. */
+ *  with "Hold". Each option's tap area reaches past its word, padding taken
+ *  back by margin so the row keeps its height. */
 function UnitSwitch({ unit, onChange }: { unit: HoldUnit; onChange: (unit: HoldUnit) => void }) {
   return (
-    <span role="radiogroup" aria-label="Hold unit" className="font-label flex shrink-0 items-baseline gap-1.5">
+    <span role="radiogroup" aria-label="Hold unit" className="font-label flex shrink-0 items-baseline">
       {(["days", "hours"] as const).map((option) => (
         <button
           key={option}
@@ -117,10 +121,9 @@ function UnitSwitch({ unit, onChange }: { unit: HoldUnit; onChange: (unit: HoldU
           role="radio"
           aria-checked={unit === option}
           onClick={() => unit !== option && onChange(option)}
-          className={`cursor-pointer border-0 bg-transparent p-0 uppercase transition-colors ${unit === option ? "text-accent" : "text-text-dim hover:text-text-muted"}`}
+          className={`-my-3 cursor-pointer border-0 bg-transparent px-2 py-3 text-[11.5px] uppercase transition-colors first:-ml-2 sm:-my-1 sm:px-1 sm:py-1 sm:text-[9.5px] sm:first:-ml-1 ${unit === option ? "text-accent" : "text-text-dim hover:text-text-muted"}`}
         >
-          <span className="sm:hidden">{option[0]}</span>
-          <span className="hidden sm:inline">{option}</span>
+          {option}
         </button>
       ))}
     </span>
@@ -137,7 +140,9 @@ function UnitSwitch({ unit, onChange }: { unit: HoldUnit; onChange: (unit: HoldU
  * 13:00 to Saturday 13:00 UTC.
  *
  * Laid out on the card's three stat columns: the size, the hold, and the
- * estimate, under which the AURA it earns ticks up live.
+ * estimate, under which the AURA it earns ticks up live. A phone's third of
+ * the card is too narrow to type into, so there the size and hold share a
+ * row and the estimate takes the next one whole.
  */
 export function GauntletCalculator({
   reward,
@@ -175,7 +180,7 @@ export function GauntletCalculator({
   }, [perSecond]);
 
   return (
-    <div className="grid w-full grid-cols-3 items-start gap-2">
+    <div className="grid w-full grid-cols-2 items-start gap-x-5 gap-y-5 sm:grid-cols-3 sm:gap-2">
       <Column label="Position" note={`${(share * 100).toFixed(share < 0.01 ? 2 : 1)}% of pool`}>
         <FigureInput label="Position size in USD" prefix="$" value={size} onChange={(text) => setSize(grouped(text))} />
       </Column>
@@ -207,6 +212,7 @@ export function GauntletCalculator({
         />
       </Column>
       <Column
+        className="col-span-2 sm:col-span-1"
         label="Est. reward"
         note={
           <>
