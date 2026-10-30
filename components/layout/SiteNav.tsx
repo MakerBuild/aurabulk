@@ -167,8 +167,8 @@ export function SiteNav() {
                 menuOpen ? "text-accent" : "text-text-muted hover:text-text-primary"
               )}
             >
-              {/* Capitals as tall as the week ticks beside it, as W22 is. */}
-              <span className="font-label -mr-[0.12em] -translate-y-px text-[14px]! leading-none tracking-[0.12em]!">Menu</span>
+              {/* Written as a word, not in capitals, at the page's 13px. */}
+              <span className="font-label text-[13px]! leading-none tracking-[0.01em]! normal-case!">Menu</span>
               <ChevronDown
                 className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200", menuOpen && "rotate-180")}
               />

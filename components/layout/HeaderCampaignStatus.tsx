@@ -96,8 +96,8 @@ export function HeaderCampaignStatus() {
         className="flex shrink-0 items-center gap-[7.5px] xl:gap-[9px]"
         title={`Week ${week} · ${left}`}
       >
-        {/* Capitals as tall as the ticks beside them: 14px caps are 9px in this face, and they sit 1px low in a line-height-1 box, so it rises by that. .font-label sets its own size, so these win by !important. The margin takes back the spacing after the last letter, so the gap to the ticks is the 8px the Menu row keeps too. */}
-        <span className="font-label -mr-[0.12em] -translate-y-px text-[14px]! leading-none tracking-[0.12em]! text-text-muted">W{week}</span>
+        {/* 13px, the size of the Menu word beside it, its capitals about as tall as the ticks; they sit 1px low in a line-height-1 box, so it rises by that. .font-label sets its own size, so these win by !important. The margin takes back the spacing after the last letter, so the gap to the ticks is the 8px the Menu row keeps too. From xl, where the inline nav takes the header, it steps down to 11px beside the countdown. */}
+        <span className="font-label -mr-[0.12em] -translate-y-px text-[13px]! leading-none tracking-[0.12em]! text-text-muted xl:mr-0 xl:translate-y-0 xl:text-[11px]! xl:tracking-[0.14em]!">W{week}</span>
         <WeekTicks today={today} />
         {/* Desktop only. Below the inline nav's breakpoint the corner also
             carries the switch and the Menu button, and the countdown was the
