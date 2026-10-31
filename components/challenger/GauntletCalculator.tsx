@@ -20,14 +20,6 @@ function grouped(text: string): string {
   return rest.length ? `${head}.${rest.join("").slice(0, 2)}` : head;
 }
 
-/** A field's width for its text: tabular digits are a `ch` each, the
- *  separators about a third of one. Safari has no field-sizing, so the width
- *  is set rather than left to the browser. */
-function fieldWidth(text: string): string {
-  const narrow = text.replace(/[^.,]/g, "").length;
-  return `calc(${text.length - narrow}ch + ${narrow * 0.34}ch + 1px)`;
-}
-
 /** The site's small capitals, for the boxes' and the strip's labels. */
 const LABEL = "font-label m-0 shrink-0 leading-none text-text-dim";
 
@@ -53,28 +45,39 @@ function InputBox({
   onChange: (text: string) => void;
   ariaLabel: string;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div className="flex min-w-0 flex-col">
       <label htmlFor={id} className={cn(LABEL, "mb-2 flex h-3 cursor-text items-center")}>
         {label}
       </label>
-      <div className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] px-3 py-3 transition-colors focus-within:border-[var(--color-accent)]">
-        {/* 18px and up: below 16px iOS zooms into a field. */}
-        <label htmlFor={id} className="flex min-w-0 flex-1 cursor-text items-center">
-          <input
-            id={id}
-            aria-label={ariaLabel}
-            inputMode="decimal"
-            value={value}
-            placeholder="0"
-            onChange={(e) => onChange(e.target.value)}
-            style={{ width: fieldWidth(value || "0") }}
-            className={cn(
-              "font-figure block h-5 min-w-0 max-w-full appearance-none rounded-none border-0 bg-transparent p-0 leading-none tracking-[-0.01em] text-text-primary shadow-none outline-none tabular-nums [field-sizing:content] placeholder:text-text-dim",
-              value.length > 9 ? "text-[18px]" : "text-[20px]",
-            )}
-          />
-        </label>
+      {/* A press on the box's own padding goes to the field, which keeps
+          focus there; left to the browser it would blur the field, and a
+          selection dragged from it would stand unfocused, deaf to Delete. */}
+      <div
+        onMouseDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          e.preventDefault();
+          inputRef.current?.focus();
+        }}
+        className="flex min-w-0 cursor-text items-center justify-between gap-2 rounded-lg border border-[var(--color-line-strong)] bg-[var(--color-bulk-base)] px-3 py-3 transition-colors focus-within:border-[var(--color-accent)]"
+      >
+        {/* The field fills the row up to the unit, so a drag started past
+            its last digit still begins in it. 18px and up: below 16px iOS
+            zooms into a field. */}
+        <input
+          ref={inputRef}
+          id={id}
+          aria-label={ariaLabel}
+          inputMode="decimal"
+          value={value}
+          placeholder="0"
+          onChange={(e) => onChange(e.target.value)}
+          className={cn(
+            "font-figure block h-5 w-full min-w-0 flex-1 appearance-none rounded-none border-0 bg-transparent p-0 leading-none tracking-[-0.01em] text-text-primary shadow-none outline-none tabular-nums placeholder:text-text-dim",
+            value.length > 9 ? "text-[18px]" : "text-[20px]",
+          )}
+        />
         <div className="flex h-5 shrink-0 items-center">{trailing}</div>
       </div>
     </div>
