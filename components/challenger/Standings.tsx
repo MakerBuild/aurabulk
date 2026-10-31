@@ -123,8 +123,12 @@ function LeagueCell({ rank }: { rank: RankName }) {
   );
 }
 
+/** From sm each column is as wide as what it holds, and the room left over
+ *  falls in three equal spacer tracks between trader, AURA, league and
+ *  payout, so the figures sit evenly across the row rather than the trader
+ *  column taking it all. The cells skip the spacers by column. */
 const BOARD_COLS =
-  "grid grid-cols-[2rem_minmax(0,1fr)_4.25rem_1rem_4.5rem] items-center gap-2 px-4 sm:grid-cols-[2.75rem_minmax(0,1fr)_6rem_6.5rem_6rem] sm:gap-3 sm:px-5";
+  "grid grid-cols-[2rem_minmax(0,1fr)_4.25rem_1rem_4.5rem] items-center gap-2 px-4 sm:grid-cols-[2.75rem_minmax(0,5.25rem)_minmax(0,1fr)_3rem_minmax(0,1fr)_6rem_minmax(0,1fr)_3rem] sm:gap-x-0 sm:px-5 sm:[&>:nth-child(3)]:col-start-4 sm:[&>:nth-child(4)]:col-start-6 sm:[&>:nth-child(5)]:col-start-8";
 /**
  * The standings as BULK ranks them: the official leaderboard of the league
  * picked from the cards above, with what each place takes of the pool, and
@@ -213,14 +217,23 @@ export function Standings({
         )}
       >
         <span className="font-sans tabular-nums text-text-muted">{cell(row.position ?? "—")}</span>
-        <span className="font-data min-w-0 truncate text-text-secondary">
+        {/* From sm the column is the address's width, and its copy button,
+            shown on hover, stands out in the spacer after it. */}
+        <span className="font-data min-w-0 truncate text-text-secondary sm:overflow-visible">
           {cell(<CopyableWallet wallet={row.wallet} display={truncateWallet(row.wallet, 4)} />)}
         </span>
-        <span className="font-sans text-right tabular-nums text-text-primary">
+        {/* Flex ends: a figure wider than its column runs out leftwards,
+            into the spacer, and keeps its right edge on the column's. */}
+        <span className="font-sans flex justify-end whitespace-nowrap tabular-nums text-text-primary">
           {cell(row.tradingAura > 0 ? aura(row.tradingAura) : "—")}
         </span>
         {cell(<LeagueCell rank={row.rank} />, "flex min-w-0")}
-        <span className={cn("font-sans text-right tabular-nums", isPaid(row.rank) ? "text-accent" : "text-text-muted")}>
+        <span
+          className={cn(
+            "font-sans flex justify-end whitespace-nowrap tabular-nums",
+            isPaid(row.rank) ? "text-accent" : "text-text-muted",
+          )}
+        >
           {cell(row.rank === "Unranked" ? "—" : payout(row))}
         </span>
       </li>
@@ -321,7 +334,9 @@ export function Standings({
         <div className={cn(BOARD_COLS, "border-b border-[var(--color-line)] pb-2")}>
           <span className="font-label text-text-dim">Rank</span>
           <span className="font-label text-text-dim">Trader</span>
-          <span className="font-label whitespace-nowrap text-right text-text-dim">
+          {/* Wider than its figures' column: a flex end lets it run out to
+              the left, into the spacer, rather than past the column's edge. */}
+          <span className="font-label flex justify-end whitespace-nowrap text-text-dim">
             <span className="sm:hidden">AURA</span>
             <span className="hidden sm:inline">Trading AURA</span>
           </span>
