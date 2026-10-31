@@ -24,3 +24,6 @@ D=/opt/aurabulk/repo/deploy
 3 * * * *          $D/jobs.sh watch    >> $LOGS/watch.log 2>&1
 5-55/10 12-15 * * 6 $D/jobs.sh watch   >> $LOGS/watch.log 2>&1
 13 12 * * 6        $D/jobs.sh aura     >> $LOGS/aura.log 2>&1
+
+# BULK's league list, hourly: it corrects the frozen leagues between snapshots.
+23 * * * *         $D/jobs.sh leagues  >> $LOGS/leagues.log 2>&1

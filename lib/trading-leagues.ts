@@ -18,8 +18,8 @@ export interface TradingLeagueRow {
 /**
  * Every wallet's official trading rank, as BULK settled it at the last weekly
  * snapshot (the indexer's frozen leagues, market makers left out), recorded by
- * scripts/record-trading-leagues.ts with the weekly refresh rather than
- * fetched per request.
+ * scripts/record-trading-leagues.ts hourly (BULK corrects the list between
+ * snapshots) rather than fetched per request.
  */
 export interface TradingLeaguesFile {
   updatedAt: string;

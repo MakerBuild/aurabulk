@@ -8,6 +8,7 @@
 #   jobs.sh fees     hourly  exchange fee totals (weekly prize pool baseline)
 #   jobs.sh tvl      daily   leaderboard financials, TVL totals, metrics
 #   jobs.sh aura     weekly  full Aura leaderboard, trading ranks, metrics
+#   jobs.sh leagues  hourly  trading ranks, for BULK's corrections between snapshots
 #   jobs.sh watch    check whether upstream's Aura snapshot moved; run `aura` if so
 set -euo pipefail
 
@@ -109,6 +110,18 @@ aura() {
   refresh_pages
 }
 
+# BULK reworks the frozen leagues between snapshots too (a disqualified #1
+# dropped, sub-wallets counted into their root). The script leaves the file
+# alone when nothing moved, so only a real change commits and refreshes.
+leagues() {
+  npm run -s record:leagues
+  if git diff --quiet -- data/trading-leagues.json; then
+    return
+  fi
+  commit_and_push "chore: record trading leagues" data/trading-leagues.json
+  refresh_pages
+}
+
 watch() {
   local out
   out=$(mktemp)
@@ -128,9 +141,10 @@ case "${1:-}" in
   fees) with_lock fees 0 fees ;;
   tvl) with_lock leaderboard 3600 tvl ;;
   aura) with_lock leaderboard 3600 aura ;;
+  leagues) with_lock leaderboard 0 leagues ;;
   watch) with_lock watch 0 watch ;;
   *)
-    echo "usage: jobs.sh levels|volume|fees|tvl|aura|watch" >&2
+    echo "usage: jobs.sh levels|volume|fees|tvl|aura|leagues|watch" >&2
     exit 2
     ;;
 esac

@@ -12,10 +12,14 @@
  * Ranks run on Trading Aura since launch, not one week's: a trader who skips
  * a week keeps the league their earlier weeks earned (confirmed by BULK).
  *
+ * BULK can rework the frozen list between snapshots: on 2026-10-31 it had
+ * dropped a disqualified #1 and counted sub-wallets into their root's Aura.
+ * So this runs hourly, not only when the snapshot moves.
+ *
  *   npm run record:leagues
  */
 import { toRankName } from "../lib/ranks";
-import { writeTradingLeaguesFile, type TradingLeagueRow } from "../lib/trading-leagues";
+import { readTradingLeaguesFile, writeTradingLeaguesFile, type TradingLeagueRow } from "../lib/trading-leagues";
 import { upstreamJson } from "../lib/upstream";
 
 const PAGE_SIZE = 2000;
@@ -61,6 +65,18 @@ async function main() {
   // An empty ranking would quietly demote everyone to Unranked — keep the
   // last file rather than write that.
   if (rows.length === 0) throw new Error("refusing to write: no ranked wallets");
+
+  // This runs hourly to catch BULK's corrections between snapshots. An
+  // unchanged list keeps its file, and with it the time it was settled.
+  const last = readTradingLeaguesFile();
+  if (
+    last.population === population &&
+    last.qualificationThreshold === threshold &&
+    JSON.stringify(last.rows) === JSON.stringify(rows)
+  ) {
+    console.log(`[leagues] unchanged since ${last.updatedAt}`);
+    return;
+  }
 
   writeTradingLeaguesFile({
     updatedAt: new Date().toISOString(),
