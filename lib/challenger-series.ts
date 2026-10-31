@@ -162,13 +162,15 @@ export interface Gauntlet {
 /**
  * The share of the exchange's open interest that takes part in an Open
  * Interest Gauntlet. Whitelisted market makers are left out, so the reward is
- * split over less than the exchange's whole book. Calibrated on week 2
- * (Oct 17 to 24, 2026): 132,933 AURA paid on open interest, and
- * 5jn4…YjhEac took 13,684 for about 132K $1K-hours held, 0.103 AURA per
- * $1K-hour, against 0.0556 over every $1K-hour of exchange OI. A rough,
- * single-wallet estimate; replace it with BULK's own figure when there is one.
+ * split over less than the exchange's whole book. Calibrated on the week 3
+ * Gauntlet (Oct 24 to 31, 2026): 2HuY…3MNJ held about 4.96 BTC, $383.5K, all
+ * week and was due about 1,668 of the 50,000 AURA, with the exchange's OI
+ * averaging $14.92M. The calculator gives that for $383,554 over 7 days at
+ * this share. (0.54 before came from week 2's Aura on open interest, a
+ * different reward, and read about 36% high.) A rough, single-wallet
+ * estimate; replace it with BULK's own figure when there is one.
  */
-export const OI_GAUNTLET_ELIGIBLE_SHARE = 0.54;
+export const OI_GAUNTLET_ELIGIBLE_SHARE = 0.745;
 
 /** This season's Gauntlets by week, as BULK announces them each Saturday.
  *  A week missing here simply shows no Gauntlet. */
