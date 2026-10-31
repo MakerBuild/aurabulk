@@ -242,7 +242,8 @@ export function VolumeChart() {
             showCumulative ? "text-text-secondary" : "opacity-40",
           )}
         >
-          <span className="h-[2px] w-4 bg-accent" />
+          {/* The line's own colour: the accent is BTC's in the dark theme. */}
+          <span className="h-[2px] w-4 bg-[var(--t-spark-line)]" />
           Cumulative
         </button>
         <button
@@ -378,7 +379,7 @@ export function VolumeChart() {
                         {(showCumulative && row.cumulative != null) || (showOi && row.oi != null) ? (
                           <div className="mt-2.5 flex flex-col gap-2.5 border-t border-[var(--color-line)] pt-2.5">
                             {showCumulative && row.cumulative != null && (
-                              <p className="m-0 flex justify-between gap-8 text-accent">
+                              <p className="m-0 flex justify-between gap-8 text-[var(--t-spark-line)]">
                                 <span>Cumulative</span>
                                 <span>{formatUsd(row.cumulative)}</span>
                               </p>
@@ -447,7 +448,7 @@ export function VolumeChart() {
                     strokeWidth={2.2}
                     dot={false}
                     animationDuration={entranceMs}
-                    activeDot={{ r: 3, fill: CHART_GOLD }}
+                    activeDot={{ r: 3, fill: "var(--t-spark-line)" }}
                   />
                 )}
                 {showOi && (
