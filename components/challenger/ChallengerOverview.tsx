@@ -209,7 +209,18 @@ function GauntletSoon() {
       <div className="mb-4 flex h-4 items-center leading-none">
         <h2 className="font-label volume-mode-on m-0 truncate">This week&apos;s Gauntlet</h2>
       </div>
-      <div className="flex min-h-[120px] flex-1 items-center justify-center">
+      {/* Kept small: the pair takes the taller card's height, and the prize
+          pool beside it is only a little shorter. Cropped from the bottom so
+          the head stays in frame. */}
+      <div className="flex min-h-[120px] flex-1 flex-col items-center justify-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/challenger/stonks.webp"
+          alt="Stonks meme"
+          width={216}
+          height={125}
+          className="h-[125px] w-[216px] rounded-md border border-[var(--color-line)] object-cover object-top"
+        />
         <p className="font-figure m-0 text-center text-[18px] font-semibold leading-tight tracking-[-0.02em] text-text-secondary">
           New Gauntlet is coming soon
         </p>
