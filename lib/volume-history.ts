@@ -5,7 +5,7 @@ import { challengerWeekStart } from "@/lib/challenger-series";
 export const VOLUME_RANGES = ["1D", "W", "M", "Y", "ALL"] as const;
 export type VolumeRange = (typeof VOLUME_RANGES)[number];
 
-export const VOLUME_COINS = ["btc", "eth", "sol", "others"] as const;
+export const VOLUME_COINS = ["btc", "eth", "sol", "others", "tradfi"] as const;
 export type VolumeCoin = (typeof VOLUME_COINS)[number];
 
 export interface VolumeBucket {
@@ -14,6 +14,11 @@ export interface VolumeBucket {
   eth: number;
   sol: number;
   others: number;
+  /** Stock perps (see TRADFI_BASES). */
+  tradfi: number;
+  /** USD by market symbol, markets that traded in the bucket only. Left off
+   *  the hourly all-time spark, which never splits by market. */
+  markets?: Record<string, number>;
   total: number;
   cumulative: number;
   /** Open interest at the bucket, null where no snapshot landed. Added by
@@ -53,6 +58,10 @@ const NAMED: Record<string, VolumeCoin> = {
   ETH: "eth",
   SOL: "sol",
 };
+
+/** Stock perps. /exchangeInfo carries no asset class, so they are listed by
+ *  name; a new stock market lands in Others until it is added here. */
+const TRADFI_BASES = new Set(["CRCL", "MSTR", "MU", "NVDA", "SKHYNIX", "SNDK", "TSLA"]);
 
 /** Keyed, not a single slot: the Overview asks for `ALL:1h` and a range in the
  *  same render, and one shared slot made each call evict the other — every
@@ -117,8 +126,9 @@ function bucketTime(t: number, interval: string): number {
   return ms ? Math.floor(t / ms) * ms : t;
 }
 
-function coinForSymbol(symbol: string): VolumeCoin {
-  return NAMED[marketBase(symbol)] ?? "others";
+export function coinForSymbol(symbol: string): VolumeCoin {
+  const base = marketBase(symbol);
+  return NAMED[base] ?? (TRADFI_BASES.has(base) ? "tradfi" : "others");
 }
 
 /**
@@ -160,8 +170,9 @@ async function buildBuckets(
       if (!(usd > 0)) continue;
       const row =
         byTime.get(t) ??
-        ({ t, btc: 0, eth: 0, sol: 0, others: 0, total: 0, cumulative: 0 } satisfies VolumeBucket);
+        ({ t, btc: 0, eth: 0, sol: 0, others: 0, tradfi: 0, markets: {}, total: 0, cumulative: 0 } satisfies VolumeBucket);
       row[coin] += usd;
+      row.markets![symbol] = (row.markets![symbol] ?? 0) + usd;
       byTime.set(t, row);
     }
   }
@@ -169,7 +180,7 @@ async function buildBuckets(
   const buckets = [...byTime.values()].sort((a, b) => a.t - b.t);
   let running = 0;
   for (const row of buckets) {
-    row.total = row.btc + row.eth + row.sol + row.others;
+    row.total = row.btc + row.eth + row.sol + row.others + row.tradfi;
     running += row.total;
     row.cumulative = running;
   }
@@ -196,7 +207,7 @@ async function buildCampaignWeek(now: number): Promise<VolumeHistoryPayload> {
   let running = 0;
   for (let i = 0; i < WEEK_DAYS; i++) {
     const t = weekStart + i * DAY_MS;
-    const row = byTime.get(t) ?? { t, btc: 0, eth: 0, sol: 0, others: 0, total: 0, cumulative: 0 };
+    const row = byTime.get(t) ?? { t, btc: 0, eth: 0, sol: 0, others: 0, tradfi: 0, total: 0, cumulative: 0 };
     running += row.total;
     week.push({ ...row, cumulative: running, ...(t > now ? { future: true as const } : {}) });
   }
@@ -317,7 +328,10 @@ async function buildCandleVolumes(revalidate: number): Promise<CandleVolumes> {
 
 /** Hourly buckets from trading mainnet start — for the Total KPI spark. */
 export function buildAllTimeHourly(): Promise<VolumeHistoryPayload> {
-  return staleWhileRevalidate("ALL:1h", () => buildBuckets("ALL", "1h", MAINNET_START_MS, Date.now()));
+  return staleWhileRevalidate("ALL:1h", async () => {
+    const payload = await buildBuckets("ALL", "1h", MAINNET_START_MS, Date.now());
+    return { ...payload, buckets: payload.buckets.map(({ markets: _markets, ...b }) => b) };
+  });
 }
 
 const WARM_EVERY_MS = 5 * 60_000;

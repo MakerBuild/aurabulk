@@ -66,6 +66,19 @@
   --t-cost-slippage: #d95926;
   /* Open interest line on the Total Volume chart, violet as on DefiLlama. */
   --t-oi-line: #b57bff;
+  /* One hue per market on the Total Volume chart, after the accent: wide
+     apart on the wheel, clear of the violet OI line and the white
+     cumulative, toned to sit with the slate. */
+  --t-market-1: #5b9bd5;
+  --t-market-2: #4cb89a;
+  --t-market-3: #e07a5f;
+  --t-market-4: #e58fb4;
+  --t-market-5: #9ccc65;
+  --t-market-6: #4dd0e1;
+  --t-market-7: #7f8ce0;
+  --t-market-8: #d8c37a;
+  --t-market-9: #a1887f;
+  --t-market-10: #ef5350;
 
   /* The Challenger Series ranks in their official badge colours, nudged
      only where two neighbours ran together: Platinum a little bluer and
@@ -135,6 +148,17 @@
      warm copper belongs with them, echoes the dark theme's gold, and still
      clears the ETH grey and the ink (worst pair ΔE 16 normal, 12 CVD). */
   --t-oi-line: #c27c2c;
+  /* The market hues deepened for cream, clear of the copper OI line. */
+  --t-market-1: #2f6fb0;
+  --t-market-2: #22876e;
+  --t-market-3: #c94f3d;
+  --t-market-4: #c2588a;
+  --t-market-5: #5f8f2a;
+  --t-market-6: #1890a3;
+  --t-market-7: #5562c0;
+  --t-market-8: #9b8a3a;
+  --t-market-9: #7a5c50;
+  --t-market-10: #a83279;
 
   /* The ranks a step deeper for cream; silver stays light enough to read as
      silver, its figure and badge carrying it where contrast is thin. */

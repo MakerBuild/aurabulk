@@ -13,12 +13,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CHART_GOLD, chartPrimaryRamp } from "@/lib/overview-metrics";
+import { CHART_GOLD, chartMarketColor, chartSlateRamp } from "@/lib/overview-metrics";
+import { marketBase } from "@/lib/bulk-exchange";
 import {
-  VOLUME_COINS,
   VOLUME_RANGES,
+  coinForSymbol,
   type VolumeBucket,
-  type VolumeCoin,
   type VolumeHistoryPayload,
   type VolumeRange,
 } from "@/lib/volume-history";
@@ -30,6 +30,7 @@ import {
 import { cn, formatUsd } from "@/lib/utils";
 import { loadVolume, peekVolume } from "@/lib/volume-history-client";
 import { SegmentedToggle } from "@/components/overview/SegmentedToggle";
+import { Select } from "@/components/ui/Select";
 import { formatUtcDay, formatUtcMonth, formatUtcTime } from "@/components/overview/spark-format";
 
 /** A range switch replays a short entrance; see `switched` below. */
@@ -37,12 +38,31 @@ const SWITCH_ENTRANCE_MS = 350;
 /** How often the ranges are refreshed in the background. */
 const KEEP_FRESH_MS = 120_000;
 
-const COIN_META: Record<VolumeCoin, { label: string; color: string }> = {
-  btc: { label: "BTC", color: chartPrimaryRamp(0, 4) },
-  eth: { label: "ETH", color: chartPrimaryRamp(1, 4) },
-  sol: { label: "SOL", color: chartPrimaryRamp(2, 4) },
-  others: { label: "Others", color: chartPrimaryRamp(3, 4) },
-};
+type MarketGroup = "all" | "crypto" | "tradfi";
+
+const GROUP_OPTIONS: { value: MarketGroup; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "crypto", label: "Crypto" },
+  { value: "tradfi", label: "TradFi" },
+];
+
+function inGroup(symbol: string, group: MarketGroup): boolean {
+  if (group === "all") return true;
+  return (coinForSymbol(symbol) === "tradfi") === (group === "tradfi");
+}
+
+/** Markets shown on their own until the picker is touched: the largest few. */
+const DEFAULT_PICKS = 3;
+
+/** The picker's entry, and the series key, for the markets not picked. */
+const OTHER = "other";
+
+/** A stacked series: one picked market, or the rest of the group as Other. */
+interface Series {
+  key: string;
+  label: string;
+  color: string;
+}
 
 const OI_COLOR = "var(--t-oi-line)";
 
@@ -64,9 +84,12 @@ function formatAxisTick(t: number, range: VolumeRange): string {
   return range === "Y" ? formatUtcMonth(t) : formatUtcDay(t);
 }
 
-/** A bucket as drawn: only the enabled coins, and no cumulative on W's days
- * still ahead. */
-type ChartRow = Omit<VolumeBucket, "cumulative"> & { cumulative: number | null };
+/** A bucket as drawn: the picked group's series by key, and no cumulative on
+ * W's days still ahead. */
+type ChartRow = Pick<VolumeBucket, "t" | "total" | "oi" | "future"> & {
+  cumulative: number | null;
+  [series: string]: number | null | true | undefined;
+};
 
 /** The right axes leave their zero unlabelled: the left axis already marks
  * the baseline, and a right-hand "$0.00" crowds the last date under it. */
@@ -94,12 +117,11 @@ export function VolumeChart() {
     setRange(next);
   };
   const entranceMs = switched ? SWITCH_ENTRANCE_MS : undefined;
-  const [enabled, setEnabled] = useState<Record<VolumeCoin, boolean>>({
-    btc: true,
-    eth: true,
-    sol: true,
-    others: false,
-  });
+  const [group, setGroup] = useState<MarketGroup>("all");
+  // Null until the picker is touched: then the largest markets of whatever
+  // range is on screen.
+  const [picked, setPicked] = useState<string[] | null>(null);
+  const [showOther, setShowOther] = useState(true);
   const [showCumulative, setShowCumulative] = useState(true);
   const [showOi, setShowOi] = useState(true);
   const [loaded, setLoaded] = useState<VolumeHistoryPayload | null>(null);
@@ -157,27 +179,66 @@ export function VolumeChart() {
     };
   }, []);
 
+  // The group's markets that traded in the range, largest first.
+  const groupMarkets = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const b of payload?.buckets ?? []) {
+      for (const [symbol, usd] of Object.entries(b.markets ?? {})) {
+        if (inGroup(symbol, group)) totals.set(symbol, (totals.get(symbol) ?? 0) + usd);
+      }
+    }
+    return [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([symbol]) => symbol);
+  }, [payload, group]);
+
+  // Stacked largest at the bottom, whatever order they were ticked in.
+  const picks = useMemo(
+    () => (picked ? groupMarkets.filter((m) => picked.includes(m)) : groupMarkets.slice(0, DEFAULT_PICKS)),
+    [groupMarkets, picked],
+  );
+  const hasRest = showOther && groupMarkets.length > picks.length;
+
+  // Colour by rank in the group, not among the picks, so ticking one market
+  // leaves the others their colours. Other stays slate.
+  const series = useMemo((): Series[] => {
+    const list = picks.map((m) => ({
+      key: m,
+      label: marketBase(m),
+      color: chartMarketColor(groupMarkets.indexOf(m)),
+    }));
+    if (hasRest) list.push({ key: OTHER, label: "Other", color: chartSlateRamp(3, 7) });
+    return list;
+  }, [picks, hasRest, groupMarkets]);
+
   const rows = useMemo(() => {
     const buckets = payload?.buckets ?? [];
     let running = 0;
     return buckets.map((b): ChartRow => {
-      const visible: ChartRow = {
-        ...b,
-        btc: enabled.btc ? b.btc : 0,
-        eth: enabled.eth ? b.eth : 0,
-        sol: enabled.sol ? b.sol : 0,
-        others: enabled.others ? b.others : 0,
-        total: 0,
-        cumulative: 0,
-      };
-      visible.total = visible.btc + visible.eth + visible.sol + visible.others;
+      const visible: ChartRow = { t: b.t, oi: b.oi, future: b.future, total: 0, cumulative: 0 };
+      let rest = 0;
+      for (const [symbol, usd] of Object.entries(b.markets ?? {})) {
+        if (!inGroup(symbol, group)) continue;
+        if (picks.includes(symbol)) visible[symbol] = usd;
+        else rest += usd;
+      }
+      if (hasRest) visible[OTHER] = rest;
+      for (const s of series) visible.total += Number(visible[s.key] ?? 0);
       running += visible.total;
       // Null, not the running total, on days still ahead: the lines stop at
       // today instead of running flat across the rest of the week.
       visible.cumulative = b.future ? null : running;
       return visible;
     });
-  }, [payload, enabled]);
+  }, [payload, group, picks, hasRest, series]);
+
+  const marketOptions = [
+    { value: OTHER, label: "Other" },
+    ...groupMarkets.map((m) => ({ value: m, label: marketBase(m) })),
+  ];
+  const pickerValues = showOther ? [OTHER, ...picks] : picks;
+  const pickerSummary =
+    picks.length === groupMarkets.length && groupMarkets.length > 0
+      ? "All markets"
+      : `${picks.length} ${picks.length === 1 ? "market" : "markets"}`;
 
   const barMax = Math.max(0, ...rows.map((r) => r.total));
   const cumMax = Math.max(0, ...rows.map((r) => r.cumulative ?? 0));
@@ -191,16 +252,37 @@ export function VolumeChart() {
   // One right-hand scale fits: cumulative keeps it when both are on, and OI
   // is then read from the tooltip.
   const oiAxisVisible = showOi && !showCumulative;
-  const lastEnabled = [...VOLUME_COINS].reverse().find((coin) => enabled[coin]) ?? null;
-
-  function toggleCoin(coin: VolumeCoin) {
-    setEnabled((prev) => ({ ...prev, [coin]: !prev[coin] }));
-  }
+  const topSeries = series.at(-1)?.key;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <p className="font-label m-0 text-text-muted">Total Volume</p>
+        <div className="flex items-center gap-3">
+          <p className="font-label m-0 text-text-muted">Total Volume</p>
+          <Select
+            bare
+            compact
+            options={GROUP_OPTIONS}
+            value={group}
+            onChange={(next) => {
+              setGroup(next as MarketGroup);
+              setPicked(null);
+            }}
+          />
+          <Select
+            multiple
+            searchable
+            bare
+            compact
+            options={marketOptions}
+            values={pickerValues}
+            summary={pickerSummary}
+            onChange={(values) => {
+              setShowOther(values.includes(OTHER));
+              setPicked(values.filter((v) => v !== OTHER));
+            }}
+          />
+        </div>
         <SegmentedToggle
           options={RANGE_OPTIONS}
           value={range}
@@ -211,28 +293,12 @@ export function VolumeChart() {
       </div>
 
       <div className="mt-2.5 flex flex-wrap items-center gap-4 text-[11px] text-text-muted select-none">
-        {VOLUME_COINS.map((coin) => {
-          const on = enabled[coin];
-          const meta = COIN_META[coin];
-          return (
-            <button
-              key={coin}
-              type="button"
-              onClick={() => toggleCoin(coin)}
-              aria-pressed={on}
-              className={cn(
-                "inline-flex items-center gap-[7px] transition-opacity",
-                on ? "text-text-secondary" : "opacity-40",
-              )}
-            >
-              <span
-                className="h-2 w-2 rounded-[1px]"
-                style={{ background: meta.color }}
-              />
-              {meta.label}
-            </button>
-          );
-        })}
+        {series.map((s) => (
+          <span key={s.key} className="inline-flex items-center gap-[7px] text-text-secondary">
+            <span className="h-2 w-2 rounded-[1px]" style={{ background: s.color }} />
+            {s.label}
+          </span>
+        ))}
         <button
           type="button"
           onClick={() => setShowCumulative((v) => !v)}
@@ -363,10 +429,10 @@ export function VolumeChart() {
                       <div className="min-w-[200px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3.5 py-3 font-sans text-[13px] leading-none tabular-nums shadow-[var(--t-shadow-pop)]">
                         <p className="m-0 text-text-muted">{formatAxisTick(Number(label), range)}</p>
                         <div className="mt-2.5 flex flex-col gap-2.5 border-t border-[var(--color-line)] pt-2.5">
-                          {VOLUME_COINS.filter((c) => enabled[c] && row[c] > 0).map((c) => (
-                            <p key={c} className="m-0 flex justify-between gap-8 text-text-secondary">
-                              <span>{COIN_META[c].label}</span>
-                              <span className="text-text-primary">{formatUsd(row[c])}</span>
+                          {series.filter((s) => Number(row[s.key]) > 0).map((s) => (
+                            <p key={s.key} className="m-0 flex justify-between gap-8 text-text-secondary">
+                              <span>{s.label}</span>
+                              <span className="text-text-primary">{formatUsd(Number(row[s.key]))}</span>
                             </p>
                           ))}
                         </div>
@@ -421,24 +487,22 @@ export function VolumeChart() {
                     activeDot={false}
                   />
                 )}
-                {VOLUME_COINS.map((coin) =>
-                  enabled[coin] ? (
-                    <Bar
-                      key={coin}
-                      yAxisId="bar"
-                      dataKey={coin}
-                      stackId="vol"
-                      fill={COIN_META[coin].color}
-                      barSize={OVERVIEW_BAR_W}
-                      animationDuration={entranceMs}
-                      radius={
-                        coin === lastEnabled
-                          ? [OVERVIEW_BAR_RADIUS, OVERVIEW_BAR_RADIUS, 0, 0]
-                          : 0
-                      }
-                    />
-                  ) : null,
-                )}
+                {series.map((s) => (
+                  <Bar
+                    key={s.key}
+                    yAxisId="bar"
+                    dataKey={s.key}
+                    stackId="vol"
+                    fill={s.color}
+                    barSize={OVERVIEW_BAR_W}
+                    animationDuration={entranceMs}
+                    radius={
+                      s.key === topSeries
+                        ? [OVERVIEW_BAR_RADIUS, OVERVIEW_BAR_RADIUS, 0, 0]
+                        : 0
+                    }
+                  />
+                ))}
                 {showCumulative && (
                   <Line
                     yAxisId="cum"

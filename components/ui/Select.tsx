@@ -3,7 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RowHighlight } from "@/components/ui/RowHighlight";
 import { dropdownMotion, dropdownRow } from "@/components/ui/dropdown-motion";
@@ -39,6 +39,9 @@ interface MultipleProps extends CommonProps {
   values: string[];
   onChange: (values: string[]) => void;
   summary: string;
+  /** A search box atop the list that narrows the options by label. It takes
+   *  the focus the list would, and the arrows still walk the options. */
+  searchable?: boolean;
 }
 
 type SelectProps = SingleProps | MultipleProps;
@@ -65,8 +68,13 @@ interface MenuCoords {
  */
 export function Select(props: SelectProps) {
   const { options, className, compact, bare } = props;
+  const searchable = props.multiple && props.searchable;
   const isPicked = (o: SelectOption) => (props.multiple ? props.values.includes(o.value) : o.value === props.value);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const shown = needle ? options.filter((o) => o.label.toLowerCase().includes(needle)) : options;
+  const searchRef = useRef<HTMLInputElement>(null);
   // The option the keyboard (or pointer) is on while the list is open.
   const [activeIndex, setActiveIndex] = useState(0);
   const listId = useId();
@@ -130,6 +138,7 @@ export function Select(props: SelectProps) {
 
   const openList = (index = selectedIndex) => {
     setActiveIndex(Math.max(0, index));
+    setQuery("");
     setOpen(true);
   };
 
@@ -141,7 +150,7 @@ export function Select(props: SelectProps) {
   };
 
   const choose = (index: number) => {
-    const option = options[index];
+    const option = shown[index];
     if (props.multiple) {
       if (!option) return;
       const on = props.values.includes(option.value);
@@ -157,8 +166,9 @@ export function Select(props: SelectProps) {
   // visibility:hidden, and a hidden element refuses focus.
   const placed = coords != null;
   useEffect(() => {
-    if (open && placed) listRef.current?.focus({ preventScroll: true });
-  }, [open, placed]);
+    if (!open || !placed) return;
+    (searchable ? searchRef.current : listRef.current)?.focus({ preventScroll: true });
+  }, [open, placed, searchable]);
 
   // Keep the active option in view when the arrows walk past the list's edge.
   useEffect(() => {
@@ -173,8 +183,10 @@ export function Select(props: SelectProps) {
     }
   };
 
-  const onListKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {
-    const last = options.length - 1;
+  const onListKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    const last = shown.length - 1;
+    // In the search box Home, End and Space edit the text.
+    if (e.target === searchRef.current && (e.key === "Home" || e.key === "End" || e.key === " ")) return;
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
@@ -290,7 +302,32 @@ export function Select(props: SelectProps) {
                   containerRef={listRef}
                   target={optionEls.current[activeIndex] ?? null}
                 />
-                {options.map((o, i) => {
+                {searchable && (
+                  <li role="presentation" className="sticky -top-1 z-10 -mx-1 -mt-1 mb-1 bg-[var(--color-bulk-base)] p-1">
+                    <label className="flex h-[30px] items-center gap-2 rounded-md border border-[var(--color-line)] px-2.5 focus-within:border-accent">
+                      <Search className="h-3.5 w-3.5 shrink-0 text-text-muted" />
+                      <input
+                        ref={searchRef}
+                        value={query}
+                        onChange={(e) => {
+                          setQuery(e.target.value);
+                          setActiveIndex(0);
+                        }}
+                        placeholder="Search"
+                        aria-label="Search"
+                        aria-controls={listId}
+                        aria-activedescendant={shown.length ? `${listId}-${activeIndex}` : undefined}
+                        className="min-w-0 flex-1 bg-transparent text-text-primary outline-none placeholder:text-text-muted"
+                      />
+                    </label>
+                  </li>
+                )}
+                {searchable && !shown.length && (
+                  <li role="presentation" className={cn("text-text-muted", compact ? "px-2.5 py-1.5" : "px-3 py-2")}>
+                    Nothing found
+                  </li>
+                )}
+                {shown.map((o, i) => {
                   const selectedOption = isPicked(o);
                   const current = i === activeIndex;
                   return (
@@ -319,7 +356,7 @@ export function Select(props: SelectProps) {
                           where it will be, not mid-step. */}
                       <motion.span
                         // Nearest the trigger first, whichever way it opens.
-                        custom={opensUpward ? options.length - 1 - i : i}
+                        custom={opensUpward ? shown.length - 1 - i : i}
                         variants={rowVariants}
                         className="flex w-full items-center justify-between"
                       >

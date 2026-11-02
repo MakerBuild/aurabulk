@@ -122,6 +122,16 @@ export function chartPrimaryRamp(index: number, count: number): string {
   return chartSlateRamp(index - 1, Math.max(1, count - 1));
 }
 
+const MARKET_HUES = 10;
+
+/** One colour per market where many stack at once (Total Volume): the
+ *  accent first, then ten distinct hues, repeating past eleven. The slate
+ *  ramp ran its neighbours together beyond four or five. */
+export function chartMarketColor(index: number): string {
+  if (index <= 0) return CHART_GOLD;
+  return `var(--t-market-${((index - 1) % MARKET_HUES) + 1})`;
+}
+
 /** Homepage ring stays at six named sources even though the palette now
  * has room for drill-downs. More than that and the legend crowds the tier
  * table it has to line up with. */
