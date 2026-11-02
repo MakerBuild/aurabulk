@@ -153,11 +153,17 @@ async function buildBuckets(
   bucketOf: (t: number) => number = (t) => bucketTime(t, interval),
 ): Promise<VolumeHistoryPayload> {
   const symbols = await marketSymbols();
+  // /klines leaves out the daily candle still open, so daily ranges ended at
+  // yesterday and missed a market listed today. Today comes from hourly
+  // candles instead, and any daily candle for it is dropped.
+  const today = interval === "1d" ? Math.floor(now / DAY_MS) * DAY_MS : null;
   const series = await Promise.all(
-    symbols.map(async (symbol) => ({
-      symbol,
-      candles: await fetchKlines(symbol, interval, startTime, now),
-    })),
+    symbols.map(async (symbol) => {
+      const candles = await fetchKlines(symbol, interval, startTime, now);
+      if (today == null) return { symbol, candles };
+      const hours = await fetchKlines(symbol, "1h", today, now);
+      return { symbol, candles: [...candles.filter((c) => Number(c.t) < today), ...hours] };
+    }),
   );
 
   const byTime = new Map<number, VolumeBucket>();
