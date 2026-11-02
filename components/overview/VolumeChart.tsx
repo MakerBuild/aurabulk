@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { holdBoot, useBootReady } from "@/lib/boot-gate";
 import {
   Area,
@@ -169,6 +169,53 @@ function LegendToggle({
       <span className="h-2 w-2 rounded-[1px]" style={{ background: series.color }} />
       {series.label}
     </button>
+  );
+}
+
+/** Space kept between the tooltip and the window's edge. */
+const TIP_EDGE = 8;
+
+/**
+ * The tooltip's box, lifted by however much of it would fall past the bottom
+ * of the window (and never past the top). Recharts places it below the
+ * pointer with no thought for the window, and a bar opened to every market
+ * ran off the screen. Measured from where Recharts is moving the tooltip,
+ * read off its transform, not where it is mid-glide.
+ */
+function TooltipFit({ className, children }: { className: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [lift, setLift] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const wrapper = el?.closest<HTMLElement>(".recharts-tooltip-wrapper");
+    if (!el || !wrapper) return;
+    const fit = () => {
+      const target = /translate(?:3d)?\(\s*[-\d.]+px,\s*([-\d.]+)px/.exec(wrapper.style.transform);
+      if (!target) return;
+      // Where the wrapper sits untranslated: its box now, less the part of
+      // the glide it has covered so far.
+      const gliding = new DOMMatrix(getComputedStyle(wrapper).transform).m42;
+      const top = wrapper.getBoundingClientRect().top - gliding + Number(target[1]);
+      const overflow = top + el.offsetHeight - (window.innerHeight - TIP_EDGE);
+      const next = overflow > 0 ? -Math.min(overflow, top - TIP_EDGE) : 0;
+      setLift((prev) => (Math.abs(next - prev) > 0.5 ? next : prev));
+    };
+    fit();
+    // Again whenever Recharts moves the tooltip or its rows change, which
+    // need not re-render this box.
+    const moved = new MutationObserver(fit);
+    moved.observe(wrapper, { attributes: true, attributeFilter: ["style"] });
+    const resized = new ResizeObserver(fit);
+    resized.observe(el);
+    return () => {
+      moved.disconnect();
+      resized.disconnect();
+    };
+  }, []);
+  return (
+    <div ref={ref} className={className} style={lift ? { transform: `translateY(${lift}px)` } : undefined}>
+      {children}
+    </div>
   );
 }
 
@@ -550,7 +597,7 @@ export function VolumeChart() {
                       // same space either side: the hour, the coins, the total
                       // (the one bold line), the running lines in their own
                       // colours. The margins live on the sections, not the rows.
-                      <div className="min-w-[200px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3.5 py-3 font-sans text-[13px] leading-none tabular-nums shadow-[var(--t-shadow-pop)]">
+                      <TooltipFit className="min-w-[200px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3.5 py-3 font-sans text-[13px] leading-none tabular-nums shadow-[var(--t-shadow-pop)]">
                         <p className="m-0 text-text-muted">{formatAxisTick(Number(label), range)}</p>
                         <div className="mt-2.5 flex flex-col gap-2 border-t border-[var(--color-line)] pt-2.5">
                           {tipRows.listed.map((s) => (
@@ -591,7 +638,7 @@ export function VolumeChart() {
                             )}
                           </div>
                         ) : null}
-                      </div>
+                      </TooltipFit>
                     );
                   }}
                 />
