@@ -23,7 +23,9 @@ export function SegmentedToggle<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("term-seg", className)}>
+    // Isolated so the labels' z-10 stays inside the toggle and no longer
+    // rises over a tooltip running down from the card above.
+    <div className={cn("term-seg isolate", className)}>
       {options.map((option) => {
         const on = option.value === value;
         return (

@@ -54,8 +54,53 @@ function inGroup(symbol: string, group: MarketGroup): boolean {
 /** Markets shown on their own until the picker is touched: the largest few. */
 const DEFAULT_PICKS = 3;
 
+/** Rows the tooltip lists before it sums the smallest into one line. */
+const TOOLTIP_ROWS = 6;
+
 /** The picker's entry, and the series key, for the markets not picked. */
 const OTHER = "other";
+/** The picker's entry that ticks or clears every market at once. */
+const ALL_MARKETS = "all-markets";
+
+/** Where the viewer's chart choices are kept between visits. */
+const PREFS_KEY = "overview:volume-chart";
+
+interface VolumePrefs {
+  range: VolumeRange;
+  group: MarketGroup;
+  picked: string[] | null;
+  showOther: boolean;
+  hidden: string[];
+  showCumulative: boolean;
+  showOi: boolean;
+}
+
+function loadPrefs(): Partial<VolumePrefs> | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PREFS_KEY) ?? "null") as Partial<VolumePrefs> | null;
+    if (!saved || typeof saved !== "object") return null;
+    const strings = (v: unknown) => Array.isArray(v) && v.every((s) => typeof s === "string");
+    return {
+      range: VOLUME_RANGES.includes(saved.range as VolumeRange) ? saved.range : undefined,
+      group: GROUP_OPTIONS.some((o) => o.value === saved.group) ? saved.group : undefined,
+      picked: saved.picked === null || strings(saved.picked) ? saved.picked : undefined,
+      showOther: typeof saved.showOther === "boolean" ? saved.showOther : undefined,
+      hidden: strings(saved.hidden) ? saved.hidden : undefined,
+      showCumulative: typeof saved.showCumulative === "boolean" ? saved.showCumulative : undefined,
+      showOi: typeof saved.showOi === "boolean" ? saved.showOi : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function savePrefs(prefs: VolumePrefs) {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    // Private windows and blocked storage: the choices just last the visit.
+  }
+}
 
 /** A stacked series: one picked market, or the rest of the group as Other. */
 interface Series {
@@ -105,6 +150,28 @@ function niceStep(rough: number): number {
   return step * magnitude;
 }
 
+function LegendToggle({
+  series,
+  on,
+  onToggle,
+}: {
+  series: Series;
+  on: boolean;
+  onToggle: (key: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(series.key)}
+      aria-pressed={on}
+      className={cn("inline-flex items-center gap-[7px] transition-opacity", on ? "text-text-secondary" : "opacity-40")}
+    >
+      <span className="h-2 w-2 rounded-[1px]" style={{ background: series.color }} />
+      {series.label}
+    </button>
+  );
+}
+
 export function VolumeChart() {
   const bootReady = useBootReady();
   const [range, setRange] = useState<VolumeRange>("1D");
@@ -122,8 +189,34 @@ export function VolumeChart() {
   // range is on screen.
   const [picked, setPicked] = useState<string[] | null>(null);
   const [showOther, setShowOther] = useState(true);
+  // Series switched off from the legend; they stay picked.
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
+  // The bar whose tooltip lists every market rather than the largest few.
+  const [expandedT, setExpandedT] = useState<number | null>(null);
   const [showCumulative, setShowCumulative] = useState(true);
   const [showOi, setShowOi] = useState(true);
+
+  // Saved choices are read after mount: the server rendered the defaults, and
+  // reading storage during render would not match it. Nothing is written
+  // until they are in, or the defaults would overwrite them.
+  const [prefsRead, setPrefsRead] = useState(false);
+  useEffect(() => {
+    const saved = loadPrefs();
+    if (saved) {
+      if (saved.range) setRange(saved.range);
+      if (saved.group) setGroup(saved.group);
+      if (saved.picked !== undefined) setPicked(saved.picked);
+      if (saved.showOther !== undefined) setShowOther(saved.showOther);
+      if (saved.hidden) setHidden(new Set(saved.hidden));
+      if (saved.showCumulative !== undefined) setShowCumulative(saved.showCumulative);
+      if (saved.showOi !== undefined) setShowOi(saved.showOi);
+    }
+    setPrefsRead(true);
+  }, []);
+  useEffect(() => {
+    if (!prefsRead) return;
+    savePrefs({ range, group, picked, showOther, hidden: [...hidden], showCumulative, showOi });
+  }, [prefsRead, range, group, picked, showOther, hidden, showCumulative, showOi]);
   const [loaded, setLoaded] = useState<VolumeHistoryPayload | null>(null);
   const [failedRange, setFailedRange] = useState<VolumeRange | null>(null);
   // Read during render, not after an effect, so switching to a range that is
@@ -208,6 +301,7 @@ export function VolumeChart() {
     if (hasRest) list.push({ key: OTHER, label: "Other", color: chartSlateRamp(3, 7) });
     return list;
   }, [picks, hasRest, groupMarkets]);
+  const drawn = useMemo(() => series.filter((s) => !hidden.has(s.key)), [series, hidden]);
 
   const rows = useMemo(() => {
     const buckets = payload?.buckets ?? [];
@@ -221,24 +315,41 @@ export function VolumeChart() {
         else rest += usd;
       }
       if (hasRest) visible[OTHER] = rest;
-      for (const s of series) visible.total += Number(visible[s.key] ?? 0);
+      for (const s of drawn) visible.total += Number(visible[s.key] ?? 0);
       running += visible.total;
       // Null, not the running total, on days still ahead: the lines stop at
       // today instead of running flat across the rest of the week.
       visible.cumulative = b.future ? null : running;
       return visible;
     });
-  }, [payload, group, picks, hasRest, series]);
+  }, [payload, group, picks, hasRest, drawn]);
 
+  function toggleSeries(key: string) {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  }
+
+  const allPicked = groupMarkets.length > 0 && picks.length === groupMarkets.length;
   const marketOptions = [
+    { value: ALL_MARKETS, label: "All markets" },
     { value: OTHER, label: "Other" },
     ...groupMarkets.map((m) => ({ value: m, label: marketBase(m) })),
   ];
-  const pickerValues = showOther ? [OTHER, ...picks] : picks;
-  const pickerSummary =
-    picks.length === groupMarkets.length && groupMarkets.length > 0
-      ? "All markets"
-      : `${picks.length} ${picks.length === 1 ? "market" : "markets"}`;
+  const pickerValues = [...(allPicked ? [ALL_MARKETS] : []), ...(showOther ? [OTHER] : []), ...picks];
+  const pickerSummary = allPicked ? "All markets" : `${picks.length} ${picks.length === 1 ? "market" : "markets"}`;
+
+  function changePicks(values: string[]) {
+    setShowOther(values.includes(OTHER));
+    // "All markets" ticks every market, or clears them all when unticked.
+    if (values.includes(ALL_MARKETS) !== allPicked) {
+      setPicked(allPicked ? [] : groupMarkets);
+      return;
+    }
+    setPicked(values.filter((v) => v !== OTHER && v !== ALL_MARKETS));
+  }
 
   const barMax = Math.max(0, ...rows.map((r) => r.total));
   const cumMax = Math.max(0, ...rows.map((r) => r.cumulative ?? 0));
@@ -252,7 +363,7 @@ export function VolumeChart() {
   // One right-hand scale fits: cumulative keeps it when both are on, and OI
   // is then read from the tooltip.
   const oiAxisVisible = showOi && !showCumulative;
-  const topSeries = series.at(-1)?.key;
+  const topSeries = drawn.at(-1)?.key;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -267,6 +378,7 @@ export function VolumeChart() {
             onChange={(next) => {
               setGroup(next as MarketGroup);
               setPicked(null);
+              setHidden(new Set());
             }}
           />
           <Select
@@ -277,10 +389,7 @@ export function VolumeChart() {
             options={marketOptions}
             values={pickerValues}
             summary={pickerSummary}
-            onChange={(values) => {
-              setShowOther(values.includes(OTHER));
-              setPicked(values.filter((v) => v !== OTHER));
-            }}
+            onChange={changePicks}
           />
         </div>
         <SegmentedToggle
@@ -294,10 +403,7 @@ export function VolumeChart() {
 
       <div className="mt-2.5 flex flex-wrap items-center gap-4 text-[11px] text-text-muted select-none">
         {series.map((s) => (
-          <span key={s.key} className="inline-flex items-center gap-[7px] text-text-secondary">
-            <span className="h-2 w-2 rounded-[1px]" style={{ background: s.color }} />
-            {s.label}
-          </span>
+          <LegendToggle key={s.key} series={s} on={!hidden.has(s.key)} onToggle={toggleSeries} />
         ))}
         <button
           type="button"
@@ -329,7 +435,7 @@ export function VolumeChart() {
       {/* The plot box is sized by the card alone — content sits in an
           absolute layer — so swapping the loading line for the chart never
           changes the height of the grid row this card shares with the donut. */}
-      <div className="volume-chart relative mt-2 min-h-[220px] flex-1 overflow-hidden xl:min-h-0">
+      <div className="volume-chart relative mt-2 min-h-[220px] flex-1 xl:min-h-0">
         <div className="absolute inset-0">
         {failed ? (
           <p className="m-0 pt-10 text-center font-sans text-[13px] text-text-dim">Couldn’t load volume.</p>
@@ -351,6 +457,13 @@ export function VolumeChart() {
                 margin={{ top: 6, right: 8, bottom: 4, left: 8 }}
                 barCategoryGap={OVERVIEW_BAR_GAP}
                 barGap={0}
+                // A click on a bar lists every market in its tooltip; a
+                // second click folds it back to the largest few.
+                onClick={(state) => {
+                  const t = Number(state?.activeLabel);
+                  if (Number.isFinite(t)) setExpandedT((prev) => (prev === t ? null : t));
+                }}
+                className="cursor-pointer"
               >
                 <defs>
                   {/* Cumulative area: wash for body, then a dot lattice turned
@@ -415,10 +528,21 @@ export function VolumeChart() {
                 />
                 <Tooltip
                   cursor={{ fill: "rgb(var(--t-veil-rgb)/0.03)" }}
+                  // Free to run past the plot downwards: with many markets it
+                  // is taller than the chart, and clamped it was cut off.
+                  allowEscapeViewBox={{ x: false, y: true }}
+                  wrapperStyle={{ zIndex: 30 }}
                   content={({ active, payload: tip, label }) => {
                     if (!active || !tip?.length) return null;
                     const row = tip[0]?.payload as ChartRow | undefined;
                     if (!row || row.future) return null;
+                    // Largest first; past TOOLTIP_ROWS the smallest share a line.
+                    const ranked = drawn
+                      .filter((s) => Number(row[s.key]) > 0)
+                      .sort((a, b) => Number(row[b.key]) - Number(row[a.key]));
+                    const cap = row.t === expandedT ? ranked.length : TOOLTIP_ROWS;
+                    const tipRows = { listed: ranked.slice(0, cap), rest: ranked.slice(cap) };
+                    if (tipRows.rest.length === 1) tipRows.listed.push(tipRows.rest.pop()!);
                     return (
                       // Readable first: the page's 13px text, room between
                       // rows, and every row on one grid, name at the left and
@@ -428,13 +552,22 @@ export function VolumeChart() {
                       // colours. The margins live on the sections, not the rows.
                       <div className="min-w-[200px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3.5 py-3 font-sans text-[13px] leading-none tabular-nums shadow-[var(--t-shadow-pop)]">
                         <p className="m-0 text-text-muted">{formatAxisTick(Number(label), range)}</p>
-                        <div className="mt-2.5 flex flex-col gap-2.5 border-t border-[var(--color-line)] pt-2.5">
-                          {series.filter((s) => Number(row[s.key]) > 0).map((s) => (
+                        <div className="mt-2.5 flex flex-col gap-2 border-t border-[var(--color-line)] pt-2.5">
+                          {tipRows.listed.map((s) => (
                             <p key={s.key} className="m-0 flex justify-between gap-8 text-text-secondary">
-                              <span>{s.label}</span>
+                              <span className="inline-flex items-center gap-[7px]">
+                                <span className="h-2 w-2 rounded-[1px]" style={{ background: s.color }} />
+                                {s.label}
+                              </span>
                               <span className="text-text-primary">{formatUsd(Number(row[s.key]))}</span>
                             </p>
                           ))}
+                          {tipRows.rest.length > 0 && (
+                            <p className="m-0 flex justify-between gap-8 text-text-muted">
+                              <span>+{tipRows.rest.length} more</span>
+                              <span>{formatUsd(tipRows.rest.reduce((sum, s) => sum + Number(row[s.key]), 0))}</span>
+                            </p>
+                          )}
                         </div>
                         <div className="mt-2.5 border-t border-[var(--color-line)] pt-2.5">
                           <p className="m-0 flex justify-between gap-8 font-semibold text-text-primary">
@@ -487,7 +620,7 @@ export function VolumeChart() {
                     activeDot={false}
                   />
                 )}
-                {series.map((s) => (
+                {drawn.map((s) => (
                   <Bar
                     key={s.key}
                     yAxisId="bar"
