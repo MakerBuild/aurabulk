@@ -52,12 +52,17 @@ const inFlight = new Map<string, Promise<MarketQualityPayload>>();
 
 let marketsCache: { at: number; data: ExchangeMarketInfo[] } | null = null;
 
+/** How often the list of trading markets is re-read. An hour here and an hour
+ *  more in Next's fetch cache kept newly opened markets off the page for up
+ *  to two hours; it is one small call. */
+const MARKETS_TTL_S = 300;
+
 /** Markets BULK lists but Execution leaves out of its ticker strip. */
 const HIDDEN_MARKETS = new Set(["PAPER-USD"]);
 
 async function tradingMarkets(): Promise<ExchangeMarketInfo[]> {
-  if (marketsCache && Date.now() - marketsCache.at < 3_600_000) return marketsCache.data;
-  const data = (await fetchTradingMarkets().catch(() => [])).filter((m) => !HIDDEN_MARKETS.has(m.symbol));
+  if (marketsCache && Date.now() - marketsCache.at < MARKETS_TTL_S * 1000) return marketsCache.data;
+  const data = (await fetchTradingMarkets(MARKETS_TTL_S).catch(() => [])).filter((m) => !HIDDEN_MARKETS.has(m.symbol));
   if (data.length) marketsCache = { at: Date.now(), data };
   return data.length ? data : (marketsCache?.data ?? []);
 }
