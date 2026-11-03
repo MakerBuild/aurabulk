@@ -61,7 +61,7 @@ const NAMED: Record<string, VolumeCoin> = {
 
 /** Stock perps. /exchangeInfo carries no asset class, so they are listed by
  *  name; a new stock market lands in Others until it is added here. */
-const TRADFI_BASES = new Set(["CRCL", "MSTR", "MU", "NVDA", "SKHYNIX", "SNDK", "TSLA"]);
+const TRADFI_BASES = new Set(["CRCL", "MSTR", "MU", "NVDA", "SKHYNIX", "SNDK", "SPACEX", "TSLA"]);
 
 /** Keyed, not a single slot: the Overview asks for `ALL:1h` and a range in the
  *  same render, and one shared slot made each call evict the other — every
@@ -104,6 +104,28 @@ function staleWhileRevalidate<T>(key: string, build: () => Promise<T>): Promise<
     return Promise.resolve(s.data as T);
   }
   return s.pending as Promise<T>;
+}
+
+const OPEN_CANDLES_TTL_MS = 30_000;
+const openCandleReads = new Map<string, { at: number; read: Promise<ExchangeCandle[]> }>();
+
+/**
+ * The finer candles that stand in for an open hour or day, shared by every
+ * range built at the same time: the ranges rebuild together, and a read per
+ * market per range was enough extra calls to draw 429s from the exchange.
+ */
+function openCandles(symbol: string, interval: string, from: number): Promise<ExchangeCandle[]> {
+  const key = `${symbol}:${interval}:${from}`;
+  const hit = openCandleReads.get(key);
+  if (hit && Date.now() - hit.at < OPEN_CANDLES_TTL_MS) return hit.read;
+  for (const [k, v] of openCandleReads) {
+    if (Date.now() - v.at >= OPEN_CANDLES_TTL_MS) openCandleReads.delete(k);
+  }
+  const read = fetchKlines(symbol, interval, from);
+  // A failed read is not kept: the next build asks again.
+  read.catch(() => openCandleReads.delete(key));
+  openCandleReads.set(key, { at: Date.now(), read });
+  return read;
 }
 
 function candleUsd(candle: ExchangeCandle): number {
@@ -153,16 +175,29 @@ async function buildBuckets(
   bucketOf: (t: number) => number = (t) => bucketTime(t, interval),
 ): Promise<VolumeHistoryPayload> {
   const symbols = await marketSymbols();
-  // /klines leaves out the daily candle still open, so daily ranges ended at
-  // yesterday and missed a market listed today. Today comes from hourly
-  // candles instead, and any daily candle for it is dropped.
+  // /klines leaves out the candle still open, so daily ranges ended at
+  // yesterday, hourly ones an hour back, and a market listed in that gap was
+  // missing altogether. The open day is filled from hourly candles and the
+  // open hour from minute candles, and any candle for either is dropped.
+  const hour = Math.floor(now / HOUR_MS) * HOUR_MS;
   const today = interval === "1d" ? Math.floor(now / DAY_MS) * DAY_MS : null;
+  const fillsHour = interval === "1h" || today != null;
   const series = await Promise.all(
     symbols.map(async (symbol) => {
-      const candles = await fetchKlines(symbol, interval, startTime, now);
-      if (today == null) return { symbol, candles };
-      const hours = await fetchKlines(symbol, "1h", today, now);
-      return { symbol, candles: [...candles.filter((c) => Number(c.t) < today), ...hours] };
+      const [candles, hours, minutes] = await Promise.all([
+        fetchKlines(symbol, interval, startTime, now),
+        today != null ? openCandles(symbol, "1h", today) : [],
+        fillsHour ? openCandles(symbol, "1m", hour) : [],
+      ]);
+      const closed = today ?? (fillsHour ? hour : Infinity);
+      return {
+        symbol,
+        candles: [
+          ...candles.filter((c) => Number(c.t) < closed),
+          ...hours.filter((c) => Number(c.t) < hour),
+          ...minutes,
+        ],
+      };
     }),
   );
 
@@ -194,6 +229,7 @@ async function buildBuckets(
   return { range, interval, buckets };
 }
 
+const HOUR_MS = 3_600_000;
 const DAY_MS = 86_400_000;
 const WEEK_DAYS = 7;
 
