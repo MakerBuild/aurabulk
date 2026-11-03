@@ -23,8 +23,9 @@ export interface WeeklyRevenuePayload {
    */
   source: "recorded" | "estimated";
   /** The week's traded volume hour by hour (each fill has one taker, so this
-   *  is taker volume too). The charts split the net revenue along it. */
-  hours: { t: number; volumeUsd: number }[];
+   *  is taker volume too). The charts split the net revenue along it.
+   *  `tradfiUsd` is the part on stock and other TradFi markets. */
+  hours: { t: number; volumeUsd: number; tradfiUsd: number }[];
   /** The exchange's open interest through the week, hour by hour, ending on
    *  the live print: for an Open Interest Gauntlet. */
   oi: { t: number; usd: number }[];
@@ -39,7 +40,7 @@ export async function buildWeeklyRevenue(): Promise<WeeklyRevenuePayload> {
   const baseline = netRevenueAt(points, weekStart);
 
   const hourly = await buildWeekHourly(weekStart);
-  const hours = hourly.map((b) => ({ t: b.t, volumeUsd: b.total }));
+  const hours = hourly.map((b) => ({ t: b.t, volumeUsd: b.total, tradfiUsd: b.tradfi }));
 
   let netRevenueUsd: number;
   let source: WeeklyRevenuePayload["source"];

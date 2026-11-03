@@ -155,8 +155,9 @@ export interface Gauntlet {
   name: string;
   /** What the Gauntlet ranks by, when the site can chart it. Taker volume
    *  is the exchange's volume: every fill has exactly one taker. Open
-   *  interest is charted from the exchange's own total, hour by hour. */
-  metric?: "takerVolume" | "openInterest";
+   *  interest is charted from the exchange's own total, hour by hour.
+   *  TradFi volume is the same as taker volume, on TradFi markets only. */
+  metric?: "takerVolume" | "openInterest" | "tradfiVolume";
 }
 
 /**
@@ -177,6 +178,7 @@ export const OI_GAUNTLET_ELIGIBLE_SHARE = 0.745;
 export const GAUNTLETS: Record<number, Gauntlet> = {
   2: { name: "Taker Volume", metric: "takerVolume" },
   3: { name: "Open Interest", metric: "openInterest" },
+  4: { name: "TradFi Volume", metric: "tradfiVolume" },
 };
 
 /** Season week (1 based) that the snapshot week starting at `weekStartMs`

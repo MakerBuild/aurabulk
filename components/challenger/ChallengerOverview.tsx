@@ -416,8 +416,31 @@ function poolAt(points: { t: number; usd: number }[], t: number): number {
 function weekSeries(anchor: WeeklyRevenuePayload, now: number, livePoolUsd: number) {
   const { weekStart, hours } = anchor;
   const anchorPool = prizePoolUsd(anchor.netRevenueUsd);
-  const weekVolumeUsd = hours.reduce((sum, h) => sum + h.volumeUsd, 0);
   const end = Math.max(now, anchor.at);
+  const elapsed = Math.max(HOUR_MS, end - weekStart);
+  const slots = weekDays(weekStart);
+  // Hourly buckets, so the 24h window starts on the hour that holds its edge.
+  const dayAgo = end - 86_400_000;
+
+  // One volume through the week: by day, so far, over the last 24h, and by
+  // Saturday at this pace. The whole exchange's, or TradFi's alone.
+  const volume = (usd: (hour: (typeof hours)[number]) => number) => {
+    const days = slots.map(() => 0);
+    let weekUsd = 0;
+    let last24hUsd = 0;
+    for (const hour of hours) {
+      const value = usd(hour);
+      weekUsd += value;
+      if (hour.t + HOUR_MS > dayAgo) last24hUsd += value;
+      const day = slots.findIndex((d) => hour.t >= d.start && hour.t < d.end);
+      if (day >= 0) days[day] += value;
+    }
+    return { days, weekUsd, last24hUsd, projectedUsd: (weekUsd * WEEK_MS) / elapsed };
+  };
+  const taker = volume((h) => h.volumeUsd);
+  // A payload built before TradFi was split out has no figure for it.
+  const tradfi = volume((h) => h.tradfiUsd ?? 0);
+  const weekVolumeUsd = taker.weekUsd;
 
   const points = [{ t: weekStart, usd: 0 }];
   let cumulative = 0;
@@ -428,20 +451,6 @@ function weekSeries(anchor: WeeklyRevenuePayload, now: number, livePoolUsd: numb
     points.push({ t, usd: weekVolumeUsd > 0 ? (anchorPool * cumulative) / weekVolumeUsd : 0 });
   }
   points.push({ t: end, usd: livePoolUsd });
-
-  const slots = weekDays(weekStart);
-  const days = slots.map(() => 0);
-  for (const hour of hours) {
-    const day = slots.findIndex((d) => hour.t >= d.start && hour.t < d.end);
-    if (day >= 0) days[day] += hour.volumeUsd;
-  }
-
-  const elapsed = Math.max(HOUR_MS, end - weekStart);
-  // Hourly buckets, so the 24h window starts on the hour that holds its edge.
-  const dayAgo = end - 86_400_000;
-  const last24hVolumeUsd = hours
-    .filter((h) => h.t + HOUR_MS > dayAgo)
-    .reduce((sum, h) => sum + h.volumeUsd, 0);
   // Open interest: each day's average of the hourly prints, the latest print,
   // its move over 24h, and the week's average so far.
   const oi = anchor.oi ?? [];
@@ -461,11 +470,9 @@ function weekSeries(anchor: WeeklyRevenuePayload, now: number, livePoolUsd: numb
 
   return {
     points,
-    days,
+    taker,
+    tradfi,
     oi: oiSeries,
-    weekVolumeUsd,
-    last24hVolumeUsd,
-    projectedVolumeUsd: (weekVolumeUsd * WEEK_MS) / elapsed,
     last24hUsd: livePoolUsd - poolAt(points, end - 86_400_000),
     projectedUsd: (livePoolUsd * WEEK_MS) / elapsed,
   };
@@ -527,6 +534,9 @@ export function ChallengerOverview({
   // The Gauntlet card's chart, or the calculator in its place.
   const [calculating, setCalculating] = useState(false);
   const canCalculate = gauntlet?.metric === "openInterest" && oiRate != null;
+  // The volume a volume Gauntlet ranks by.
+  const gauntletVolume =
+    gauntlet?.metric === "takerVolume" ? series?.taker : gauntlet?.metric === "tradfiVolume" ? series?.tradfi : undefined;
 
   const leagueCards = leagues.map((league, i) => {
     const selected = league.rank === board.rank;
@@ -707,11 +717,11 @@ export function ChallengerOverview({
               ) : undefined
             }
             delta={
-              series && gauntlet.metric === "takerVolume" ? (
+              gauntletVolume ? (
                 <>
-                  <span className="text-text-primary">{usdBoard(series.weekVolumeUsd)}</span>
+                  <span className="text-text-primary">{usdBoard(gauntletVolume.weekUsd)}</span>
                   <Up>
-                    <Over amount={formatSignedDelta(series.last24hVolumeUsd, usdBoard)} period="24h" />
+                    <Over amount={formatSignedDelta(gauntletVolume.last24hUsd, usdBoard)} period="24h" />
                   </Up>
                 </>
               ) : series?.oi && gauntlet.metric === "openInterest" ? (
@@ -724,8 +734,8 @@ export function ChallengerOverview({
             }
             chart={
               series &&
-              (gauntlet.metric === "takerVolume" ? (
-                <DayBars weekStart={weekStart} now={now} days={series.days} format={usdBoard} />
+              (gauntletVolume ? (
+                <DayBars weekStart={weekStart} now={now} days={gauntletVolume.days} format={usdBoard} />
               ) : gauntlet.metric === "openInterest" && series.oi ? (
                 <DayBars weekStart={weekStart} now={now} days={series.oi.days} format={usdBoard} average />
               ) : null)
@@ -754,11 +764,11 @@ export function ChallengerOverview({
                   ]
                 : [
                     { label: "Reward", value: count(GAUNTLET_AURA), unit: "AURA" },
-                    { label: "Projected volume", phoneLabel: "Proj. volume", value: series ? usdBoard(series.projectedVolumeUsd) : "—" },
+                    { label: "Projected volume", phoneLabel: "Proj. volume", value: gauntletVolume ? usdBoard(gauntletVolume.projectedUsd) : "—" },
                     {
                       label: "Per $1M traded",
                       phoneLabel: "Per $1M",
-                      value: series && series.weekVolumeUsd > 0 ? count(GAUNTLET_AURA / (series.weekVolumeUsd / 1e6)) : "—",
+                      value: gauntletVolume && gauntletVolume.weekUsd > 0 ? count(GAUNTLET_AURA / (gauntletVolume.weekUsd / 1e6)) : "—",
                       unit: "AURA",
                     },
                   ]
