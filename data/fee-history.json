@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-04T04:00:04.517Z",
+  "updatedAt": "2026-11-04T05:00:03.515Z",
   "points": [
     {
       "at": 1792603191695,
@@ -2226,6 +2226,13 @@
       "takerFeesUsd": 545466.711257,
       "makerRebatesUsd": 201934.867335,
       "netRevenueUsd": 343531.843922
+    },
+    {
+      "at": 1793768403340,
+      "settledFills": 2210097,
+      "takerFeesUsd": 546087.052371,
+      "makerRebatesUsd": 202170.033056,
+      "netRevenueUsd": 343917.019315
     }
   ]
 }
