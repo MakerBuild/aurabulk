@@ -29,6 +29,16 @@ const overpassMono = localFont({
   display: "swap",
 });
 
+/**
+ * Every page is static and refreshed hourly, the ones without their own
+ * config (/recap, the 404) too. The layout's exchange payload reads klines
+ * with no-store, and outside force-static that throws Dynamic server usage:
+ * the page lost its volume figures, and so did the shared candle cache when
+ * such a render was the one that started its rebuild.
+ */
+export const dynamic = "force-static";
+export const revalidate = 3600;
+
 const siteUrl = "https://www.aurabulk.xyz";
 const siteTitle = "AURA Intelligence | BULK Analytics Terminal";
 const siteDescription =

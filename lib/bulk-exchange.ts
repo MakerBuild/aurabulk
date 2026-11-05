@@ -60,7 +60,13 @@ export interface ExchangeCandle {
 const EXCHANGE_MAX_IN_FLIGHT = 6;
 /** Slots past that cap only an urgent call may take, so a live book poll
  *  never waits on a klines fan-out that only feeds a 30s volume figure.
- *  The total still stays under the ten where the 429s start. */
+ *  The total still stays under the ten where the 429s start.
+ *
+ *  Every single call is urgent: the book, the ticker and the /stats,
+ *  /metrics, /feeState and /exchangeInfo reads. Only klines, which come as a
+ *  call per market, go to the back. The volume history warm-up queues a few
+ *  hundred of them every five minutes, and /stats behind them kept
+ *  /api/live-exchange waiting 6–19s, even on a fetch-cache hit. */
 const EXCHANGE_URGENT_RESERVE = 2;
 let exchangeInFlight = 0;
 const exchangeQueue: Array<{ resolve: () => void; urgent: boolean }> = [];
@@ -117,7 +123,7 @@ async function exchangeFetch(
  * (and `/ticker` 24h volume / change) are currently wrong. Volume comes
  * from `fetchKlines`. */
 export async function fetchExchangeStats(revalidate = 15): Promise<ExchangeStats | null> {
-  const res = await exchangeFetch("/stats?period=1d", { revalidate });
+  const res = await exchangeFetch("/stats?period=1d", { revalidate, urgent: true });
   if (!res.ok) return null;
   return (await res.json()) as ExchangeStats;
 }
@@ -126,7 +132,10 @@ export async function fetchExchangeMetrics(
   noStore = false,
   revalidate = 5,
 ): Promise<ExchangeMetrics | null> {
-  const res = await exchangeFetch("/metrics", noStore ? { noStore: true } : { revalidate });
+  const res = await exchangeFetch("/metrics", {
+    ...(noStore ? { noStore: true } : { revalidate }),
+    urgent: true,
+  });
   if (!res.ok) return null;
   return (await res.json()) as ExchangeMetrics;
 }
@@ -156,7 +165,7 @@ interface FeeStatePayload {
  *  Upstream signs them from the protocol's side of the book: taker fees come
  *  back negative, maker rebates positive. */
 export async function fetchFeeTotals(revalidate = 10): Promise<FeeTotals | null> {
-  const res = await exchangeFetch("/feeState", { revalidate });
+  const res = await exchangeFetch("/feeState", { revalidate, urgent: true });
   if (!res.ok) return null;
   const data = (await res.json()) as FeeStatePayload;
   const netRevenueUsd = Number(data.totalProtocolSettlement);
@@ -172,17 +181,27 @@ export async function fetchFeeTotals(revalidate = 10): Promise<FeeTotals | null>
   };
 }
 
+/**
+ * With an `endTime` the read skips Next's fetch cache. Callers pass the
+ * current millisecond, so every call was a new cache key that was never read
+ * back, and each still wrote a file to .next/cache/fetch-cache: about 30
+ * markets per rebuild, until the folder held hundreds of thousands of files.
+ * Their own cache lives in memory (volume-history). Reads without one, the
+ * open hour's candles, keep a stable URL and the fetch cache still serves them.
+ */
 export async function fetchKlines(
   symbol: string,
   interval: string,
   startTime?: number,
   endTime?: number,
-  revalidate = 60,
 ): Promise<ExchangeCandle[]> {
   const params = new URLSearchParams({ symbol, interval });
   if (startTime != null) params.set("startTime", String(startTime));
   if (endTime != null) params.set("endTime", String(endTime));
-  const res = await exchangeFetch(`/klines?${params.toString()}`, { revalidate });
+  const res = await exchangeFetch(
+    `/klines?${params.toString()}`,
+    endTime != null ? { noStore: true } : { revalidate: 60 },
+  );
   // A market with no candles is a real empty series; anything else is a
   // failure and must not be summed as zero volume.
   if (res.status === 404) return [];
@@ -236,7 +255,7 @@ export interface ExchangeMarketInfo {
 
 /** Markets currently open for trading — the rest are listed as SUSPENDED. */
 export async function fetchTradingMarkets(revalidate = 3600): Promise<ExchangeMarketInfo[]> {
-  const res = await exchangeFetch("/exchangeInfo", { revalidate });
+  const res = await exchangeFetch("/exchangeInfo", { revalidate, urgent: true });
   if (!res.ok) return [];
   const data = (await res.json()) as unknown;
   if (!Array.isArray(data)) return [];

@@ -89,4 +89,9 @@ curl -fs -o /dev/null -m 60 "http://127.0.0.1:3000/api/live-exchange" || true
 
 # Keep the three newest releases for a quick manual rollback.
 ls -1dt "$RELEASES"/*/ | tail -n +4 | xargs -r rm -rf
+# The older two keep only their code: the running server's fetch cache can
+# hold hundreds of thousands of files, and a rollback rebuilds it anyway.
+for old in "$RELEASES"/*/; do
+  [[ "$(readlink -f "$old")" == "$RELEASE" ]] || rm -rf "$old.next/cache"
+done
 echo "[$(date -u +%FT%TZ)] live on $HEAD_SHA"

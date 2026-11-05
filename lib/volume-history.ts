@@ -334,8 +334,8 @@ async function buildCandleVolumes(revalidate: number): Promise<CandleVolumes> {
   const spliceMs = Math.floor(start24h / 3_600_000) * 3_600_000;
   const symbols = await marketSymbols(revalidate);
   const [minuteSeries, hourSeries] = await Promise.all([
-    Promise.all(symbols.map((symbol) => fetchKlines(symbol, "1m", spliceMs, now, revalidate))),
-    Promise.all(symbols.map((symbol) => fetchKlines(symbol, "1h", MAINNET_START_MS, now, revalidate))),
+    Promise.all(symbols.map((symbol) => fetchKlines(symbol, "1m", spliceMs, now))),
+    Promise.all(symbols.map((symbol) => fetchKlines(symbol, "1h", MAINNET_START_MS, now))),
   ]);
 
   const marketVolume24hUsd: Record<string, number> = {};
