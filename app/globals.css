@@ -1353,6 +1353,26 @@ input[type="number"] {
   letter-spacing: 0.01em;
 }
 
+/* Total Volume with many markets: Recharts' own entrance, each segment of a
+   stack growing up from its own base, played by CSS rather than Recharts
+   re-rendering every bar on every frame. The chart sets the class only for
+   the entrance: Recharts keys a bar by its value, so a data refresh remounts
+   the segments and would replay it. */
+.volume-bars-grow .volume-seg {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: volume-bars-grow var(--volume-bars-ms, 400ms) ease both;
+}
+
+@keyframes volume-bars-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
 /* FDV chart ticks sit over the card gloss; secondary fill disappeared into
    it, so they take the primary text colour. */
 .fdv-chart .recharts-text {

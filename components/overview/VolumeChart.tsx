@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { holdBoot, useBootReady } from "@/lib/boot-gate";
 import {
   Area,
@@ -53,6 +53,16 @@ function inGroup(symbol: string, group: MarketGroup): boolean {
 
 /** Markets shown on their own until the picker is touched: the largest few. */
 const DEFAULT_PICKS = 3;
+/** A bar with its top corners rounded, as Recharts draws `radius={[r, r, 0, 0]}`. */
+function roundedTopPath(x: number, y: number, w: number, h: number, radius: number): string {
+  const r = Math.max(0, Math.min(radius, w / 2, h));
+  return `M${x},${y + h}V${y + r}A${r},${r} 0 0 1 ${x + r},${y}H${x + w - r}A${r},${r} 0 0 1 ${x + w},${y + r}V${y + h}Z`;
+}
+
+/** The default picks plus Other: up to here Recharts plays its own entrance. */
+const MAX_ANIMATED_SERIES = DEFAULT_PICKS + 1;
+/** Recharts' own Bar entrance, matched by the CSS one. */
+const BAR_ENTRANCE_MS = 400;
 
 /** Rows the tooltip lists before it sums the smallest into one line. */
 const TOOLTIP_ROWS = 6;
@@ -349,6 +359,63 @@ export function VolumeChart() {
     return list;
   }, [picks, hasRest, groupMarkets]);
   const drawn = useMemo(() => series.filter((s) => !hidden.has(s.key)), [series, hidden]);
+  // A Recharts Bar per market was ~1,400 of its rectangles on ALL with every
+  // market picked: 0.4–0.7s to draw each switch, every hover redrew them all,
+  // and its entrance re-rendered them on each frame. Past the default picks
+  // the stack is one Bar of the total that draws its markets as plain rects
+  // (stackShape), and they grow through CSS (.volume-bars-grow).
+  const cssGrow = drawn.length > MAX_ANIMATED_SERIES;
+  const growMs = entranceMs ?? BAR_ENTRANCE_MS;
+  const stackShape = useMemo(() => {
+    const keys = drawn.map(({ key, color }) => ({ key, color }));
+    return function StackShape(props: unknown) {
+      const { x, y, width, height, payload: row } = props as {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        payload: ChartRow;
+      };
+      if (!(height > 0) || !(row.total > 0)) return <g />;
+      const perUsd = height / row.total;
+      let top = -1;
+      keys.forEach((k, i) => {
+        if (Number(row[k.key]) > 0) top = i;
+      });
+      let base = y + height;
+      const segments = keys.map((k, i) => {
+        const usd = Number(row[k.key]) || 0;
+        if (!(usd > 0)) return null;
+        const h = usd * perUsd;
+        base -= h;
+        return i === top ? (
+          <path key={k.key} className="volume-seg" fill={k.color} d={roundedTopPath(x, base, width, h, OVERVIEW_BAR_RADIUS)} />
+        ) : (
+          <rect key={k.key} className="volume-seg" fill={k.color} x={x} y={base} width={width} height={h} />
+        );
+      });
+      return <g>{segments}</g>;
+    };
+  }, [drawn]);
+  // The grow is on for the entrance only: a range switch or a change of
+  // picks. Set on the DOM rather than through state, so neither turning it on
+  // nor off re-renders the chart, and before paint, or the bars flash at full
+  // height first.
+  const chartBox = useRef<HTMLDivElement>(null);
+  const picksKey = picks.join();
+  // The chart mounts once the range's payload is in, which can be after the
+  // switch itself.
+  const chartUp = bootReady && payload != null;
+  useLayoutEffect(() => {
+    const box = chartBox.current;
+    if (!cssGrow || !chartUp || !box) return;
+    box.classList.add("volume-bars-grow");
+    const done = window.setTimeout(() => box.classList.remove("volume-bars-grow"), growMs + 100);
+    return () => {
+      window.clearTimeout(done);
+      box.classList.remove("volume-bars-grow");
+    };
+  }, [cssGrow, chartUp, range, picksKey, growMs]);
 
   const rows = useMemo(() => {
     const buckets = payload?.buckets ?? [];
@@ -497,7 +564,12 @@ export function VolumeChart() {
           !bootReady ? null : (
           // Keyed by range so each switch replays the entrance rather than
           // morphing one range's bars into another's.
-          <div key={range} className="h-full w-full">
+          <div
+            key={range}
+            ref={chartBox}
+            className="h-full w-full"
+            style={cssGrow ? ({ "--volume-bars-ms": `${growMs}ms` } as CSSProperties) : undefined}
+          >
             <ResponsiveContainer width="100%" height="100%" minHeight={90}>
               <ComposedChart
                 data={rows}
@@ -667,7 +739,15 @@ export function VolumeChart() {
                     activeDot={false}
                   />
                 )}
-                {drawn.map((s) => (
+                {cssGrow ? (
+                  <Bar
+                    yAxisId="bar"
+                    dataKey="total"
+                    barSize={OVERVIEW_BAR_W}
+                    isAnimationActive={false}
+                    shape={stackShape}
+                  />
+                ) : drawn.map((s) => (
                   <Bar
                     key={s.key}
                     yAxisId="bar"
