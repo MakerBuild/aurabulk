@@ -768,7 +768,12 @@ export function ChallengerOverview({
                     {
                       label: "Per $1M traded",
                       phoneLabel: "Per $1M",
-                      value: gauntletVolume && gauntletVolume.weekUsd > 0 ? count(GAUNTLET_AURA / (gauntletVolume.weekUsd / 1e6)) : "—",
+                      // Never past the whole reward: early in the week, with
+                      // under $1M traded, $1M would be all of it.
+                      value:
+                        gauntletVolume && gauntletVolume.weekUsd > 0
+                          ? count(GAUNTLET_AURA / Math.max(1, gauntletVolume.weekUsd / 1e6))
+                          : "—",
                       unit: "AURA",
                     },
                   ]
