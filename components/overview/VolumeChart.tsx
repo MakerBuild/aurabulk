@@ -139,6 +139,13 @@ function formatAxisTick(t: number, range: VolumeRange): string {
   return range === "Y" ? formatUtcMonth(t) : formatUtcDay(t);
 }
 
+/** The tooltip's heading. W's days run from the 12:00 UTC snapshot, not
+ *  midnight, so it gives the span: a day just begun reads as a few hours. */
+function formatTooltipLabel(t: number, range: VolumeRange): string {
+  if (range !== "W") return formatAxisTick(t, range);
+  return `${formatUtcDay(t)} ${formatUtcTime(t)} → ${formatUtcDay(t + 86_400_000)} ${formatUtcTime(t)} UTC`;
+}
+
 /** A bucket as drawn: the picked group's series by key, and no cumulative on
  * W's days still ahead. */
 type ChartRow = Pick<VolumeBucket, "t" | "total" | "oi" | "future"> & {
@@ -670,7 +677,7 @@ export function VolumeChart() {
                       // (the one bold line), the running lines in their own
                       // colours. The margins live on the sections, not the rows.
                       <TooltipFit className="min-w-[200px] rounded-lg border border-[var(--color-line-strong)] bg-[var(--t-bg-raised)] px-3.5 py-3 font-sans text-[13px] leading-none tabular-nums shadow-[var(--t-shadow-pop)]">
-                        <p className="m-0 text-text-muted">{formatAxisTick(Number(label), range)}</p>
+                        <p className="m-0 whitespace-nowrap text-text-muted">{formatTooltipLabel(Number(label), range)}</p>
                         <div className="mt-2.5 flex flex-col gap-2 border-t border-[var(--color-line)] pt-2.5">
                           {tipRows.listed.map((s) => (
                             <p key={s.key} className="m-0 flex justify-between gap-8 text-text-secondary">
