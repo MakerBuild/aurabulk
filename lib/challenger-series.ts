@@ -179,6 +179,7 @@ export const GAUNTLETS: Record<number, Gauntlet> = {
   2: { name: "Taker Volume", metric: "takerVolume" },
   3: { name: "Open Interest", metric: "openInterest" },
   4: { name: "TradFi Volume", metric: "tradfiVolume" },
+  5: { name: "TradFi Volume", metric: "tradfiVolume" },
 };
 
 /** Season week (1 based) that the snapshot week starting at `weekStartMs`
